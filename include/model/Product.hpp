@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+namespace factory {
+
 class Product {
 private:
     std::string name;
@@ -15,11 +17,13 @@ private:
 public:
     Product();
 
-    Product(const std::string& name,
-            int caffeineMg,
-            int sugarGram,
-            int volumeMl,
-            bool carbonated);
+    Product(
+        const std::string& name,
+        int caffeineMg,
+        int sugarGram,
+        int volumeMl,
+        bool carbonated
+    );
 
     void addIngredient(const std::string& ingredientName);
 
@@ -38,3 +42,5 @@ public:
 
     std::string getInfo() const;
 };
+
+}

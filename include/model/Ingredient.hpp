@@ -2,6 +2,8 @@
 
 #include <string>
 
+namespace factory {
+
 class Ingredient {
 private:
     std::string name;
@@ -12,11 +14,13 @@ public:
     Ingredient();
     Ingredient(const std::string& name, double amount, const std::string& unit);
 
-    std::string getName() const;
+    const std::string& getName() const;
     double getAmount() const;
-    std::string getUnit() const;
+    const std::string& getUnit() const;
 
     void setAmount(double amount);
-
-    std::string getInfo() const;
+    void addAmount(double amount);
+    bool consumeAmount(double amount);
 };
+
+}

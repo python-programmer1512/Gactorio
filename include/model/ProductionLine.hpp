@@ -7,6 +7,8 @@
 #include "Recipe.hpp"
 #include "Inventory.hpp"
 
+namespace factory {
+
 class ProductionLine {
 private:
     std::vector<std::shared_ptr<Factory>> factories;
@@ -20,3 +22,5 @@ public:
 
     int getFactoryCount() const;
 };
+
+}

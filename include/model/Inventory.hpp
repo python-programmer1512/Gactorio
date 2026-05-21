@@ -4,6 +4,8 @@
 #include <string>
 #include "Ingredient.hpp"
 
+namespace factory {
+
 class Inventory {
 private:
     std::map<std::string, Ingredient> stock;
@@ -18,3 +20,5 @@ public:
 
     std::string getStockInfo() const;
 };
+
+}

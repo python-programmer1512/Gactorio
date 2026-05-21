@@ -4,6 +4,8 @@
 #include <vector>
 #include "Ingredient.hpp"
 
+namespace factory {
+
 class Recipe {
 private:
     std::string recipeName;
@@ -14,10 +16,12 @@ private:
 
 public:
     Recipe();
-    Recipe(const std::string& recipeName,
-           int targetCaffeineMg,
-           int targetSugarGram,
-           int targetVolumeMl);
+    Recipe(
+        const std::string& recipeName,
+        int targetCaffeineMg,
+        int targetSugarGram,
+        int targetVolumeMl
+    );
 
     void addIngredient(const Ingredient& ingredient);
 
@@ -29,3 +33,5 @@ public:
 
     std::string getInfo() const;
 };
+
+}

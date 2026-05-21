@@ -2,6 +2,8 @@
 
 #include <string>
 
+namespace factory {
+
 class Machine {
 protected:
     std::string machineName;
@@ -19,3 +21,5 @@ public:
     std::string getMachineName() const;
     bool isRunning() const;
 };
+
+}
