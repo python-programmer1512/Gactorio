@@ -1,26 +1,50 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-#include "Factory.hpp"
-#include "Product.hpp"
-#include "Recipe.hpp"
-#include "Inventory.hpp"
+#include "common/Types.hpp"
+#include "dto/ProductionLineSnapshot.hpp"
+#include "model/Machine.hpp"
+#include "model/Product.hpp"
+#include "model/ProductionTask.hpp"
+#include "model/events/EventBus.hpp"
 
-namespace factory {
+#include <deque>
+#include <memory>
+#include <string>
+#include <vector>
+
+namespace gactorio {
 
 class ProductionLine {
-private:
-    std::vector<std::shared_ptr<Factory>> factories;
-
 public:
-    ProductionLine();
+    ProductionLine(ProductionLineId id, std::string name);
+    ProductionLine(const ProductionLine&) = delete;
+    ProductionLine& operator=(const ProductionLine&) = delete;
+    ProductionLine(ProductionLine&&) noexcept = default;
+    ProductionLine& operator=(ProductionLine&&) noexcept = default;
 
-    void addFactory(std::shared_ptr<Factory> factory);
+    ProductionLineId id() const;
+    const std::string& name() const;
+    const std::vector<std::unique_ptr<Machine>>& machines() const;
 
-    Product run(const Recipe& recipe, Inventory& inventory);
+    void setEventBus(EventBus* eventBus);
+    void enqueueProduct(std::shared_ptr<Product> product);
+    std::size_t queueLength() const;
+    std::shared_ptr<ProductionTask> currentTask() const;
+    ProductionLineSnapshot getSnapshot() const;
+    void assignAvailableTask();
+    std::vector<ProductId> collectCompletedProducts();
+    void addMachine(std::unique_ptr<Machine> machine);
+    Machine* findMachine(MachineId id);
+    const Machine* findMachine(MachineId id) const;
+    void update(double deltaTime);
 
-    int getFactoryCount() const;
+private:
+    ProductionLineId id_;
+    std::string name_;
+    std::deque<std::shared_ptr<ProductionTask>> taskQueue_;
+    std::vector<ProductId> completedProducts_;
+    std::vector<std::unique_ptr<Machine>> machines_;
+    EventBus* eventBus_ = nullptr;
 };
 
-}
+} // namespace gactorio

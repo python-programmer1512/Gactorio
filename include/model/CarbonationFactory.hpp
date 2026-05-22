@@ -1,20 +1,21 @@
 #pragma once
 
-#include "Factory.hpp"
-#include "Machine.hpp"
+#include "model/Factory.hpp"
+#include "model/Recipe.hpp"
 
-class CarbonationFactory : public Factory {
-private:
-    Machine carbonator;
-    int carbonationLevel;
+#include <vector>
 
+namespace gactorio {
+
+class CarbonationFactory final : public Factory {
 public:
     CarbonationFactory();
 
-    void setCarbonationLevel(int level);
-    int getCarbonationLevel() const;
+    const std::vector<Recipe>& recipes() const;
 
-    Product process(const Product& input,
-                    const Recipe& recipe,
-                    Inventory& inventory) override;
+private:
+    std::vector<Recipe> recipes_;
 };
+
+} // namespace gactorio
+

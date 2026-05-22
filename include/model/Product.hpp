@@ -1,46 +1,89 @@
 #pragma once
 
+#include "common/Types.hpp"
+
 #include <string>
 #include <vector>
 
-namespace factory {
+namespace gactorio {
 
-class Product {
-private:
-    std::string name;
-    int caffeineMg;
-    int sugarGram;
-    int volumeMl;
-    bool carbonated;
-    std::vector<std::string> ingredients;
-
+class ItemRequirement {
 public:
-    Product();
+    ItemRequirement(ItemType itemType, int quantity);
 
-    Product(
-        const std::string& name,
-        int caffeineMg,
-        int sugarGram,
-        int volumeMl,
-        bool carbonated
-    );
+    ItemType itemType() const;
+    int quantity() const;
 
-    void addIngredient(const std::string& ingredientName);
-
-    std::string getName() const;
-    int getCaffeineMg() const;
-    int getSugarGram() const;
-    int getVolumeMl() const;
-    bool isCarbonated() const;
-    std::vector<std::string> getIngredients() const;
-
-    void setName(const std::string& name);
-    void setCaffeineMg(int caffeineMg);
-    void setSugarGram(int sugarGram);
-    void setVolumeMl(int volumeMl);
-    void setCarbonated(bool carbonated);
-
-    std::string getInfo() const;
+private:
+    ItemType itemType_;
+    int quantity_;
 };
 
-}
+class ProcessStep {
+public:
+    ProcessStep(MachineRole requiredRole, SimulationTime baseDurationSeconds);
+
+    MachineRole requiredRole() const;
+    SimulationTime baseDurationSeconds() const;
+    SimulationTime durationSeconds() const;
+
+private:
+    MachineRole requiredRole_;
+    SimulationTime baseDurationSeconds_;
+};
+
+class Product {
+public:
+    virtual ~Product();
+
+    virtual ProductId getProductId() const = 0;
+    virtual const std::string& getName() const = 0;
+    virtual const std::vector<ItemRequirement>& getRequirements() const = 0;
+    virtual const std::vector<ProcessStep>& getRoute() const = 0;
+
+protected:
+    Product(ProductId id, std::string name, std::vector<ItemRequirement> requirements, std::vector<ProcessStep> route);
+
+    ProductId storedProductId() const;
+    const std::string& storedName() const;
+    const std::vector<ItemRequirement>& storedRequirements() const;
+    const std::vector<ProcessStep>& storedRoute() const;
+
+private:
+    ProductId id_;
+    std::string name_;
+    std::vector<ItemRequirement> requirements_;
+    std::vector<ProcessStep> route_;
+};
+
+class ToyCar final : public Product {
+public:
+    ToyCar();
+
+    ProductId getProductId() const override;
+    const std::string& getName() const override;
+    const std::vector<ItemRequirement>& getRequirements() const override;
+    const std::vector<ProcessStep>& getRoute() const override;
+};
+
+class MetalBox final : public Product {
+public:
+    MetalBox();
+
+    ProductId getProductId() const override;
+    const std::string& getName() const override;
+    const std::vector<ItemRequirement>& getRequirements() const override;
+    const std::vector<ProcessStep>& getRoute() const override;
+};
+
+class DroneFrame final : public Product {
+public:
+    DroneFrame();
+
+    ProductId getProductId() const override;
+    const std::string& getName() const override;
+    const std::vector<ItemRequirement>& getRequirements() const override;
+    const std::vector<ProcessStep>& getRoute() const override;
+};
+
+} // namespace gactorio

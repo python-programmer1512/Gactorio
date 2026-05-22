@@ -1,37 +1,32 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include "Ingredient.hpp"
+#include "common/Types.hpp"
 
-namespace factory {
+#include <map>
+#include <string>
+
+namespace gactorio {
 
 class Recipe {
-private:
-    std::string recipeName;
-    std::vector<Ingredient> ingredients;
-    int targetCaffeineMg;
-    int targetSugarGram;
-    int targetVolumeMl;
-
 public:
-    Recipe();
-    Recipe(
-        const std::string& recipeName,
-        int targetCaffeineMg,
-        int targetSugarGram,
-        int targetVolumeMl
-    );
+    Recipe(RecipeId id, std::string name, double durationSeconds);
 
-    void addIngredient(const Ingredient& ingredient);
+    RecipeId id() const;
+    const std::string& name() const;
+    double durationSeconds() const;
 
-    std::string getRecipeName() const;
-    std::vector<Ingredient> getIngredients() const;
-    int getTargetCaffeineMg() const;
-    int getTargetSugarGram() const;
-    int getTargetVolumeMl() const;
+    void addInput(ItemType itemType, int quantity);
+    void addOutput(ProductId productId, int quantity);
 
-    std::string getInfo() const;
+    const std::map<ItemType, int>& inputs() const;
+    const std::map<ProductId, int>& outputs() const;
+
+private:
+    RecipeId id_;
+    std::string name_;
+    double durationSeconds_;
+    std::map<ItemType, int> inputs_;
+    std::map<ProductId, int> outputs_;
 };
 
-}
+} // namespace gactorio

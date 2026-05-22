@@ -1,115 +1,154 @@
-#include "../../include/model/Product.hpp"
+#include "model/Product.hpp"
 
-#include <sstream>
+#include <utility>
 
-namespace factory {
+namespace gactorio {
 
-Product::Product()
-    : name(""),
-      caffeineMg(0),
-      sugarGram(0),
-      volumeMl(0),
-      carbonated(false) {
+ItemRequirement::ItemRequirement(ItemType itemType, int quantity)
+    : itemType_(itemType), quantity_(quantity) {}
+
+ItemType ItemRequirement::itemType() const {
+    return itemType_;
+}
+
+int ItemRequirement::quantity() const {
+    return quantity_;
+}
+
+ProcessStep::ProcessStep(MachineRole requiredRole, SimulationTime baseDurationSeconds)
+    : requiredRole_(requiredRole), baseDurationSeconds_(baseDurationSeconds) {}
+
+MachineRole ProcessStep::requiredRole() const {
+    return requiredRole_;
+}
+
+SimulationTime ProcessStep::baseDurationSeconds() const {
+    return baseDurationSeconds_;
+}
+
+SimulationTime ProcessStep::durationSeconds() const {
+    return baseDurationSeconds_;
 }
 
 Product::Product(
-    const std::string& name,
-    int caffeineMg,
-    int sugarGram,
-    int volumeMl,
-    bool carbonated
-)
-    : name(name),
-      caffeineMg(caffeineMg),
-      sugarGram(sugarGram),
-      volumeMl(volumeMl),
-      carbonated(carbonated) {
+    ProductId id,
+    std::string name,
+    std::vector<ItemRequirement> requirements,
+    std::vector<ProcessStep> route)
+    : id_(id),
+      name_(std::move(name)),
+      requirements_(std::move(requirements)),
+      route_(std::move(route)) {}
+
+Product::~Product() = default;
+
+ProductId Product::storedProductId() const {
+    return id_;
 }
 
-void Product::addIngredient(const std::string& ingredientName) {
-    ingredients.push_back(ingredientName);
+const std::string& Product::storedName() const {
+    return name_;
 }
 
-std::string Product::getName() const {
-    return name;
+const std::vector<ItemRequirement>& Product::storedRequirements() const {
+    return requirements_;
 }
 
-int Product::getCaffeineMg() const {
-    return caffeineMg;
+const std::vector<ProcessStep>& Product::storedRoute() const {
+    return route_;
 }
 
-int Product::getSugarGram() const {
-    return sugarGram;
+ToyCar::ToyCar()
+    : Product(
+          101,
+          "Toy Car",
+          {
+              ItemRequirement(ItemType::MetalPlate, 2),
+              ItemRequirement(ItemType::Screw, 4),
+              ItemRequirement(ItemType::Paint, 1),
+          },
+          {
+              ProcessStep(MachineRole::Processor, 2.0),
+              ProcessStep(MachineRole::Buffer, 0.5),
+              ProcessStep(MachineRole::Producer, 4.0),
+              ProcessStep(MachineRole::Buffer, 0.5),
+              ProcessStep(MachineRole::Output, 1.5),
+          }) {}
+
+ProductId ToyCar::getProductId() const {
+    return storedProductId();
 }
 
-int Product::getVolumeMl() const {
-    return volumeMl;
+const std::string& ToyCar::getName() const {
+    return storedName();
 }
 
-bool Product::isCarbonated() const {
-    return carbonated;
+const std::vector<ItemRequirement>& ToyCar::getRequirements() const {
+    return storedRequirements();
 }
 
-std::vector<std::string> Product::getIngredients() const {
-    return ingredients;
+const std::vector<ProcessStep>& ToyCar::getRoute() const {
+    return storedRoute();
 }
 
-void Product::setName(const std::string& name) {
-    this->name = name;
+MetalBox::MetalBox()
+    : Product(
+          102,
+          "Metal Box",
+          {
+              ItemRequirement(ItemType::MetalPlate, 3),
+              ItemRequirement(ItemType::Screw, 2),
+          },
+          {
+              ProcessStep(MachineRole::Processor, 3.0),
+              ProcessStep(MachineRole::Buffer, 0.5),
+          }) {}
+
+ProductId MetalBox::getProductId() const {
+    return storedProductId();
 }
 
-void Product::setCaffeineMg(int caffeineMg) {
-    if (caffeineMg < 0) {
-        this->caffeineMg = 0;
-        return;
-    }
-
-    this->caffeineMg = caffeineMg;
+const std::string& MetalBox::getName() const {
+    return storedName();
 }
 
-void Product::setSugarGram(int sugarGram) {
-    if (sugarGram < 0) {
-        this->sugarGram = 0;
-        return;
-    }
-
-    this->sugarGram = sugarGram;
+const std::vector<ItemRequirement>& MetalBox::getRequirements() const {
+    return storedRequirements();
 }
 
-void Product::setVolumeMl(int volumeMl) {
-    if (volumeMl < 0) {
-        this->volumeMl = 0;
-        return;
-    }
-
-    this->volumeMl = volumeMl;
+const std::vector<ProcessStep>& MetalBox::getRoute() const {
+    return storedRoute();
 }
 
-void Product::setCarbonated(bool carbonated) {
-    this->carbonated = carbonated;
+DroneFrame::DroneFrame()
+    : Product(
+          103,
+          "Drone Frame",
+          {
+              ItemRequirement(ItemType::RawMaterial, 2),
+              ItemRequirement(ItemType::MetalPlate, 6),
+              ItemRequirement(ItemType::Screw, 8),
+          },
+          {
+              ProcessStep(MachineRole::Processor, 2.0),
+              ProcessStep(MachineRole::Producer, 6.0),
+              ProcessStep(MachineRole::Output, 2.0),
+          }) {}
+
+ProductId DroneFrame::getProductId() const {
+    return storedProductId();
 }
 
-std::string Product::getInfo() const {
-    std::ostringstream oss;
-
-    oss << "===== Product Info =====\n";
-    oss << "Name: " << name << "\n";
-    oss << "Caffeine: " << caffeineMg << " mg\n";
-    oss << "Sugar: " << sugarGram << " g\n";
-    oss << "Volume: " << volumeMl << " ml\n";
-    oss << "Carbonated: " << (carbonated ? "Yes" : "No") << "\n";
-
-    oss << "Ingredients:\n";
-
-    if (ingredients.empty()) {
-        oss << "- No ingredients registered.\n";
-    } else {
-        for (const std::string& ingredient : ingredients) {
-            oss << "- " << ingredient << "\n";
-        }
-    }
-
-    return oss.str();
+const std::string& DroneFrame::getName() const {
+    return storedName();
 }
 
+const std::vector<ItemRequirement>& DroneFrame::getRequirements() const {
+    return storedRequirements();
 }
+
+const std::vector<ProcessStep>& DroneFrame::getRoute() const {
+    return storedRoute();
+}
+
+} // namespace gactorio

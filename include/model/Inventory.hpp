@@ -1,24 +1,31 @@
 #pragma once
 
-#include <map>
-#include <string>
-#include "Ingredient.hpp"
+#include "common/Types.hpp"
+#include "model/Product.hpp"
 
-namespace factory {
+#include <map>
+#include <vector>
+
+namespace gactorio {
 
 class Inventory {
-private:
-    std::map<std::string, Ingredient> stock;
-
 public:
-    Inventory();
+    void addItem(ItemType itemType, int amount);
+    void addProduct(ProductId productId, int quantity);
 
-    void addIngredient(const Ingredient& ingredient);
-    bool hasIngredient(const std::string& name, double requiredAmount) const;
-    bool useIngredient(const std::string& name, double amount);
-    double getAmount(const std::string& name) const;
+    bool hasEnough(const std::vector<ItemRequirement>& requirements) const;
+    bool consume(const std::vector<ItemRequirement>& requirements);
+    int getQuantity(ItemType itemType) const;
 
-    std::string getStockInfo() const;
+    bool canConsume(const std::map<ItemType, int>& inputs) const;
+    bool consume(const std::map<ItemType, int>& inputs);
+
+    const std::map<ItemType, int>& items() const;
+    const std::map<ProductId, int>& products() const;
+
+private:
+    std::map<ItemType, int> items_;
+    std::map<ProductId, int> products_;
 };
 
-}
+} // namespace gactorio

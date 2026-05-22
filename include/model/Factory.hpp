@@ -1,24 +1,56 @@
 #pragma once
 
-#include <string>
-#include "Product.hpp"
-#include "Recipe.hpp"
-#include "Inventory.hpp"
+#include "common/SimClock.hpp"
+#include "common/Types.hpp"
+#include "model/Inventory.hpp"
+#include "model/ProductionLine.hpp"
+#include "model/events/EventBus.hpp"
+#include "model/events/EventLogObserver.hpp"
+#include "model/events/StatisticsObserver.hpp"
 
-namespace factory {
-    class Factory {
-    protected:
-        std::string factoryName;
+#include <vector>
 
-    public:
-        Factory();
-        Factory(const std::string& factoryName);
-        virtual ~Factory() = default;
+namespace gactorio {
 
-        virtual Product process(const Product& input,
-                                const Recipe& recipe,
-                                Inventory& inventory) = 0;
+class Factory {
+public:
+    Factory();
+    virtual ~Factory() = default;
 
-        std::string getFactoryName() const;
-    };
-}
+    SimulationTime simulationTime() const;
+    const Inventory& inventory() const;
+    Inventory& inventory();
+    const std::vector<ProductionLine>& productionLines() const;
+    const std::vector<Machine*>& machines() const;
+    const EventLog& eventLog() const;
+    const Statistics& statistics() const;
+    EventBus& eventBus();
+    const EventBus& eventBus() const;
+    const SimClock& clock() const;
+
+    void addProductionLine(ProductionLine line);
+    ProductionLine* findProductionLine(LineId id);
+    const ProductionLine* findProductionLine(LineId id) const;
+    Machine* findMachine(MachineId id);
+    SimulationTime update(double realDeltaTime);
+    void pauseClock();
+    void resumeClock();
+    void resetClock();
+    void stopClock();
+    void setClockSpeed(double speedMultiplier);
+
+protected:
+    EventLog& mutableEventLog();
+    Statistics& mutableStatistics();
+
+private:
+    SimClock clock_;
+    Inventory inventory_;
+    std::vector<ProductionLine> productionLines_;
+    std::vector<Machine*> machines_;
+    EventBus eventBus_;
+    EventLogObserver eventLog_;
+    StatisticsObserver statistics_;
+};
+
+} // namespace gactorio

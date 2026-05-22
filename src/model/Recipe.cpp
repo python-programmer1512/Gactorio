@@ -1,78 +1,38 @@
-#include "../../include/model/Recipe.hpp"
+#include "model/Recipe.hpp"
 
-#include <sstream>
+#include <utility>
 
-namespace factory {
+namespace gactorio {
 
-Recipe::Recipe()
-    : recipeName(""),
-      targetCaffeineMg(0),
-      targetSugarGram(0),
-      targetVolumeMl(0) {
+Recipe::Recipe(RecipeId id, std::string name, double durationSeconds)
+    : id_(id), name_(std::move(name)), durationSeconds_(durationSeconds) {}
+
+RecipeId Recipe::id() const {
+    return id_;
 }
 
-Recipe::Recipe(
-    const std::string& recipeName,
-    int targetCaffeineMg,
-    int targetSugarGram,
-    int targetVolumeMl
-)
-    : recipeName(recipeName),
-      targetCaffeineMg(targetCaffeineMg),
-      targetSugarGram(targetSugarGram),
-      targetVolumeMl(targetVolumeMl) {
+const std::string& Recipe::name() const {
+    return name_;
 }
 
-void Recipe::addIngredient(const Ingredient& ingredient) {
-    ingredients.push_back(ingredient);
+double Recipe::durationSeconds() const {
+    return durationSeconds_;
 }
 
-std::string Recipe::getRecipeName() const {
-    return recipeName;
+void Recipe::addInput(ItemType itemType, int quantity) {
+    inputs_[itemType] += quantity;
 }
 
-std::vector<Ingredient> Recipe::getIngredients() const {
-    return ingredients;
+void Recipe::addOutput(ProductId productId, int quantity) {
+    outputs_[productId] += quantity;
 }
 
-int Recipe::getTargetCaffeineMg() const {
-    return targetCaffeineMg;
+const std::map<ItemType, int>& Recipe::inputs() const {
+    return inputs_;
 }
 
-int Recipe::getTargetSugarGram() const {
-    return targetSugarGram;
+const std::map<ProductId, int>& Recipe::outputs() const {
+    return outputs_;
 }
 
-int Recipe::getTargetVolumeMl() const {
-    return targetVolumeMl;
-}
-
-std::string Recipe::getInfo() const {
-    std::ostringstream oss;
-
-    oss << "===== Recipe Info =====\n";
-    oss << "Recipe Name: " << recipeName << "\n";
-    oss << "Target Caffeine: " << targetCaffeineMg << " mg\n";
-    oss << "Target Sugar: " << targetSugarGram << " g\n";
-    oss << "Target Volume: " << targetVolumeMl << " ml\n";
-
-    oss << "Required Ingredients:\n";
-
-    if (ingredients.empty()) {
-        oss << "- No ingredients registered.\n";
-    } else {
-        for (const Ingredient& ingredient : ingredients) {
-            oss << "- "
-                << ingredient.getName()
-                << ": "
-                << ingredient.getAmount()
-                << " "
-                << ingredient.getUnit()
-                << "\n";
-        }
-    }
-
-    return oss.str();
-}
-
-}
+} // namespace gactorio

@@ -1,39 +1,400 @@
-#include "../../include/model/Machine.hpp"
+#include "model/Machine.hpp"
 
-namespace factory {
+#include "model/MachineStates.hpp"
 
-Machine::Machine()
-    : machineName("Unnamed Machine"),
-      running(false) {
+#include <algorithm>
+#include <utility>
+
+namespace gactorio {
+
+Machine::Machine(MachineId id, std::string name)
+    : Machine(id, std::move(name), 1.0, 100.0, 0.0) {}
+
+Machine::Machine(
+    MachineId id,
+    std::string name,
+    double processingSpeed,
+    double initialHealth,
+    double breakdownProbability)
+    : id_(id),
+      name_(std::move(name)),
+      state_(std::make_unique<IdleState>()),
+      health_(std::clamp(initialHealth, 0.0, 100.0)),
+      processingSpeed_(std::max(0.0, processingSpeed)),
+      breakdownProbability_(std::clamp(breakdownProbability, 0.0, 1.0)) {
+    if (health_ <= 0.0) {
+        status_ = MachineStatus::Broken;
+        state_ = std::make_unique<BrokenState>();
+    }
 }
 
-Machine::Machine(const std::string& machineName)
-    : machineName(machineName),
-      running(false) {
+Machine::~Machine() = default;
+
+MachineId Machine::id() const {
+    return id_;
 }
 
-void Machine::start() {
-    running = true;
+const std::string& Machine::name() const {
+    return name_;
 }
 
-void Machine::stop() {
-    running = false;
+double Machine::progress() const {
+    return getProgress();
 }
 
-std::string Machine::getStatus() const {
-    if (running) {
-        return machineName + " is running.";
+std::string Machine::stateName() const {
+    return state_ ? state_->name() : "Unknown";
+}
+
+const std::optional<Recipe>& Machine::recipe() const {
+    return recipe_;
+}
+
+bool Machine::hasTask() const {
+    return task_ != nullptr && !task_->isCompleted();
+}
+
+bool Machine::assignTask(std::shared_ptr<ProductionTask> task) {
+    if (!canAcceptTask() || task == nullptr || task->currentStep() == nullptr) {
+        return false;
+    }
+    if (!canProcess(task->currentStep()->requiredRole())) {
+        return false;
     }
 
-    return machineName + " is stopped.";
+    task_ = std::move(task);
+    progress_ = 0.0;
+    notify(EventType::TaskEnqueued, name_ + " accepted " + task_->getProductName());
+    notify(EventType::TaskStarted, name_ + " started " + task_->getProductName());
+    transitionToWorking("task assigned");
+    return true;
 }
 
-std::string Machine::getMachineName() const {
-    return machineName;
+void Machine::setRecipe(const Recipe& recipe) {
+    if (canAcceptRecipe(recipe)) {
+        recipe_ = recipe;
+    }
 }
 
-bool Machine::isRunning() const {
-    return running;
+void Machine::setState(std::unique_ptr<MachineState> state) {
+    if (state_) {
+        state_->exit(*this);
+    }
+    state_ = std::move(state);
+    if (state_) {
+        state_->enter(*this);
+    }
 }
 
+void Machine::setEventBus(EventBus* eventBus) {
+    eventBus_ = eventBus;
 }
+
+void Machine::update(double deltaTime) {
+    simulationTime_ += std::max(0.0, deltaTime);
+    if (state_) {
+        state_->update(*this, deltaTime);
+    }
+}
+
+bool Machine::canAcceptTask() const {
+    return task_ == nullptr && status_ == MachineStatus::Idle && health_ > 0.0;
+}
+
+bool Machine::canProcess(MachineRole role) const {
+    return this->role() == role;
+}
+
+MachineSnapshot Machine::getSnapshot() const {
+    return MachineSnapshot(id_, name_, typeName(), status_, stateName(), getProgress(), health_);
+}
+
+void Machine::forceBreak() {
+    transitionToBroken("forced breakdown");
+}
+
+void Machine::repair() {
+    transitionToMaintenance("repair requested");
+}
+
+MachineId Machine::getId() const {
+    return id_;
+}
+
+const std::string& Machine::getName() const {
+    return name_;
+}
+
+MachineStatus Machine::getStatus() const {
+    return status_;
+}
+
+double Machine::getProgress() const {
+    if (task_ == nullptr || task_->currentStep() == nullptr) {
+        return progress_;
+    }
+
+    const auto totalSteps = task_->totalStepCount();
+    if (totalSteps == 0) {
+        return 1.0;
+    }
+
+    const auto currentStepProgress = progress_ / task_->currentStep()->baseDurationSeconds();
+    return task_->getProgressInRoute() + (currentStepProgress / static_cast<double>(totalSteps));
+}
+
+double Machine::getHealth() const {
+    return health_;
+}
+
+double Machine::getProcessingSpeed() const {
+    return processingSpeed_;
+}
+
+double Machine::getBreakdownProbability() const {
+    return breakdownProbability_;
+}
+
+void Machine::pause() {
+    if (status_ == MachineStatus::Broken || status_ == MachineStatus::Maintenance) {
+        return;
+    }
+    transitionToIdle("paused");
+    notify(EventType::MachinePaused, name_ + " paused");
+}
+
+void Machine::resume() {
+    if (status_ == MachineStatus::Broken || status_ == MachineStatus::Maintenance) {
+        return;
+    }
+    transitionToWorking("resumed");
+    notify(EventType::TaskStarted, name_ + " resumed");
+}
+
+void Machine::advanceProduction(double deltaTime) {
+    if (task_ != nullptr && task_->currentStep() != nullptr) {
+        const auto stepDuration = task_->currentStep()->baseDurationSeconds();
+        if (stepDuration <= 0.0) {
+            task_->advanceStep();
+            notify(EventType::StepCompleted, name_ + " completed a process step");
+            progress_ = 0.0;
+            return;
+        }
+
+        progress_ += std::max(0.0, deltaTime) * processingSpeed_;
+        if (progress_ >= stepDuration) {
+            progress_ = 0.0;
+            task_->advanceStep();
+            notify(EventType::StepCompleted, name_ + " completed a process step");
+            if (task_->isCompleted()) {
+                notify(EventType::ProductCompleted, name_ + " completed " + task_->getProductName());
+                task_.reset();
+                transitionToIdle("task completed");
+            } else {
+                task_.reset();
+                transitionToIdle("step completed");
+            }
+        }
+        return;
+    }
+
+    if (!recipe_.has_value() || recipe_->durationSeconds() <= 0.0) {
+        return;
+    }
+
+    progress_ += (std::max(0.0, deltaTime) * processingSpeed_) / recipe_->durationSeconds();
+    if (progress_ >= 1.0) {
+        progress_ = 0.0;
+        notify(EventType::ProductCompleted, name_ + " completed " + recipe_->name());
+    }
+}
+
+void Machine::advanceMaintenance(double deltaTime) {
+    maintenanceElapsed_ += std::max(0.0, deltaTime);
+    if (maintenanceElapsed_ >= maintenanceDuration_) {
+        health_ = 100.0;
+        progress_ = 0.0;
+        task_.reset();
+        notify(EventType::MachineRepaired, name_ + " repaired");
+        transitionToIdle("maintenance completed");
+    }
+}
+
+void Machine::transitionToIdle(const std::string& reason) {
+    const auto previous = status_;
+    status_ = MachineStatus::Idle;
+    maintenanceElapsed_ = 0.0;
+    setState(std::make_unique<IdleState>());
+    onStateTransition(previous, status_, reason);
+}
+
+void Machine::transitionToWorking(const std::string& reason) {
+    if (status_ == MachineStatus::Broken || status_ == MachineStatus::Maintenance) {
+        return;
+    }
+
+    const auto previous = status_;
+    status_ = MachineStatus::Working;
+    setState(std::make_unique<WorkingState>());
+    onStateTransition(previous, status_, reason);
+}
+
+void Machine::transitionToBroken(const std::string& reason) {
+    const auto previous = status_;
+    health_ = 0.0;
+    progress_ = 0.0;
+    status_ = MachineStatus::Broken;
+    setState(std::make_unique<BrokenState>());
+    onStateTransition(previous, status_, reason);
+    notify(EventType::MachineBroken, name_ + " broke down");
+}
+
+void Machine::transitionToMaintenance(const std::string& reason) {
+    const auto previous = status_;
+    maintenanceElapsed_ = 0.0;
+    progress_ = 0.0;
+    status_ = MachineStatus::Maintenance;
+    setState(std::make_unique<MaintenanceState>());
+    onStateTransition(previous, status_, reason);
+}
+
+void Machine::onStateTransition(MachineStatus from, MachineStatus to, const std::string& reason) {
+    if (from == to) {
+        return;
+    }
+
+    notify(EventType::StateChanged, name_ + " state changed: " + reason);
+}
+
+void Machine::notify(EventType type, const std::string& message) const {
+    if (eventBus_ != nullptr) {
+        eventBus_->publish(Event(simulationTime_, type, id_, message));
+    }
+}
+
+Carbonator::Carbonator(
+    MachineId id,
+    std::string name,
+    double processingSpeed,
+    double initialHealth,
+    double breakdownProbability)
+    : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
+
+std::string Carbonator::typeName() const {
+    return "Carbonator";
+}
+
+ProcessType Carbonator::processType() const {
+    return ProcessType::Carbonation;
+}
+
+MachineRole Carbonator::role() const {
+    return MachineRole::Processor;
+}
+
+bool Carbonator::canAcceptRecipe(const Recipe& recipe) const {
+    (void)recipe;
+    return true;
+}
+
+Cutter::Cutter(
+    MachineId id,
+    std::string name,
+    double processingSpeed,
+    double initialHealth,
+    double breakdownProbability)
+    : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
+
+std::string Cutter::typeName() const {
+    return "Cutter";
+}
+
+ProcessType Cutter::processType() const {
+    return ProcessType::Assembly;
+}
+
+MachineRole Cutter::role() const {
+    return MachineRole::Processor;
+}
+
+bool Cutter::canAcceptRecipe(const Recipe& recipe) const {
+    (void)recipe;
+    return true;
+}
+
+Conveyor::Conveyor(
+    MachineId id,
+    std::string name,
+    double processingSpeed,
+    double initialHealth,
+    double breakdownProbability)
+    : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
+
+std::string Conveyor::typeName() const {
+    return "Conveyor";
+}
+
+ProcessType Conveyor::processType() const {
+    return ProcessType::Storage;
+}
+
+MachineRole Conveyor::role() const {
+    return MachineRole::Buffer;
+}
+
+bool Conveyor::canAcceptRecipe(const Recipe& recipe) const {
+    (void)recipe;
+    return true;
+}
+
+Assembler::Assembler(
+    MachineId id,
+    std::string name,
+    double processingSpeed,
+    double initialHealth,
+    double breakdownProbability)
+    : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
+
+std::string Assembler::typeName() const {
+    return "Assembler";
+}
+
+ProcessType Assembler::processType() const {
+    return ProcessType::Assembly;
+}
+
+MachineRole Assembler::role() const {
+    return MachineRole::Producer;
+}
+
+bool Assembler::canAcceptRecipe(const Recipe& recipe) const {
+    (void)recipe;
+    return true;
+}
+
+Painter::Painter(
+    MachineId id,
+    std::string name,
+    double processingSpeed,
+    double initialHealth,
+    double breakdownProbability)
+    : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
+
+std::string Painter::typeName() const {
+    return "Painter";
+}
+
+ProcessType Painter::processType() const {
+    return ProcessType::Assembly;
+}
+
+MachineRole Painter::role() const {
+    return MachineRole::Output;
+}
+
+bool Painter::canAcceptRecipe(const Recipe& recipe) const {
+    (void)recipe;
+    return true;
+}
+
+} // namespace gactorio
