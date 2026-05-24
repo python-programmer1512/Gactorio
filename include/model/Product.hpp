@@ -7,10 +7,10 @@
 
 namespace gactorio {
 
+// Item quantity required to start producing a Product unit.
 class ItemRequirement {
 public:
     ItemRequirement(ItemType itemType, int quantity);
-
     ItemType itemType() const;
     int quantity() const;
 
@@ -19,10 +19,11 @@ private:
     int quantity_;
 };
 
+// One stage on a product's route: which kind of station handles it and how
+// many seconds it takes at base speed.
 class ProcessStep {
 public:
     ProcessStep(MachineRole requiredRole, SimulationTime baseDurationSeconds);
-
     MachineRole requiredRole() const;
     SimulationTime baseDurationSeconds() const;
     SimulationTime durationSeconds() const;
@@ -32,6 +33,11 @@ private:
     SimulationTime baseDurationSeconds_;
 };
 
+// Product is the abstract base for every finished good. Each concrete product
+// declares its ingredient list (ItemRequirement) and its route through the
+// four stations (ProcessStep) — these are read from JSON-equivalent data
+// baked into the constructor today; tomorrow the same shape can be loaded
+// from data/factory_config.json.
 class Product {
 public:
     virtual ~Product();
@@ -42,7 +48,10 @@ public:
     virtual const std::vector<ProcessStep>& getRoute() const = 0;
 
 protected:
-    Product(ProductId id, std::string name, std::vector<ItemRequirement> requirements, std::vector<ProcessStep> route);
+    Product(ProductId id,
+            std::string name,
+            std::vector<ItemRequirement> requirements,
+            std::vector<ProcessStep> route);
 
     ProductId storedProductId() const;
     const std::string& storedName() const;
@@ -56,30 +65,33 @@ private:
     std::vector<ProcessStep> route_;
 };
 
-class ToyCar final : public Product {
+// -----------------------------------------------------------------------------
+// Three energy drinks. Times mirror data/factory_config.json:
+//   Voltz Classic : MIXING 13s, QUALITY 9s, BOTTLING 9s, PACKAGING 9s
+//   Hyper Bolt    : MIXING 18s, QUALITY 12s, BOTTLING 9s, PACKAGING 9s
+//   Aurora Zero   : MIXING 17s, QUALITY 12s, BOTTLING 9s, PACKAGING 11s
+// -----------------------------------------------------------------------------
+class VoltzClassic final : public Product {
 public:
-    ToyCar();
-
+    VoltzClassic();
     ProductId getProductId() const override;
     const std::string& getName() const override;
     const std::vector<ItemRequirement>& getRequirements() const override;
     const std::vector<ProcessStep>& getRoute() const override;
 };
 
-class MetalBox final : public Product {
+class HyperBolt final : public Product {
 public:
-    MetalBox();
-
+    HyperBolt();
     ProductId getProductId() const override;
     const std::string& getName() const override;
     const std::vector<ItemRequirement>& getRequirements() const override;
     const std::vector<ProcessStep>& getRoute() const override;
 };
 
-class DroneFrame final : public Product {
+class AuroraZero final : public Product {
 public:
-    DroneFrame();
-
+    AuroraZero();
     ProductId getProductId() const override;
     const std::string& getName() const override;
     const std::vector<ItemRequirement>& getRequirements() const override;

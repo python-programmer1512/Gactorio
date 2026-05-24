@@ -5,9 +5,11 @@
 #include <memory>
 
 int main() {
-    const gactorio::ToyCar product;
+    // VoltzClassic's first step is Mixing; pair it with a MixingStation
+    // so the role-aware assignTask succeeds.
+    const gactorio::VoltzClassic product;
     auto task = std::make_shared<gactorio::ProductionTask>(product);
-    gactorio::Assembler machine(1, "Assembler State Test");
+    gactorio::MixingStation machine(1, "Mixer State Test");
 
     assert(machine.getStatus() == gactorio::MachineStatus::Idle);
     assert(machine.stateName() == "Idle");

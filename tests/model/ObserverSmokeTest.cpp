@@ -15,16 +15,18 @@ int main() {
     bus.subscribe(&log);
     bus.subscribe(&stats);
 
-    const gactorio::ToyCar product;
+    const gactorio::VoltzClassic product;
     auto task = std::make_shared<gactorio::ProductionTask>(product);
-    gactorio::Cutter machine(1, "Observed Cutter");
+    gactorio::MixingStation machine(1, "Observed Mixer");
     machine.setEventBus(&bus);
 
     assert(machine.canAcceptTask());
     assert(task->currentStep() != nullptr);
     assert(machine.canProcess(task->currentStep()->requiredRole()));
     assert(machine.assignTask(task));
-    machine.update(4.0);
+
+    // Advance long enough to finish the first 13-second mixing step.
+    machine.update(13.5);
     machine.forceBreak();
     machine.repair();
     machine.update(2.0);
@@ -39,14 +41,9 @@ int main() {
     bool sawTaskEnqueued = false;
     bool sawStateChanged = false;
     for (const auto& event : log.events()) {
-        if (event.type() == gactorio::EventType::TaskEnqueued) {
-            sawTaskEnqueued = true;
-        }
-        if (event.type() == gactorio::EventType::StateChanged) {
-            sawStateChanged = true;
-        }
+        if (event.type() == gactorio::EventType::TaskEnqueued) sawTaskEnqueued = true;
+        if (event.type() == gactorio::EventType::StateChanged) sawStateChanged = true;
     }
-
     assert(sawTaskEnqueued);
     assert(sawStateChanged);
 

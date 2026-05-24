@@ -28,10 +28,10 @@ const char* eventTypeName(gactorio::EventType t) {
 const char* productTypeName(gactorio::ProductType t) {
     using gactorio::ProductType;
     switch (t) {
-    case ProductType::ToyCar:     return "Toy Car";
-    case ProductType::MetalBox:   return "Metal Box";
-    case ProductType::DroneFrame: return "Drone Frame";
-    case ProductType::Unknown:    return "Unknown";
+    case ProductType::VoltzClassic: return "Voltz Classic";
+    case ProductType::HyperBolt:    return "Hyper Bolt";
+    case ProductType::AuroraZero:   return "Aurora Zero";
+    case ProductType::Unknown:      return "Unknown";
     }
     return "Unknown";
 }
@@ -111,17 +111,17 @@ void FactoryPanel::render() {
             ImGui::TextDisabled("Active task  : (idle)");
         }
 
-        // Enqueue product buttons
-        if (ImGui::SmallButton("+ Toy Car")) {
-            m_ctrl.enqueueProduct(line.id(), gactorio::ProductType::ToyCar);
+        // Enqueue product buttons — three energy drinks from the JSON catalog
+        if (ImGui::SmallButton("+ Voltz Classic")) {
+            m_ctrl.enqueueProduct(line.id(), gactorio::ProductType::VoltzClassic);
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("+ Metal Box")) {
-            m_ctrl.enqueueProduct(line.id(), gactorio::ProductType::MetalBox);
+        if (ImGui::SmallButton("+ Hyper Bolt")) {
+            m_ctrl.enqueueProduct(line.id(), gactorio::ProductType::HyperBolt);
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("+ Drone Frame")) {
-            m_ctrl.enqueueProduct(line.id(), gactorio::ProductType::DroneFrame);
+        if (ImGui::SmallButton("+ Aurora Zero")) {
+            m_ctrl.enqueueProduct(line.id(), gactorio::ProductType::AuroraZero);
         }
 
         // Machines on this line

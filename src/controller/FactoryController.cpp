@@ -23,12 +23,12 @@ InventorySnapshot makeInventorySnapshot(const Inventory& inventory) {
 
 std::unique_ptr<Product> makeProduct(ProductType productType) {
     switch (productType) {
-    case ProductType::ToyCar:
-        return std::make_unique<ToyCar>();
-    case ProductType::MetalBox:
-        return std::make_unique<MetalBox>();
-    case ProductType::DroneFrame:
-        return std::make_unique<DroneFrame>();
+    case ProductType::VoltzClassic:
+        return std::make_unique<VoltzClassic>();
+    case ProductType::HyperBolt:
+        return std::make_unique<HyperBolt>();
+    case ProductType::AuroraZero:
+        return std::make_unique<AuroraZero>();
     case ProductType::Unknown:
     default:
         return nullptr;

@@ -4,37 +4,32 @@
 
 namespace gactorio {
 
+// -----------------------------------------------------------------------------
+// ItemRequirement
+// -----------------------------------------------------------------------------
 ItemRequirement::ItemRequirement(ItemType itemType, int quantity)
     : itemType_(itemType), quantity_(quantity) {}
 
-ItemType ItemRequirement::itemType() const {
-    return itemType_;
-}
+ItemType ItemRequirement::itemType() const { return itemType_; }
+int      ItemRequirement::quantity() const { return quantity_; }
 
-int ItemRequirement::quantity() const {
-    return quantity_;
-}
-
+// -----------------------------------------------------------------------------
+// ProcessStep
+// -----------------------------------------------------------------------------
 ProcessStep::ProcessStep(MachineRole requiredRole, SimulationTime baseDurationSeconds)
     : requiredRole_(requiredRole), baseDurationSeconds_(baseDurationSeconds) {}
 
-MachineRole ProcessStep::requiredRole() const {
-    return requiredRole_;
-}
+MachineRole    ProcessStep::requiredRole() const        { return requiredRole_; }
+SimulationTime ProcessStep::baseDurationSeconds() const { return baseDurationSeconds_; }
+SimulationTime ProcessStep::durationSeconds() const     { return baseDurationSeconds_; }
 
-SimulationTime ProcessStep::baseDurationSeconds() const {
-    return baseDurationSeconds_;
-}
-
-SimulationTime ProcessStep::durationSeconds() const {
-    return baseDurationSeconds_;
-}
-
-Product::Product(
-    ProductId id,
-    std::string name,
-    std::vector<ItemRequirement> requirements,
-    std::vector<ProcessStep> route)
+// -----------------------------------------------------------------------------
+// Product (abstract)
+// -----------------------------------------------------------------------------
+Product::Product(ProductId id,
+                 std::string name,
+                 std::vector<ItemRequirement> requirements,
+                 std::vector<ProcessStep> route)
     : id_(id),
       name_(std::move(name)),
       requirements_(std::move(requirements)),
@@ -42,113 +37,90 @@ Product::Product(
 
 Product::~Product() = default;
 
-ProductId Product::storedProductId() const {
-    return id_;
-}
+ProductId          Product::storedProductId()    const { return id_; }
+const std::string& Product::storedName()         const { return name_; }
+const std::vector<ItemRequirement>& Product::storedRequirements() const { return requirements_; }
+const std::vector<ProcessStep>&     Product::storedRoute()        const { return route_; }
 
-const std::string& Product::storedName() const {
-    return name_;
-}
-
-const std::vector<ItemRequirement>& Product::storedRequirements() const {
-    return requirements_;
-}
-
-const std::vector<ProcessStep>& Product::storedRoute() const {
-    return route_;
-}
-
-ToyCar::ToyCar()
+// -----------------------------------------------------------------------------
+// Voltz Classic — standard energy drink, fast and cheap.
+//   Recipe per data/factory_config.json: 13 + 9 + 9 + 9 = 40s
+// -----------------------------------------------------------------------------
+VoltzClassic::VoltzClassic()
     : Product(
           101,
-          "Toy Car",
+          "Voltz Classic",
           {
-              ItemRequirement(ItemType::MetalPlate, 2),
-              ItemRequirement(ItemType::Screw, 4),
-              ItemRequirement(ItemType::Paint, 1),
+              ItemRequirement(ItemType::Ingredient,  2),
+              ItemRequirement(ItemType::Water,       1),
+              ItemRequirement(ItemType::EmptyBottle, 1),
+              ItemRequirement(ItemType::Label,       1),
+              ItemRequirement(ItemType::Package,     1),
           },
           {
-              ProcessStep(MachineRole::Processor, 2.0),
-              ProcessStep(MachineRole::Buffer, 0.5),
-              ProcessStep(MachineRole::Producer, 4.0),
-              ProcessStep(MachineRole::Buffer, 0.5),
-              ProcessStep(MachineRole::Output, 1.5),
+              ProcessStep(MachineRole::Mixing,    13.0),
+              ProcessStep(MachineRole::Quality,    9.0),
+              ProcessStep(MachineRole::Bottling,   9.0),
+              ProcessStep(MachineRole::Packaging,  9.0),
           }) {}
 
-ProductId ToyCar::getProductId() const {
-    return storedProductId();
-}
+ProductId          VoltzClassic::getProductId() const         { return storedProductId(); }
+const std::string& VoltzClassic::getName() const              { return storedName(); }
+const std::vector<ItemRequirement>& VoltzClassic::getRequirements() const { return storedRequirements(); }
+const std::vector<ProcessStep>&     VoltzClassic::getRoute()        const { return storedRoute(); }
 
-const std::string& ToyCar::getName() const {
-    return storedName();
-}
-
-const std::vector<ItemRequirement>& ToyCar::getRequirements() const {
-    return storedRequirements();
-}
-
-const std::vector<ProcessStep>& ToyCar::getRoute() const {
-    return storedRoute();
-}
-
-MetalBox::MetalBox()
+// -----------------------------------------------------------------------------
+// Hyper Bolt — premium high-caffeine, heavier MIXING & QUALITY work.
+//   Recipe: 18 + 12 + 9 + 9 = 48s
+// -----------------------------------------------------------------------------
+HyperBolt::HyperBolt()
     : Product(
           102,
-          "Metal Box",
+          "Hyper Bolt",
           {
-              ItemRequirement(ItemType::MetalPlate, 3),
-              ItemRequirement(ItemType::Screw, 2),
+              ItemRequirement(ItemType::Ingredient,  3),
+              ItemRequirement(ItemType::Water,       1),
+              ItemRequirement(ItemType::EmptyBottle, 1),
+              ItemRequirement(ItemType::Label,       1),
+              ItemRequirement(ItemType::Package,     1),
           },
           {
-              ProcessStep(MachineRole::Processor, 3.0),
-              ProcessStep(MachineRole::Buffer, 0.5),
+              ProcessStep(MachineRole::Mixing,    18.0),
+              ProcessStep(MachineRole::Quality,   12.0),
+              ProcessStep(MachineRole::Bottling,   9.0),
+              ProcessStep(MachineRole::Packaging,  9.0),
           }) {}
 
-ProductId MetalBox::getProductId() const {
-    return storedProductId();
-}
+ProductId          HyperBolt::getProductId() const            { return storedProductId(); }
+const std::string& HyperBolt::getName() const                 { return storedName(); }
+const std::vector<ItemRequirement>& HyperBolt::getRequirements() const { return storedRequirements(); }
+const std::vector<ProcessStep>&     HyperBolt::getRoute()        const { return storedRoute(); }
 
-const std::string& MetalBox::getName() const {
-    return storedName();
-}
-
-const std::vector<ItemRequirement>& MetalBox::getRequirements() const {
-    return storedRequirements();
-}
-
-const std::vector<ProcessStep>& MetalBox::getRoute() const {
-    return storedRoute();
-}
-
-DroneFrame::DroneFrame()
+// -----------------------------------------------------------------------------
+// Aurora Zero — sugar-free specialty, very careful QUALITY check and PACKAGING.
+//   Recipe: 17 + 12 + 9 + 11 = 49s
+// -----------------------------------------------------------------------------
+AuroraZero::AuroraZero()
     : Product(
           103,
-          "Drone Frame",
+          "Aurora Zero",
           {
-              ItemRequirement(ItemType::RawMaterial, 2),
-              ItemRequirement(ItemType::MetalPlate, 6),
-              ItemRequirement(ItemType::Screw, 8),
+              ItemRequirement(ItemType::Ingredient,  2),
+              ItemRequirement(ItemType::Water,       1),
+              ItemRequirement(ItemType::EmptyBottle, 1),
+              ItemRequirement(ItemType::Label,       1),
+              ItemRequirement(ItemType::Package,     1),
           },
           {
-              ProcessStep(MachineRole::Processor, 2.0),
-              ProcessStep(MachineRole::Producer, 6.0),
-              ProcessStep(MachineRole::Output, 2.0),
+              ProcessStep(MachineRole::Mixing,    17.0),
+              ProcessStep(MachineRole::Quality,   12.0),
+              ProcessStep(MachineRole::Bottling,   9.0),
+              ProcessStep(MachineRole::Packaging, 11.0),
           }) {}
 
-ProductId DroneFrame::getProductId() const {
-    return storedProductId();
-}
-
-const std::string& DroneFrame::getName() const {
-    return storedName();
-}
-
-const std::vector<ItemRequirement>& DroneFrame::getRequirements() const {
-    return storedRequirements();
-}
-
-const std::vector<ProcessStep>& DroneFrame::getRoute() const {
-    return storedRoute();
-}
+ProductId          AuroraZero::getProductId() const           { return storedProductId(); }
+const std::string& AuroraZero::getName() const                { return storedName(); }
+const std::vector<ItemRequirement>& AuroraZero::getRequirements() const { return storedRequirements(); }
+const std::vector<ProcessStep>&     AuroraZero::getRoute()        const { return storedRoute(); }
 
 } // namespace gactorio

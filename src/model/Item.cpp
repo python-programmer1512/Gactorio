@@ -4,72 +4,44 @@
 
 namespace gactorio {
 
-Item::Item(std::string name)
-    : name_(std::move(name)) {}
-
+Item::Item(std::string name) : name_(std::move(name)) {}
 Item::~Item() = default;
 
-const std::string& Item::storedName() const {
-    return name_;
-}
+const std::string& Item::storedName() const { return name_; }
 
-RawMaterial::RawMaterial()
-    : Item("Raw Material") {}
+// -----------------------------------------------------------------------------
+// Concrete items for the energy-drink factory
+// -----------------------------------------------------------------------------
+Ingredient::Ingredient() : Item("Ingredient") {}
+ItemType Ingredient::getTypeId() const           { return ItemType::Ingredient; }
+const std::string& Ingredient::getName() const   { return storedName(); }
 
-ItemType RawMaterial::getTypeId() const {
-    return ItemType::RawMaterial;
-}
+Water::Water() : Item("Water") {}
+ItemType Water::getTypeId() const                { return ItemType::Water; }
+const std::string& Water::getName() const        { return storedName(); }
 
-const std::string& RawMaterial::getName() const {
-    return storedName();
-}
+EmptyBottle::EmptyBottle() : Item("Empty Bottle") {}
+ItemType EmptyBottle::getTypeId() const          { return ItemType::EmptyBottle; }
+const std::string& EmptyBottle::getName() const  { return storedName(); }
 
-MetalPlate::MetalPlate()
-    : Item("Metal Plate") {}
+Label::Label() : Item("Label") {}
+ItemType Label::getTypeId() const                { return ItemType::Label; }
+const std::string& Label::getName() const        { return storedName(); }
 
-ItemType MetalPlate::getTypeId() const {
-    return ItemType::MetalPlate;
-}
+Package::Package() : Item("Package") {}
+ItemType Package::getTypeId() const              { return ItemType::Package; }
+const std::string& Package::getName() const      { return storedName(); }
 
-const std::string& MetalPlate::getName() const {
-    return storedName();
-}
-
-Screw::Screw()
-    : Item("Screw") {}
-
-ItemType Screw::getTypeId() const {
-    return ItemType::Screw;
-}
-
-const std::string& Screw::getName() const {
-    return storedName();
-}
-
-Paint::Paint()
-    : Item("Paint") {}
-
-ItemType Paint::getTypeId() const {
-    return ItemType::Paint;
-}
-
-const std::string& Paint::getName() const {
-    return storedName();
-}
-
+// -----------------------------------------------------------------------------
 const char* ItemTypeName::get(ItemType type) {
     switch (type) {
-    case ItemType::RawMaterial:
-        return "Raw Material";
-    case ItemType::MetalPlate:
-        return "Metal Plate";
-    case ItemType::Screw:
-        return "Screw";
-    case ItemType::Paint:
-        return "Paint";
+    case ItemType::Ingredient:  return "Ingredient";
+    case ItemType::Water:       return "Water";
+    case ItemType::EmptyBottle: return "Empty Bottle";
+    case ItemType::Label:       return "Label";
+    case ItemType::Package:     return "Package";
     case ItemType::Unknown:
-    default:
-        return "Unknown";
+    default:                    return "Unknown";
     }
 }
 

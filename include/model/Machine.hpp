@@ -97,58 +97,23 @@ private:
     SimulationTime simulationTime_ = 0.0;
 };
 
-class Carbonator final : public Machine {
+// -----------------------------------------------------------------------------
+// Four concrete stations. Each is responsible for one MachineRole and one
+// ProcessType, and accepts any recipe whose role matches.
+//
+// Specs mirror data/factory_config.json:
+//   MixingStation    HP 150, parallel 2, queue 8  - heaviest blending work
+//   QualityStation   HP 100, parallel 3, queue 6  - precision check + carbonation
+//   BottlingStation  HP 120, parallel 4, queue 10 - wash, fill, seal throughput
+//   PackagingStation HP 140, parallel 2, queue 6  - label + pack, final stage
+// -----------------------------------------------------------------------------
+class MixingStation final : public Machine {
 public:
-    Carbonator(
+    MixingStation(
         MachineId id,
         std::string name,
         double processingSpeed = 1.0,
-        double initialHealth = 100.0,
-        double breakdownProbability = 0.01);
-
-    std::string typeName() const override;
-    ProcessType processType() const override;
-    MachineRole role() const override;
-    bool canAcceptRecipe(const Recipe& recipe) const override;
-};
-
-class Cutter final : public Machine {
-public:
-    Cutter(
-        MachineId id,
-        std::string name,
-        double processingSpeed = 1.25,
-        double initialHealth = 95.0,
-        double breakdownProbability = 0.03);
-
-    std::string typeName() const override;
-    ProcessType processType() const override;
-    MachineRole role() const override;
-    bool canAcceptRecipe(const Recipe& recipe) const override;
-};
-
-class Conveyor final : public Machine {
-public:
-    Conveyor(
-        MachineId id,
-        std::string name,
-        double processingSpeed = 2.0,
-        double initialHealth = 100.0,
-        double breakdownProbability = 0.005);
-
-    std::string typeName() const override;
-    ProcessType processType() const override;
-    MachineRole role() const override;
-    bool canAcceptRecipe(const Recipe& recipe) const override;
-};
-
-class Assembler final : public Machine {
-public:
-    Assembler(
-        MachineId id,
-        std::string name,
-        double processingSpeed = 1.0,
-        double initialHealth = 100.0,
+        double initialHealth = 150.0,
         double breakdownProbability = 0.02);
 
     std::string typeName() const override;
@@ -157,14 +122,44 @@ public:
     bool canAcceptRecipe(const Recipe& recipe) const override;
 };
 
-class Painter final : public Machine {
+class QualityStation final : public Machine {
 public:
-    Painter(
+    QualityStation(
         MachineId id,
         std::string name,
-        double processingSpeed = 0.8,
-        double initialHealth = 90.0,
-        double breakdownProbability = 0.04);
+        double processingSpeed = 1.0,
+        double initialHealth = 100.0,
+        double breakdownProbability = 0.03);
+
+    std::string typeName() const override;
+    ProcessType processType() const override;
+    MachineRole role() const override;
+    bool canAcceptRecipe(const Recipe& recipe) const override;
+};
+
+class BottlingStation final : public Machine {
+public:
+    BottlingStation(
+        MachineId id,
+        std::string name,
+        double processingSpeed = 1.0,
+        double initialHealth = 120.0,
+        double breakdownProbability = 0.02);
+
+    std::string typeName() const override;
+    ProcessType processType() const override;
+    MachineRole role() const override;
+    bool canAcceptRecipe(const Recipe& recipe) const override;
+};
+
+class PackagingStation final : public Machine {
+public:
+    PackagingStation(
+        MachineId id,
+        std::string name,
+        double processingSpeed = 1.0,
+        double initialHealth = 140.0,
+        double breakdownProbability = 0.015);
 
     std::string typeName() const override;
     ProcessType processType() const override;

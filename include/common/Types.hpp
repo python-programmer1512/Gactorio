@@ -6,43 +6,46 @@ namespace gactorio {
 
 using SimulationTime = double;
 
-using ItemId = std::uint64_t;
-using ProductId = std::uint64_t;
-using RecipeId = std::uint64_t;
-using MachineId = std::uint64_t;
-using LineId = std::uint64_t;
+using ItemId           = std::uint64_t;
+using ProductId        = std::uint64_t;
+using RecipeId         = std::uint64_t;
+using MachineId        = std::uint64_t;
+using LineId           = std::uint64_t;
 using ProductionLineId = LineId;
 
+// -----------------------------------------------------------------------------
+// Energy-drink domain types
+// -----------------------------------------------------------------------------
 enum class ItemType : std::uint64_t {
-    Unknown = 0,
-    RawMaterial = 1,
-    MetalPlate = 2,
-    Screw = 3,
-    Paint = 4
+    Unknown     = 0,
+    Ingredient  = 1,   // caffeine/taurine/sugar mix
+    Water       = 2,   // distilled water
+    EmptyBottle = 3,   // bottle to be filled
+    Label       = 4,   // sticker label
+    Package     = 5    // outer cardboard / shrink-wrap
 };
 
 enum class ProductType : std::uint64_t {
-    Unknown = 0,
-    ToyCar = 101,
-    MetalBox = 102,
-    DroneFrame = 103
+    Unknown      = 0,
+    VoltzClassic = 101,   // standard energy drink (Voltz Classic)
+    HyperBolt    = 102,   // premium energy drink   (Hyper Bolt)
+    AuroraZero   = 103    // specialty zero-sugar   (Aurora Zero)
 };
 
 enum class ProcessType {
     Unknown,
-    Assembly,
-    Mixing,
-    Carbonation,
-    Packaging,
-    Storage
+    Mixing,      // ingredient + water + blend
+    Quality,     // concentration check + carbonation
+    Bottling,    // wash + fill + seal
+    Packaging    // label + pack
 };
 
 enum class MachineRole {
     Unknown,
-    Producer,
-    Processor,
-    Buffer,
-    Output
+    Mixing,
+    Quality,
+    Bottling,
+    Packaging
 };
 
 enum class MachineStatus {

@@ -6,6 +6,9 @@
 
 namespace gactorio {
 
+// Item is the abstract base for every raw input the energy-drink factory
+// stocks in its inventory. Concrete items (Ingredient, Water, EmptyBottle,
+// Label, Package) only need to identify themselves and return a name.
 class Item {
 public:
     virtual ~Item();
@@ -21,42 +24,46 @@ private:
     std::string name_;
 };
 
-class RawMaterial final : public Item {
+class Ingredient final : public Item {
 public:
-    RawMaterial();
-
+    Ingredient();
     ItemType getTypeId() const override;
     const std::string& getName() const override;
 };
 
-class MetalPlate final : public Item {
+class Water final : public Item {
 public:
-    MetalPlate();
-
+    Water();
     ItemType getTypeId() const override;
     const std::string& getName() const override;
 };
 
-class Screw final : public Item {
+class EmptyBottle final : public Item {
 public:
-    Screw();
-
+    EmptyBottle();
     ItemType getTypeId() const override;
     const std::string& getName() const override;
 };
 
-class Paint final : public Item {
+class Label final : public Item {
 public:
-    Paint();
-
+    Label();
     ItemType getTypeId() const override;
     const std::string& getName() const override;
 };
 
+class Package final : public Item {
+public:
+    Package();
+    ItemType getTypeId() const override;
+    const std::string& getName() const override;
+};
+
+// Helper for view code: look up a human-readable name for an ItemType enum.
 class ItemTypeName {
 public:
     static const char* get(ItemType type);
-    
+
 private:
     ItemTypeName() = delete;
 };

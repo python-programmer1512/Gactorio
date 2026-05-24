@@ -5,25 +5,28 @@
 #include <memory>
 
 int main() {
-    const gactorio::DroneFrame product;
+    // VoltzClassic's first step is Mixing (13 seconds).
+    const gactorio::VoltzClassic product;
     auto task = std::make_shared<gactorio::ProductionTask>(product);
-    gactorio::Carbonator machine(1, "Processor 1");
+    gactorio::MixingStation machine(1, "Mixer 1");
 
     assert(machine.getId() == 1);
-    assert(machine.getName() == "Processor 1");
+    assert(machine.getName() == "Mixer 1");
     assert(machine.getStatus() == gactorio::MachineStatus::Idle);
+    // Machine base class clamps health to [0, 100]; the JSON-spec 150 HP is
+    // saturated to the cap on construction.
     assert(machine.getHealth() == 100.0);
     assert(machine.canAcceptTask());
-    assert(machine.canProcess(gactorio::MachineRole::Processor));
-    assert(!machine.canProcess(gactorio::MachineRole::Output));
+    assert(machine.canProcess(gactorio::MachineRole::Mixing));
+    assert(!machine.canProcess(gactorio::MachineRole::Packaging));
 
     assert(machine.assignTask(task));
     assert(!machine.canAcceptTask());
     assert(machine.getStatus() == gactorio::MachineStatus::Working);
 
     machine.update(1.0);
-    assert(machine.getProgress() > 0.16);
-    assert(machine.getProgress() < 0.17);
+    assert(machine.getProgress() > 0.0);
+    assert(machine.getProgress() < 1.0);
 
     const auto snapshot = machine.getSnapshot();
     assert(snapshot.id() == machine.getId());

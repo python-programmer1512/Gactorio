@@ -272,7 +272,11 @@ void Machine::notify(EventType type, const std::string& message) const {
     }
 }
 
-Carbonator::Carbonator(
+// -----------------------------------------------------------------------------
+// Four concrete stations. The base Machine handles state/health/progress;
+// each station only declares its identity and which recipe it can serve.
+// -----------------------------------------------------------------------------
+MixingStation::MixingStation(
     MachineId id,
     std::string name,
     double processingSpeed,
@@ -280,24 +284,12 @@ Carbonator::Carbonator(
     double breakdownProbability)
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
-std::string Carbonator::typeName() const {
-    return "Carbonator";
-}
+std::string MixingStation::typeName() const                      { return "Mixing Station"; }
+ProcessType MixingStation::processType() const                   { return ProcessType::Mixing; }
+MachineRole MixingStation::role() const                          { return MachineRole::Mixing; }
+bool MixingStation::canAcceptRecipe(const Recipe& recipe) const  { (void)recipe; return true; }
 
-ProcessType Carbonator::processType() const {
-    return ProcessType::Carbonation;
-}
-
-MachineRole Carbonator::role() const {
-    return MachineRole::Processor;
-}
-
-bool Carbonator::canAcceptRecipe(const Recipe& recipe) const {
-    (void)recipe;
-    return true;
-}
-
-Cutter::Cutter(
+QualityStation::QualityStation(
     MachineId id,
     std::string name,
     double processingSpeed,
@@ -305,24 +297,12 @@ Cutter::Cutter(
     double breakdownProbability)
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
-std::string Cutter::typeName() const {
-    return "Cutter";
-}
+std::string QualityStation::typeName() const                     { return "Quality Station"; }
+ProcessType QualityStation::processType() const                  { return ProcessType::Quality; }
+MachineRole QualityStation::role() const                         { return MachineRole::Quality; }
+bool QualityStation::canAcceptRecipe(const Recipe& recipe) const { (void)recipe; return true; }
 
-ProcessType Cutter::processType() const {
-    return ProcessType::Assembly;
-}
-
-MachineRole Cutter::role() const {
-    return MachineRole::Processor;
-}
-
-bool Cutter::canAcceptRecipe(const Recipe& recipe) const {
-    (void)recipe;
-    return true;
-}
-
-Conveyor::Conveyor(
+BottlingStation::BottlingStation(
     MachineId id,
     std::string name,
     double processingSpeed,
@@ -330,24 +310,12 @@ Conveyor::Conveyor(
     double breakdownProbability)
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
-std::string Conveyor::typeName() const {
-    return "Conveyor";
-}
+std::string BottlingStation::typeName() const                     { return "Bottling Station"; }
+ProcessType BottlingStation::processType() const                  { return ProcessType::Bottling; }
+MachineRole BottlingStation::role() const                         { return MachineRole::Bottling; }
+bool BottlingStation::canAcceptRecipe(const Recipe& recipe) const { (void)recipe; return true; }
 
-ProcessType Conveyor::processType() const {
-    return ProcessType::Storage;
-}
-
-MachineRole Conveyor::role() const {
-    return MachineRole::Buffer;
-}
-
-bool Conveyor::canAcceptRecipe(const Recipe& recipe) const {
-    (void)recipe;
-    return true;
-}
-
-Assembler::Assembler(
+PackagingStation::PackagingStation(
     MachineId id,
     std::string name,
     double processingSpeed,
@@ -355,46 +323,9 @@ Assembler::Assembler(
     double breakdownProbability)
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
-std::string Assembler::typeName() const {
-    return "Assembler";
-}
-
-ProcessType Assembler::processType() const {
-    return ProcessType::Assembly;
-}
-
-MachineRole Assembler::role() const {
-    return MachineRole::Producer;
-}
-
-bool Assembler::canAcceptRecipe(const Recipe& recipe) const {
-    (void)recipe;
-    return true;
-}
-
-Painter::Painter(
-    MachineId id,
-    std::string name,
-    double processingSpeed,
-    double initialHealth,
-    double breakdownProbability)
-    : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
-
-std::string Painter::typeName() const {
-    return "Painter";
-}
-
-ProcessType Painter::processType() const {
-    return ProcessType::Assembly;
-}
-
-MachineRole Painter::role() const {
-    return MachineRole::Output;
-}
-
-bool Painter::canAcceptRecipe(const Recipe& recipe) const {
-    (void)recipe;
-    return true;
-}
+std::string PackagingStation::typeName() const                     { return "Packaging Station"; }
+ProcessType PackagingStation::processType() const                  { return ProcessType::Packaging; }
+MachineRole PackagingStation::role() const                         { return MachineRole::Packaging; }
+bool PackagingStation::canAcceptRecipe(const Recipe& recipe) const { (void)recipe; return true; }
 
 } // namespace gactorio

@@ -6,36 +6,40 @@
 #include <vector>
 
 int main() {
-    gactorio::Cutter cutter(1, "Cutter 1", 1.5, 88.0, 0.07);
-    gactorio::Conveyor conveyor(2, "Conveyor 1");
-    gactorio::Assembler assembler(3, "Assembler 1");
-    gactorio::Painter painter(4, "Painter 1");
+    gactorio::MixingStation    mixer    (1, "Mixer 1",    1.5, 88.0, 0.07);
+    gactorio::QualityStation   quality  (2, "Quality 1");
+    gactorio::BottlingStation  bottling (3, "Bottling 1");
+    gactorio::PackagingStation packaging(4, "Packaging 1");
 
-    assert(cutter.canProcess(gactorio::MachineRole::Processor));
-    assert(conveyor.canProcess(gactorio::MachineRole::Buffer));
-    assert(assembler.canProcess(gactorio::MachineRole::Producer));
-    assert(painter.canProcess(gactorio::MachineRole::Output));
+    // Each station only accepts the role it's designed for.
+    assert(mixer.canProcess    (gactorio::MachineRole::Mixing));
+    assert(quality.canProcess  (gactorio::MachineRole::Quality));
+    assert(bottling.canProcess (gactorio::MachineRole::Bottling));
+    assert(packaging.canProcess(gactorio::MachineRole::Packaging));
 
-    assert(cutter.getProcessingSpeed() == 1.5);
-    assert(cutter.getHealth() == 88.0);
-    assert(cutter.getBreakdownProbability() == 0.07);
+    // Custom-constructed mixer respects the explicit values.
+    assert(mixer.getProcessingSpeed() == 1.5);
+    assert(mixer.getHealth()          == 88.0);
+    assert(mixer.getBreakdownProbability() == 0.07);
 
+    // Polymorphic update: heterogeneous machines through the base pointer.
     std::vector<std::unique_ptr<gactorio::Machine>> machines;
-    machines.push_back(std::make_unique<gactorio::Cutter>(10, "Poly Cutter"));
-    machines.push_back(std::make_unique<gactorio::Conveyor>(11, "Poly Conveyor"));
-    machines.push_back(std::make_unique<gactorio::Assembler>(12, "Poly Assembler"));
-    machines.push_back(std::make_unique<gactorio::Painter>(13, "Poly Painter"));
+    machines.push_back(std::make_unique<gactorio::MixingStation>   (10, "Poly Mixer"));
+    machines.push_back(std::make_unique<gactorio::QualityStation>  (11, "Poly Quality"));
+    machines.push_back(std::make_unique<gactorio::BottlingStation> (12, "Poly Bottling"));
+    machines.push_back(std::make_unique<gactorio::PackagingStation>(13, "Poly Packaging"));
 
     for (auto& machine : machines) {
         machine->update(0.25);
         assert(machine->getHealth() > 0.0);
     }
 
-    const gactorio::ToyCar toyCar;
-    auto task = std::make_shared<gactorio::ProductionTask>(toyCar);
+    // VoltzClassic's first step is Mixing — only mixer can accept the task.
+    const gactorio::VoltzClassic voltz;
+    auto task = std::make_shared<gactorio::ProductionTask>(voltz);
 
-    assert(!painter.assignTask(task));
-    assert(cutter.assignTask(task));
+    assert(!packaging.assignTask(task));
+    assert( mixer.assignTask(task));
 
     return 0;
 }
