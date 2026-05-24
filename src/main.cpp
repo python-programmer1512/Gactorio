@@ -1,19 +1,26 @@
+// Gactorio - Energy Drink Factory Simulator
+//
+// GUI bootstrap. Wires together:
+//   - the BE simulation (gactorio::FactoryController)
+//   - the View layer (Application + FactoryPanel)
+//
+// The View consumes BE state strictly through FactorySnapshot (read-only DTO).
+// All simulation mutations go through FactoryController commands.
+
 #include "controller/FactoryController.hpp"
 
-#include <iostream>
+#include "views/Application.h"
+#include "views/FactoryPanel.h"
+
+#include <memory>
 
 int main() {
-    gactorio::FactoryController controller;
-    controller.tick(1.0);
-    controller.tick(2.0);
+    Application app("Gactorio - Energy Drink Factory", 1280, 720);
 
-    const auto snapshot = controller.snapshot();
+    gactorio::FactoryController controller;   // constructs default CarbonationFactory
 
-    std::cout << "Gactorio backend example\n";
-    std::cout << "Simulation time: " << snapshot.timeSeconds() << "s\n";
-    std::cout << "Production lines: " << snapshot.productionLines().size() << "\n";
-    std::cout << "Events: " << snapshot.events().size() << "\n";
+    app.addPanel(std::make_unique<FactoryPanel>(controller));
 
+    app.run();
     return 0;
 }
-

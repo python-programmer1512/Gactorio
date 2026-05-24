@@ -6,6 +6,12 @@ void AppUI::addPanel(std::unique_ptr<UIComponent> panel) {
     m_panels.push_back(std::move(panel));
 }
 
+void AppUI::updateAll(double deltaTime) {
+    for (auto& panel : m_panels) {
+        panel->update(deltaTime);
+    }
+}
+
 void AppUI::renderAll() {
     for (auto& panel : m_panels) {
         panel->render();

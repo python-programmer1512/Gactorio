@@ -1,8 +1,8 @@
-# Ignore folders
-docs/
-build/
-lecture/
+# Ignored folders
 .claude/
+lecture/
+docs/
+unpacked/
 
 # Build artifacts
 build/
@@ -28,3 +28,14 @@ compile_commands.json
 .idea/
 *.swp
 *.user
+
+# Local helper scripts (not part of the project)
+extract_pdf.py
+fill_report.py
+embed_uml.py
+gen_uml.py
+verify_report.py
+pdf_text.txt
+verify_out.txt
+report_original.docx
+InstallationLog.txt
