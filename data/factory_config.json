@@ -1,0 +1,112 @@
+{
+  "$schema_version": "0.2.0",
+  "_note": "Temporary config. Will migrate to DB/server later. Times are in seconds, energy in kWh per unit. 10개 세부 공정을 4개 스테이션으로 통합.",
+
+  "stations": [
+    {
+      "id": 1,
+      "key": "MIXING",
+      "name": "배합 스테이션",
+      "machineType": "MixingStation",
+      "subStages": ["재료 넣기", "물 넣기", "배합"]
+    },
+    {
+      "id": 2,
+      "key": "QUALITY",
+      "name": "품질 스테이션",
+      "machineType": "QualityStation",
+      "subStages": ["농도 검사", "탄산 주입"]
+    },
+    {
+      "id": 3,
+      "key": "BOTTLING",
+      "name": "충전 스테이션",
+      "machineType": "BottlingStation",
+      "subStages": ["병 세척", "충전", "밀봉"]
+    },
+    {
+      "id": 4,
+      "key": "PACKAGING",
+      "name": "포장 스테이션",
+      "machineType": "PackagingStation",
+      "subStages": ["라벨 부착", "포장"]
+    }
+  ],
+
+  "items": [
+    {
+      "id": "voltz_classic",
+      "name": "Voltz Classic",
+      "tier": "standard",
+      "description": "기본형 에너지 드링크. 빠르고 저렴하게 양산 가능.",
+      "color": "#F4C430",
+      "recipe": {
+        "MIXING":    { "time": 13.0, "energy": 2.8 },
+        "QUALITY":   { "time": 9.0,  "energy": 2.3 },
+        "BOTTLING":  { "time": 9.0,  "energy": 1.8 },
+        "PACKAGING": { "time": 9.0,  "energy": 1.6 }
+      },
+      "totals": { "time": 40.0, "energy": 8.5 }
+    },
+    {
+      "id": "hyper_bolt",
+      "name": "Hyper Bolt",
+      "tier": "premium",
+      "description": "고카페인 프리미엄 라인. 배합과 탄산 과정에서 시간이 더 걸림.",
+      "color": "#E63946",
+      "recipe": {
+        "MIXING":    { "time": 18.0, "energy": 4.0 },
+        "QUALITY":   { "time": 12.0, "energy": 3.0 },
+        "BOTTLING":  { "time": 9.0,  "energy": 1.8 },
+        "PACKAGING": { "time": 9.0,  "energy": 1.6 }
+      },
+      "totals": { "time": 48.0, "energy": 10.4 }
+    },
+    {
+      "id": "aurora_zero",
+      "name": "Aurora Zero",
+      "tier": "specialty",
+      "description": "무가당 스페셜티. 정밀한 농도 검사가 필수.",
+      "color": "#3A86FF",
+      "recipe": {
+        "MIXING":    { "time": 17.0, "energy": 3.7 },
+        "QUALITY":   { "time": 12.0, "energy": 2.7 },
+        "BOTTLING":  { "time": 9.0,  "energy": 1.8 },
+        "PACKAGING": { "time": 11.0, "energy": 2.0 }
+      },
+      "totals": { "time": 49.0, "energy": 10.2 }
+    }
+  ],
+
+  "machines": [
+    {
+      "type": "MixingStation",
+      "stationKey": "MIXING",
+      "hp": 150,
+      "parallelSlots": 2,
+      "queueCapacity": 8,
+      "_note": "productionTime은 처리 중인 item.recipe[stationKey].time을 조회"
+    },
+    {
+      "type": "QualityStation",
+      "stationKey": "QUALITY",
+      "hp": 100,
+      "parallelSlots": 3,
+      "queueCapacity": 6
+    },
+    {
+      "type": "BottlingStation",
+      "stationKey": "BOTTLING",
+      "hp": 120,
+      "parallelSlots": 4,
+      "queueCapacity": 10
+    },
+    {
+      "type": "PackagingStation",
+      "stationKey": "PACKAGING",
+      "hp": 140,
+      "parallelSlots": 2,
+      "queueCapacity": 6
+    }
+  ]
+}
