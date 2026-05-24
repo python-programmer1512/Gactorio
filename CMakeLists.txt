@@ -1,70 +1,170 @@
-cmake_minimum_required(VERSION 3.20)
-project(Gactorio CXX)
+cmake_minimum_required(VERSION 3.16)
+
+project(Gactorio LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Export compile_commands.json for clangd / IDE support
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# -----------------------------------------------------------------------------
-# Dependencies
-# -----------------------------------------------------------------------------
-# SDL2 (provided by MSYS2 pacman: mingw-w64-ucrt-x86_64-SDL2)
-find_package(SDL2 REQUIRED)
-find_package(OpenGL REQUIRED)
-
-# Dear ImGui (downloaded automatically)
-include(FetchContent)
-FetchContent_Declare(
-    imgui
-    GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        v1.91.5
+add_library(gactorio_backend
+    src/common/Types.cpp
+    src/common/SimClock.cpp
+    src/model/Item.cpp
+    src/model/Product.cpp
+    src/model/ProductionTask.cpp
+    src/model/Recipe.cpp
+    src/model/Inventory.cpp
+    src/model/MachineState.cpp
+    src/model/MachineStates.cpp
+    src/model/Machine.cpp
+    src/model/ProductionLine.cpp
+    src/model/Factory.cpp
+    src/model/CarbonationFactory.cpp
+    src/model/events/EventBus.cpp
+    src/model/events/EventLogObserver.cpp
+    src/model/events/StatisticsObserver.cpp
+    src/dto/InventorySnapshot.cpp
+    src/dto/MachineSnapshot.cpp
+    src/dto/ProductionLineSnapshot.cpp
+    src/dto/EventSnapshot.cpp
+    src/dto/StatisticsSnapshot.cpp
+    src/dto/FactorySnapshot.cpp
+    src/controller/FactoryController.cpp
 )
-FetchContent_MakeAvailable(imgui)
 
-# Build ImGui as a static library so we can link from main app
-add_library(imgui STATIC
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_demo.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+target_include_directories(gactorio_backend
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-target_include_directories(imgui PUBLIC
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
-)
-target_link_libraries(imgui PUBLIC SDL2::SDL2 OpenGL::GL)
 
-# -----------------------------------------------------------------------------
-# Main application
-# -----------------------------------------------------------------------------
-add_executable(gactorio
+add_executable(gactorio_backend_example
     src/main.cpp
-    src/models/Machine.cpp
-    src/models/Factory.cpp
-    src/views/AppUI.cpp
-    src/views/FactoryPanel.cpp
 )
 
-target_include_directories(gactorio PRIVATE src)
-
-target_link_libraries(gactorio PRIVATE
-    imgui
-    SDL2::SDL2main
-    SDL2::SDL2
-    OpenGL::GL
+target_link_libraries(gactorio_backend_example
+    PRIVATE
+        gactorio_backend
 )
 
-# Copy SDL2.dll next to the executable on Windows so it runs from the build dir
-if(WIN32)
-    add_custom_command(TARGET gactorio POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:SDL2::SDL2>
-        $<TARGET_FILE_DIR:gactorio>
-    )
-endif()
+enable_testing()
+
+add_executable(product_smoke_test
+    tests/model/ProductSmokeTest.cpp
+)
+
+target_link_libraries(product_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME product_smoke_test COMMAND product_smoke_test)
+
+add_executable(inventory_smoke_test
+    tests/model/InventorySmokeTest.cpp
+)
+
+target_link_libraries(inventory_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME inventory_smoke_test COMMAND inventory_smoke_test)
+
+add_executable(production_task_smoke_test
+    tests/model/ProductionTaskSmokeTest.cpp
+)
+
+target_link_libraries(production_task_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME production_task_smoke_test COMMAND production_task_smoke_test)
+
+add_executable(sim_clock_smoke_test
+    tests/model/SimClockSmokeTest.cpp
+)
+
+target_link_libraries(sim_clock_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME sim_clock_smoke_test COMMAND sim_clock_smoke_test)
+
+add_executable(machine_smoke_test
+    tests/model/MachineSmokeTest.cpp
+)
+
+target_link_libraries(machine_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME machine_smoke_test COMMAND machine_smoke_test)
+
+add_executable(concrete_machine_smoke_test
+    tests/model/ConcreteMachineSmokeTest.cpp
+)
+
+target_link_libraries(concrete_machine_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME concrete_machine_smoke_test COMMAND concrete_machine_smoke_test)
+
+add_executable(machine_state_smoke_test
+    tests/model/MachineStateSmokeTest.cpp
+)
+
+target_link_libraries(machine_state_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME machine_state_smoke_test COMMAND machine_state_smoke_test)
+
+add_executable(observer_smoke_test
+    tests/model/ObserverSmokeTest.cpp
+)
+
+target_link_libraries(observer_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME observer_smoke_test COMMAND observer_smoke_test)
+
+add_executable(production_line_smoke_test
+    tests/model/ProductionLineSmokeTest.cpp
+)
+
+target_link_libraries(production_line_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME production_line_smoke_test COMMAND production_line_smoke_test)
+
+add_executable(factory_flow_smoke_test
+    tests/model/FactoryFlowSmokeTest.cpp
+)
+
+target_link_libraries(factory_flow_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME factory_flow_smoke_test COMMAND factory_flow_smoke_test)
+
+add_executable(factory_controller_smoke_test
+    tests/controller/FactoryControllerSmokeTest.cpp
+)
+
+target_link_libraries(factory_controller_smoke_test
+    PRIVATE
+        gactorio_backend
+)
+
+add_test(NAME factory_controller_smoke_test COMMAND factory_controller_smoke_test)
