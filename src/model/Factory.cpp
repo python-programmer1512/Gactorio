@@ -58,6 +58,36 @@ void Factory::addProductionLine(ProductionLine line) {
     productionLines_.push_back(std::move(line));
 }
 
+ProductionRequestResult Factory::enqueueProduct(LineId lineId, std::unique_ptr<Product> product) {
+    auto* line = findProductionLine(lineId);
+    if (line == nullptr) {
+        return ProductionRequestResult::LineNotFound;
+    }
+
+    if (product == nullptr) {
+        return ProductionRequestResult::InvalidRequest;
+    }
+
+    const auto productName = product->getName();
+    if (!inventory_.consume(product->getRequirements())) {
+        eventBus_.publish(Event(
+            simulationTime(),
+            EventType::Info,
+            lineId,
+            "Insufficient inputs for " + productName));
+        return ProductionRequestResult::InsufficientMaterials;
+    }
+
+    eventBus_.publish(Event(
+        simulationTime(),
+        EventType::InputsConsumed,
+        lineId,
+        "Consumed inputs for " + productName));
+
+    line->enqueueProduct(std::shared_ptr<Product>(std::move(product)));
+    return ProductionRequestResult::Success;
+}
+
 ProductionLine* Factory::findProductionLine(LineId id) {
     for (auto& line : productionLines_) {
         if (line.id() == id) {

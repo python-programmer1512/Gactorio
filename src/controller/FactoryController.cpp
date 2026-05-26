@@ -45,6 +45,20 @@ StatisticsSnapshot makeStatisticsSnapshot(const Statistics& statistics) {
         statistics.stateChangedEvents());
 }
 
+FactoryCommandResult toCommandResult(ProductionRequestResult result) {
+    switch (result) {
+    case ProductionRequestResult::Success:
+        return FactoryCommandResult::Success;
+    case ProductionRequestResult::LineNotFound:
+        return FactoryCommandResult::NotFound;
+    case ProductionRequestResult::InsufficientMaterials:
+        return FactoryCommandResult::InsufficientMaterials;
+    case ProductionRequestResult::InvalidRequest:
+    default:
+        return FactoryCommandResult::InvalidRequest;
+    }
+}
+
 } // namespace
 
 FactoryController::FactoryController() {
@@ -112,18 +126,12 @@ FactoryCommandResult FactoryController::enqueueProduct(LineId lineId, ProductTyp
         return FactoryCommandResult::InvalidRequest;
     }
 
-    auto* line = factory_->findProductionLine(lineId);
-    if (line == nullptr) {
-        return FactoryCommandResult::NotFound;
-    }
-
     auto product = makeProduct(productType);
     if (product == nullptr) {
-        return FactoryCommandResult::InvalidRequest;
+        return FactoryCommandResult::UnknownProduct;
     }
 
-    line->enqueueProduct(std::shared_ptr<Product>(std::move(product)));
-    return FactoryCommandResult::Success;
+    return toCommandResult(factory_->enqueueProduct(lineId, std::move(product)));
 }
 
 FactoryCommandResult FactoryController::forceBreak(MachineId id) {

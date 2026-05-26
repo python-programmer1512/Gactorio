@@ -8,9 +8,17 @@
 #include "model/events/EventLogObserver.hpp"
 #include "model/events/StatisticsObserver.hpp"
 
+#include <memory>
 #include <vector>
 
 namespace gactorio {
+
+enum class ProductionRequestResult {
+    Success,
+    LineNotFound,
+    InvalidRequest,
+    InsufficientMaterials
+};
 
 class Factory {
 public:
@@ -29,6 +37,7 @@ public:
     const SimClock& clock() const;
 
     void addProductionLine(ProductionLine line);
+    ProductionRequestResult enqueueProduct(LineId lineId, std::unique_ptr<Product> product);
     ProductionLine* findProductionLine(LineId id);
     const ProductionLine* findProductionLine(LineId id) const;
     Machine* findMachine(MachineId id);

@@ -48,6 +48,7 @@ target_link_libraries(gactorio_backend_example
 
 enable_testing()
 
+<<<<<<< Updated upstream
 add_executable(product_smoke_test
     tests/model/ProductSmokeTest.cpp
 )
@@ -168,3 +169,28 @@ target_link_libraries(factory_controller_smoke_test
 )
 
 add_test(NAME factory_controller_smoke_test COMMAND factory_controller_smoke_test)
+=======
+    set(SMOKE_TESTS
+        product_smoke_test:tests/model/ProductSmokeTest.cpp
+        inventory_smoke_test:tests/model/InventorySmokeTest.cpp
+        production_task_smoke_test:tests/model/ProductionTaskSmokeTest.cpp
+        sim_clock_smoke_test:tests/model/SimClockSmokeTest.cpp
+        machine_smoke_test:tests/model/MachineSmokeTest.cpp
+        concrete_machine_smoke_test:tests/model/ConcreteMachineSmokeTest.cpp
+        machine_state_smoke_test:tests/model/MachineStateSmokeTest.cpp
+        observer_smoke_test:tests/model/ObserverSmokeTest.cpp
+        production_line_smoke_test:tests/model/ProductionLineSmokeTest.cpp
+        factory_flow_smoke_test:tests/model/FactoryFlowSmokeTest.cpp
+        factory_inventory_enqueue_smoke_test:tests/model/FactoryInventoryEnqueueSmokeTest.cpp
+        factory_controller_smoke_test:tests/controller/FactoryControllerSmokeTest.cpp
+    )
+    foreach(entry IN LISTS SMOKE_TESTS)
+        string(REPLACE ":" ";" pair "${entry}")
+        list(GET pair 0 name)
+        list(GET pair 1 src)
+        add_executable(${name} ${src})
+        target_link_libraries(${name} PRIVATE gactorio_backend)
+        add_test(NAME ${name} COMMAND ${name})
+    endforeach()
+endif()
+>>>>>>> Stashed changes

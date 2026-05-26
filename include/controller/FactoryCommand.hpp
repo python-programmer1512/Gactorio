@@ -5,8 +5,9 @@ namespace gactorio {
 enum class FactoryCommandResult {
     Success,
     NotFound,
-    InvalidRequest
+    InvalidRequest,
+    UnknownProduct,
+    InsufficientMaterials
 };
 
 } // namespace gactorio
-
