@@ -1,5 +1,7 @@
 # Ignore folders
-docs/
+docs/*
+!docs/
+!docs/backend_summary.md
 build/
 lecture/
 .claude/

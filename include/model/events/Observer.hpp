@@ -2,7 +2,7 @@
 
 namespace gactorio {
 
-struct Event;
+class Event;
 
 class Observer {
 public:
@@ -11,4 +11,3 @@ public:
 };
 
 } // namespace gactorio
-

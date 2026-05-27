@@ -5,9 +5,9 @@
 #include <memory>
 
 int main() {
-    const gactorio::ToyCar product;
+    const gactorio::SodaCan product;
     auto task = std::make_shared<gactorio::ProductionTask>(product);
-    gactorio::Assembler machine(1, "Assembler State Test");
+    gactorio::Carbonator machine(1, "Carbonator State Test");
 
     assert(machine.getStatus() == gactorio::MachineStatus::Idle);
     assert(machine.stateName() == "Idle");

@@ -9,15 +9,16 @@
 
 int main() {
     gactorio::EventBus bus;
-    gactorio::EventLogObserver log;
+    gactorio::EventLogObserver log(64);
     gactorio::StatisticsObserver stats;
 
     bus.subscribe(&log);
+    bus.subscribe(&log);
     bus.subscribe(&stats);
 
-    const gactorio::ToyCar product;
+    const gactorio::SodaCan product;
     auto task = std::make_shared<gactorio::ProductionTask>(product);
-    gactorio::Cutter machine(1, "Observed Cutter");
+    gactorio::Carbonator machine(1, "Observed Carbonator");
     machine.setEventBus(&bus);
 
     assert(machine.canAcceptTask());
@@ -49,6 +50,13 @@ int main() {
 
     assert(sawTaskEnqueued);
     assert(sawStateChanged);
+
+    gactorio::EventLogObserver limitedLog(2);
+    limitedLog.onEvent(gactorio::Event(0.0, gactorio::EventType::Info, 1, "first beverage event"));
+    limitedLog.onEvent(gactorio::Event(1.0, gactorio::EventType::Info, 1, "second beverage event"));
+    limitedLog.onEvent(gactorio::Event(2.0, gactorio::EventType::Info, 1, "third beverage event"));
+    assert(limitedLog.events().size() == 2);
+    assert(limitedLog.events().front().message() == std::string("second beverage event"));
 
     return 0;
 }

@@ -3,24 +3,24 @@
 #include <cassert>
 
 int main() {
-    const gactorio::ToyCar toyCar;
-    const gactorio::MetalBox metalBox;
-    const gactorio::DroneFrame droneFrame;
+    const gactorio::SodaCan sodaCan;
+    const gactorio::SparklingWater sparklingWater;
+    const gactorio::EnergyDrink energyDrink;
 
-    assert(toyCar.getProductId() != metalBox.getProductId());
-    assert(metalBox.getProductId() != droneFrame.getProductId());
+    assert(sodaCan.getProductId() != sparklingWater.getProductId());
+    assert(sparklingWater.getProductId() != energyDrink.getProductId());
 
-    assert(toyCar.getRequirements().size() == 3);
-    assert(metalBox.getRequirements().size() == 2);
-    assert(droneFrame.getRequirements().size() == 3);
+    assert(sodaCan.getRequirements().size() == 5);
+    assert(sparklingWater.getRequirements().size() == 4);
+    assert(energyDrink.getRequirements().size() == 6);
 
-    assert(toyCar.getRoute().size() == 5);
-    assert(metalBox.getRoute().size() == 2);
-    assert(droneFrame.getRoute().size() == 3);
+    assert(sodaCan.getRoute().size() == 4);
+    assert(sparklingWater.getRoute().size() == 4);
+    assert(energyDrink.getRoute().size() == 4);
 
-    assert(toyCar.getRequirements().front().itemType() == gactorio::ItemType::MetalPlate);
-    assert(toyCar.getRoute().front().requiredRole() == gactorio::MachineRole::Processor);
-    assert(droneFrame.getRoute().front().requiredRole() == gactorio::MachineRole::Processor);
+    assert(sodaCan.getRequirements().front().itemType() == gactorio::ItemType::Water);
+    assert(sodaCan.getRoute().front().requiredRole() == gactorio::MachineRole::Carbonator);
+    assert(energyDrink.getRoute().front().requiredRole() == gactorio::MachineRole::Carbonator);
 
     return 0;
 }

@@ -56,9 +56,9 @@ private:
     std::vector<ProcessStep> route_;
 };
 
-class ToyCar final : public Product {
+class SodaCan final : public Product {
 public:
-    ToyCar();
+    SodaCan();
 
     ProductId getProductId() const override;
     const std::string& getName() const override;
@@ -66,9 +66,9 @@ public:
     const std::vector<ProcessStep>& getRoute() const override;
 };
 
-class MetalBox final : public Product {
+class SparklingWater final : public Product {
 public:
-    MetalBox();
+    SparklingWater();
 
     ProductId getProductId() const override;
     const std::string& getName() const override;
@@ -76,9 +76,9 @@ public:
     const std::vector<ProcessStep>& getRoute() const override;
 };
 
-class DroneFrame final : public Product {
+class EnergyDrink final : public Product {
 public:
-    DroneFrame();
+    EnergyDrink();
 
     ProductId getProductId() const override;
     const std::string& getName() const override;

@@ -4,26 +4,29 @@
 #include <string>
 
 int main() {
-    const gactorio::DroneFrame product;
+    const gactorio::EnergyDrink product;
     gactorio::ProductionTask task(product);
 
     assert(!task.isCompleted());
     assert(task.currentStepIndex() == 0);
     assert(task.currentStep() != nullptr);
-    assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Processor);
+    assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Carbonator);
     assert(task.getProgressInRoute() == 0.0);
-    assert(task.getProductName() == std::string("Drone Frame"));
+    assert(task.getProductName() == std::string("Energy Drink"));
 
     task.advanceStep();
     assert(!task.isCompleted());
     assert(task.currentStepIndex() == 1);
-    assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Producer);
-    assert(task.getProgressInRoute() > 0.33);
-    assert(task.getProgressInRoute() < 0.34);
+    assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Filler);
+    assert(task.getProgressInRoute() == 0.25);
 
     task.advanceStep();
     assert(!task.isCompleted());
-    assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Output);
+    assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Sealer);
+
+    task.advanceStep();
+    assert(!task.isCompleted());
+    assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Labeler);
 
     task.advanceStep();
     assert(task.isCompleted());

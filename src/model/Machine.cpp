@@ -159,7 +159,7 @@ void Machine::pause() {
     if (status_ == MachineStatus::Broken || status_ == MachineStatus::Maintenance) {
         return;
     }
-    transitionToIdle("paused");
+    transitionToPaused("paused");
     notify(EventType::MachinePaused, name_ + " paused");
 }
 
@@ -167,8 +167,12 @@ void Machine::resume() {
     if (status_ == MachineStatus::Broken || status_ == MachineStatus::Maintenance) {
         return;
     }
-    transitionToWorking("resumed");
-    notify(EventType::TaskStarted, name_ + " resumed");
+    if (hasTask()) {
+        transitionToWorking("resumed");
+        notify(EventType::TaskStarted, name_ + " resumed");
+        return;
+    }
+    transitionToIdle("resumed");
 }
 
 void Machine::advanceProduction(double deltaTime) {
@@ -239,6 +243,13 @@ void Machine::transitionToWorking(const std::string& reason) {
     onStateTransition(previous, status_, reason);
 }
 
+void Machine::transitionToPaused(const std::string& reason) {
+    const auto previous = status_;
+    status_ = MachineStatus::Paused;
+    setState(std::make_unique<PausedState>());
+    onStateTransition(previous, status_, reason);
+}
+
 void Machine::transitionToBroken(const std::string& reason) {
     const auto previous = status_;
     health_ = 0.0;
@@ -289,7 +300,7 @@ ProcessType Carbonator::processType() const {
 }
 
 MachineRole Carbonator::role() const {
-    return MachineRole::Processor;
+    return MachineRole::Carbonator;
 }
 
 bool Carbonator::canAcceptRecipe(const Recipe& recipe) const {
@@ -297,7 +308,7 @@ bool Carbonator::canAcceptRecipe(const Recipe& recipe) const {
     return true;
 }
 
-Cutter::Cutter(
+Filler::Filler(
     MachineId id,
     std::string name,
     double processingSpeed,
@@ -305,19 +316,19 @@ Cutter::Cutter(
     double breakdownProbability)
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
-std::string Cutter::typeName() const {
-    return "Cutter";
+std::string Filler::typeName() const {
+    return "Filler";
 }
 
-ProcessType Cutter::processType() const {
-    return ProcessType::Assembly;
+ProcessType Filler::processType() const {
+    return ProcessType::Filling;
 }
 
-MachineRole Cutter::role() const {
-    return MachineRole::Processor;
+MachineRole Filler::role() const {
+    return MachineRole::Filler;
 }
 
-bool Cutter::canAcceptRecipe(const Recipe& recipe) const {
+bool Filler::canAcceptRecipe(const Recipe& recipe) const {
     (void)recipe;
     return true;
 }
@@ -335,11 +346,11 @@ std::string Conveyor::typeName() const {
 }
 
 ProcessType Conveyor::processType() const {
-    return ProcessType::Storage;
+    return ProcessType::Conveying;
 }
 
 MachineRole Conveyor::role() const {
-    return MachineRole::Buffer;
+    return MachineRole::Conveyor;
 }
 
 bool Conveyor::canAcceptRecipe(const Recipe& recipe) const {
@@ -347,7 +358,7 @@ bool Conveyor::canAcceptRecipe(const Recipe& recipe) const {
     return true;
 }
 
-Assembler::Assembler(
+Sealer::Sealer(
     MachineId id,
     std::string name,
     double processingSpeed,
@@ -355,24 +366,24 @@ Assembler::Assembler(
     double breakdownProbability)
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
-std::string Assembler::typeName() const {
-    return "Assembler";
+std::string Sealer::typeName() const {
+    return "Sealer";
 }
 
-ProcessType Assembler::processType() const {
-    return ProcessType::Assembly;
+ProcessType Sealer::processType() const {
+    return ProcessType::Sealing;
 }
 
-MachineRole Assembler::role() const {
-    return MachineRole::Producer;
+MachineRole Sealer::role() const {
+    return MachineRole::Sealer;
 }
 
-bool Assembler::canAcceptRecipe(const Recipe& recipe) const {
+bool Sealer::canAcceptRecipe(const Recipe& recipe) const {
     (void)recipe;
     return true;
 }
 
-Painter::Painter(
+Labeler::Labeler(
     MachineId id,
     std::string name,
     double processingSpeed,
@@ -380,19 +391,19 @@ Painter::Painter(
     double breakdownProbability)
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
-std::string Painter::typeName() const {
-    return "Painter";
+std::string Labeler::typeName() const {
+    return "Labeler";
 }
 
-ProcessType Painter::processType() const {
-    return ProcessType::Assembly;
+ProcessType Labeler::processType() const {
+    return ProcessType::Labeling;
 }
 
-MachineRole Painter::role() const {
-    return MachineRole::Output;
+MachineRole Labeler::role() const {
+    return MachineRole::Labeler;
 }
 
-bool Painter::canAcceptRecipe(const Recipe& recipe) const {
+bool Labeler::canAcceptRecipe(const Recipe& recipe) const {
     (void)recipe;
     return true;
 }

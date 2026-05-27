@@ -6,7 +6,7 @@
 
 namespace gactorio {
 
-struct Event {
+class Event {
 public:
     Event(SimulationTime simulationTime, EventType type, MachineId sourceId, std::string message);
 
@@ -23,4 +23,3 @@ private:
 };
 
 } // namespace gactorio
-

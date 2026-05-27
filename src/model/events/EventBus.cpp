@@ -1,9 +1,11 @@
 #include "model/events/EventBus.hpp"
 
+#include <algorithm>
+
 namespace gactorio {
 
 void EventBus::subscribe(Observer* observer) {
-    if (observer != nullptr) {
+    if (observer != nullptr && std::find(observers_.begin(), observers_.end(), observer) == observers_.end()) {
         observers_.push_back(observer);
     }
 }
@@ -15,4 +17,3 @@ void EventBus::publish(const Event& event) const {
 }
 
 } // namespace gactorio
-

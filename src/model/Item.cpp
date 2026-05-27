@@ -13,60 +13,86 @@ const std::string& Item::storedName() const {
     return name_;
 }
 
-RawMaterial::RawMaterial()
-    : Item("Raw Material") {}
+Water::Water()
+    : Item("Water") {}
 
-ItemType RawMaterial::getTypeId() const {
-    return ItemType::RawMaterial;
+ItemType Water::getTypeId() const {
+    return ItemType::Water;
 }
 
-const std::string& RawMaterial::getName() const {
+const std::string& Water::getName() const {
     return storedName();
 }
 
-MetalPlate::MetalPlate()
-    : Item("Metal Plate") {}
+Syrup::Syrup()
+    : Item("Syrup") {}
 
-ItemType MetalPlate::getTypeId() const {
-    return ItemType::MetalPlate;
+ItemType Syrup::getTypeId() const {
+    return ItemType::Syrup;
 }
 
-const std::string& MetalPlate::getName() const {
+const std::string& Syrup::getName() const {
     return storedName();
 }
 
-Screw::Screw()
-    : Item("Screw") {}
+CarbonDioxide::CarbonDioxide()
+    : Item("Carbon Dioxide") {}
 
-ItemType Screw::getTypeId() const {
-    return ItemType::Screw;
+ItemType CarbonDioxide::getTypeId() const {
+    return ItemType::CarbonDioxide;
 }
 
-const std::string& Screw::getName() const {
+const std::string& CarbonDioxide::getName() const {
     return storedName();
 }
 
-Paint::Paint()
-    : Item("Paint") {}
+Can::Can()
+    : Item("Can") {}
 
-ItemType Paint::getTypeId() const {
-    return ItemType::Paint;
+ItemType Can::getTypeId() const {
+    return ItemType::Can;
 }
 
-const std::string& Paint::getName() const {
+const std::string& Can::getName() const {
+    return storedName();
+}
+
+Caffeine::Caffeine()
+    : Item("Caffeine") {}
+
+ItemType Caffeine::getTypeId() const {
+    return ItemType::Caffeine;
+}
+
+const std::string& Caffeine::getName() const {
+    return storedName();
+}
+
+Label::Label()
+    : Item("Label") {}
+
+ItemType Label::getTypeId() const {
+    return ItemType::Label;
+}
+
+const std::string& Label::getName() const {
     return storedName();
 }
 
 const char* ItemTypeName::get(ItemType type) {
     switch (type) {
-    case ItemType::RawMaterial:
-        return "Raw Material";
-    case ItemType::MetalPlate:
-        return "Metal Plate";
-    case ItemType::Screw:
-        return "Screw";
-    case ItemType::Paint:
-        return "Paint";
+    case ItemType::Water:
+        return "Water";
+    case ItemType::Syrup:
+        return "Syrup";
+    case ItemType::CarbonDioxide:
+        return "Carbon Dioxide";
+    case ItemType::Can:
+        return "Can";
+    case ItemType::Caffeine:
+        return "Caffeine";
+    case ItemType::Label:
+        return "Label";
     case ItemType::Unknown:
     default:
         return "Unknown";

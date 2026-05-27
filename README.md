@@ -24,10 +24,10 @@ C++17 compiler such as `g++`.
 - `include/controller`, `src/controller`: backend API boundary for the UI team
 - `tests/model`: smoke tests for backend behavior
 
-The default factory flow is:
+The default beverage factory flow is:
 
 ```text
-Raw Material -> Cutter -> Conveyor C1 -> Assembler -> Conveyor C2 -> Painter -> Finished Goods
+Water/Syrup/CO2/Can/Label -> Carbonator -> Filler -> Sealer -> Labeler -> Finished Beverage
 ```
 
 ## Controller API

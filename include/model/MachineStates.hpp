@@ -16,6 +16,12 @@ public:
     std::string name() const override;
 };
 
+class PausedState final : public MachineState {
+public:
+    void update(Machine& machine, double deltaTime) override;
+    std::string name() const override;
+};
+
 class BrokenState final : public MachineState {
 public:
     void update(Machine& machine, double deltaTime) override;

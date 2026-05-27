@@ -21,33 +21,49 @@ private:
     std::string name_;
 };
 
-class RawMaterial final : public Item {
+class Water final : public Item {
 public:
-    RawMaterial();
+    Water();
 
     ItemType getTypeId() const override;
     const std::string& getName() const override;
 };
 
-class MetalPlate final : public Item {
+class Syrup final : public Item {
 public:
-    MetalPlate();
+    Syrup();
 
     ItemType getTypeId() const override;
     const std::string& getName() const override;
 };
 
-class Screw final : public Item {
+class CarbonDioxide final : public Item {
 public:
-    Screw();
+    CarbonDioxide();
 
     ItemType getTypeId() const override;
     const std::string& getName() const override;
 };
 
-class Paint final : public Item {
+class Can final : public Item {
 public:
-    Paint();
+    Can();
+
+    ItemType getTypeId() const override;
+    const std::string& getName() const override;
+};
+
+class Caffeine final : public Item {
+public:
+    Caffeine();
+
+    ItemType getTypeId() const override;
+    const std::string& getName() const override;
+};
+
+class Label final : public Item {
+public:
+    Label();
 
     ItemType getTypeId() const override;
     const std::string& getName() const override;

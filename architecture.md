@@ -235,7 +235,7 @@ on concrete machine types with `if/else`, `switch`, or `dynamic_cast`.
 
 Examples:
 
-- `Assembler`
+- `Filler`
 - `Furnace`
 - `Carbonator`
 - `Packager`
@@ -319,7 +319,7 @@ Responsibilities:
 - publish factory-level events
 
 `Factory` should operate on abstractions. It does not need to know whether a
-line contains an `Assembler`, `Carbonator`, or future machine type.
+line contains a `Carbonator`, `Filler`, or future machine type.
 
 ### CarbonationFactory
 

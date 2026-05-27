@@ -17,6 +17,7 @@ namespace gactorio {
 class MachineState;
 class IdleState;
 class WorkingState;
+class PausedState;
 class BrokenState;
 class MaintenanceState;
 
@@ -69,12 +70,14 @@ protected:
 private:
     friend class IdleState;
     friend class WorkingState;
+    friend class PausedState;
     friend class BrokenState;
     friend class MaintenanceState;
 
     void setState(std::unique_ptr<MachineState> state);
     void transitionToIdle(const std::string& reason);
     void transitionToWorking(const std::string& reason);
+    void transitionToPaused(const std::string& reason);
     void transitionToBroken(const std::string& reason);
     void transitionToMaintenance(const std::string& reason);
     void onStateTransition(MachineStatus from, MachineStatus to, const std::string& reason);
@@ -112,14 +115,14 @@ public:
     bool canAcceptRecipe(const Recipe& recipe) const override;
 };
 
-class Cutter final : public Machine {
+class Filler final : public Machine {
 public:
-    Cutter(
+    Filler(
         MachineId id,
         std::string name,
-        double processingSpeed = 1.25,
-        double initialHealth = 95.0,
-        double breakdownProbability = 0.03);
+        double processingSpeed = 1.1,
+        double initialHealth = 98.0,
+        double breakdownProbability = 0.02);
 
     std::string typeName() const override;
     ProcessType processType() const override;
@@ -142,14 +145,14 @@ public:
     bool canAcceptRecipe(const Recipe& recipe) const override;
 };
 
-class Assembler final : public Machine {
+class Sealer final : public Machine {
 public:
-    Assembler(
+    Sealer(
         MachineId id,
         std::string name,
-        double processingSpeed = 1.0,
-        double initialHealth = 100.0,
-        double breakdownProbability = 0.02);
+        double processingSpeed = 1.3,
+        double initialHealth = 96.0,
+        double breakdownProbability = 0.015);
 
     std::string typeName() const override;
     ProcessType processType() const override;
@@ -157,14 +160,14 @@ public:
     bool canAcceptRecipe(const Recipe& recipe) const override;
 };
 
-class Painter final : public Machine {
+class Labeler final : public Machine {
 public:
-    Painter(
+    Labeler(
         MachineId id,
         std::string name,
-        double processingSpeed = 0.8,
-        double initialHealth = 90.0,
-        double breakdownProbability = 0.04);
+        double processingSpeed = 1.0,
+        double initialHealth = 94.0,
+        double breakdownProbability = 0.025);
 
     std::string typeName() const override;
     ProcessType processType() const override;

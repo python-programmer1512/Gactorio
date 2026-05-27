@@ -1,5 +1,6 @@
 #include "controller/FactoryController.hpp"
 
+#include "model/Item.hpp"
 #include "model/Machine.hpp"
 #include "model/Product.hpp"
 
@@ -10,25 +11,42 @@ namespace gactorio {
 
 namespace {
 
+std::string productTypeName(ProductId productId) {
+    switch (static_cast<ProductType>(productId)) {
+    case ProductType::SodaCan:
+        return "Soda Can";
+    case ProductType::SparklingWater:
+        return "Sparkling Water";
+    case ProductType::EnergyDrink:
+        return "Energy Drink";
+    case ProductType::Unknown:
+    default:
+        return "Unknown Product";
+    }
+}
+
 InventorySnapshot makeInventorySnapshot(const Inventory& inventory) {
     InventorySnapshot snapshot;
     for (const auto& item : inventory.items()) {
-        snapshot.addItem(std::to_string(static_cast<std::uint64_t>(item.first)), item.second);
+        snapshot.addItem(
+            std::to_string(static_cast<std::uint64_t>(item.first)),
+            ItemTypeName::get(item.first),
+            item.second);
     }
     for (const auto& product : inventory.products()) {
-        snapshot.addItem(std::to_string(product.first), product.second);
+        snapshot.addItem(std::to_string(product.first), productTypeName(product.first), product.second);
     }
     return snapshot;
 }
 
 std::unique_ptr<Product> makeProduct(ProductType productType) {
     switch (productType) {
-    case ProductType::ToyCar:
-        return std::make_unique<ToyCar>();
-    case ProductType::MetalBox:
-        return std::make_unique<MetalBox>();
-    case ProductType::DroneFrame:
-        return std::make_unique<DroneFrame>();
+    case ProductType::SodaCan:
+        return std::make_unique<SodaCan>();
+    case ProductType::SparklingWater:
+        return std::make_unique<SparklingWater>();
+    case ProductType::EnergyDrink:
+        return std::make_unique<EnergyDrink>();
     case ProductType::Unknown:
     default:
         return nullptr;
@@ -201,7 +219,7 @@ std::vector<EventSnapshot> FactoryController::getEventLogs() const {
     }
 
     for (const auto& event : factory_->eventLog().events()) {
-        logs.emplace_back(event.simulationTime(), event.type(), event.message());
+        logs.emplace_back(event.simulationTime(), event.type(), event.sourceId(), event.message());
     }
     return logs;
 }
@@ -229,7 +247,7 @@ FactorySnapshot FactoryController::snapshot() const {
     }
 
     for (const auto& event : factory_->eventLog().events()) {
-        snapshot.addEvent(EventSnapshot(event.simulationTime(), event.type(), event.message()));
+        snapshot.addEvent(EventSnapshot(event.simulationTime(), event.type(), event.sourceId(), event.message()));
     }
 
     return snapshot;

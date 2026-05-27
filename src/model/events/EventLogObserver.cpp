@@ -1,5 +1,6 @@
 #include "model/events/EventLogObserver.hpp"
 
+#include <algorithm>
 #include <utility>
 
 namespace gactorio {
@@ -23,8 +24,14 @@ const std::string& Event::message() const {
     return message_;
 }
 
+EventLogObserver::EventLogObserver(std::size_t maxEvents)
+    : maxEvents_(std::max<std::size_t>(1, maxEvents)) {}
+
 void EventLogObserver::onEvent(const Event& event) {
     events_.push_back(event);
+    if (events_.size() > maxEvents_) {
+        events_.erase(events_.begin());
+    }
 }
 
 const std::vector<Event>& EventLogObserver::events() const {
@@ -32,4 +39,3 @@ const std::vector<Event>& EventLogObserver::events() const {
 }
 
 } // namespace gactorio
-

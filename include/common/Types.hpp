@@ -15,34 +15,37 @@ using ProductionLineId = LineId;
 
 enum class ItemType : std::uint64_t {
     Unknown = 0,
-    RawMaterial = 1,
-    MetalPlate = 2,
-    Screw = 3,
-    Paint = 4
+    Water = 1,
+    Syrup = 2,
+    CarbonDioxide = 3,
+    Can = 4,
+    Caffeine = 5,
+    Label = 6
 };
 
 enum class ProductType : std::uint64_t {
     Unknown = 0,
-    ToyCar = 101,
-    MetalBox = 102,
-    DroneFrame = 103
+    SodaCan = 101,
+    SparklingWater = 102,
+    EnergyDrink = 103
 };
 
 enum class ProcessType {
     Unknown,
-    Assembly,
-    Mixing,
     Carbonation,
-    Packaging,
-    Storage
+    Conveying,
+    Filling,
+    Sealing,
+    Labeling
 };
 
 enum class MachineRole {
     Unknown,
-    Producer,
-    Processor,
-    Buffer,
-    Output
+    Carbonator,
+    Conveyor,
+    Filler,
+    Sealer,
+    Labeler
 };
 
 enum class MachineStatus {

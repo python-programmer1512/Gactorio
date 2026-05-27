@@ -5,21 +5,22 @@
 int main() {
     gactorio::CarbonationFactory factory;
 
-    assert(factory.machines().size() == 5);
+    assert(factory.machines().size() == 4);
     assert(factory.productionLines().size() == 1);
     assert(factory.productionLines().front().queueLength() == 1);
-    assert(factory.inventory().getQuantity(gactorio::ItemType::Ingredient) == 98);
     assert(factory.inventory().getQuantity(gactorio::ItemType::Water) == 99);
-    assert(factory.inventory().getQuantity(gactorio::ItemType::EmptyBottle) == 59);
-    assert(factory.inventory().getQuantity(gactorio::ItemType::Label) == 59);
-    assert(factory.inventory().getQuantity(gactorio::ItemType::Package) == 59);
+    assert(factory.inventory().getQuantity(gactorio::ItemType::Syrup) == 100);
+    assert(factory.inventory().getQuantity(gactorio::ItemType::CarbonDioxide) == 99);
+    assert(factory.inventory().getQuantity(gactorio::ItemType::Can) == 99);
+    assert(factory.inventory().getQuantity(gactorio::ItemType::Caffeine) == 100);
+    assert(factory.inventory().getQuantity(gactorio::ItemType::Label) == 99);
 
     for (int i = 0; i < 10; ++i) {
         factory.update(10.0);
     }
 
     const auto& products = factory.inventory().products();
-    const auto found = products.find(101);
+    const auto found = products.find(static_cast<gactorio::ProductId>(gactorio::ProductType::SparklingWater));
     assert(found != products.end());
     assert(found->second == 1);
     assert(factory.productionLines().front().queueLength() == 0);

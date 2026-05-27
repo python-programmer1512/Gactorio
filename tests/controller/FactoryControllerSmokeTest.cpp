@@ -1,6 +1,7 @@
 #include "controller/FactoryController.hpp"
 
 #include <cassert>
+#include <string>
 #include <vector>
 
 int main() {
@@ -10,17 +11,9 @@ int main() {
     controller.startSimulation();
     controller.setSpeed(2.0);
 
-<<<<<<< Updated upstream
-    assert(controller.enqueueProduct(1, gactorio::ProductType::MetalBox) == gactorio::FactoryCommandResult::Success);
-    assert(controller.enqueueProduct(999, gactorio::ProductType::ToyCar) == gactorio::FactoryCommandResult::NotFound);
-    assert(controller.enqueueProduct(1, gactorio::ProductType::Unknown) == gactorio::FactoryCommandResult::InvalidRequest);
-=======
-    assert(controller.enqueueProduct(1,   gactorio::ProductType::HyperBolt)
-               == gactorio::FactoryCommandResult::Success);
-    assert(controller.enqueueProduct(999, gactorio::ProductType::VoltzClassic)
-               == gactorio::FactoryCommandResult::NotFound);
-    assert(controller.enqueueProduct(1,   gactorio::ProductType::Unknown)
-               == gactorio::FactoryCommandResult::UnknownProduct);
+    assert(controller.enqueueProduct(1, gactorio::ProductType::SparklingWater) == gactorio::FactoryCommandResult::Success);
+    assert(controller.enqueueProduct(999, gactorio::ProductType::SodaCan) == gactorio::FactoryCommandResult::NotFound);
+    assert(controller.enqueueProduct(1, gactorio::ProductType::Unknown) == gactorio::FactoryCommandResult::UnknownProduct);
 
     const auto logsAfterFirstSuccess = controller.getEventLogs();
     std::vector<gactorio::EventType> enqueueEvents;
@@ -33,16 +26,26 @@ int main() {
     assert(enqueueEvents.size() >= 2);
     assert(enqueueEvents[enqueueEvents.size() - 2] == gactorio::EventType::InputsConsumed);
     assert(enqueueEvents[enqueueEvents.size() - 1] == gactorio::EventType::TaskEnqueued);
+    assert(logsAfterFirstSuccess[logsAfterFirstSuccess.size() - 2].sourceId() == 1);
+    assert(logsAfterFirstSuccess[logsAfterFirstSuccess.size() - 1].sourceId() == 0);
 
-    for (int i = 0; i < 47; ++i) {
-        assert(controller.enqueueProduct(1, gactorio::ProductType::VoltzClassic)
+    for (int i = 0; i < 98; ++i) {
+        assert(controller.enqueueProduct(1, gactorio::ProductType::SodaCan)
                    == gactorio::FactoryCommandResult::Success);
     }
->>>>>>> Stashed changes
 
     auto snapshot = controller.getFactorySnapshot();
+    bool sawWaterInventory = false;
+    for (const auto& entry : snapshot.inventory().items()) {
+        if (entry.name() == "Water") {
+            sawWaterInventory = true;
+            assert(entry.quantity() == 0);
+        }
+    }
+    assert(sawWaterInventory);
+
     const auto queueLengthBeforeShortage = snapshot.productionLines().front().queueLength();
-    assert(controller.enqueueProduct(1, gactorio::ProductType::VoltzClassic)
+    assert(controller.enqueueProduct(1, gactorio::ProductType::EnergyDrink)
                == gactorio::FactoryCommandResult::InsufficientMaterials);
     snapshot = controller.getFactorySnapshot();
     assert(snapshot.productionLines().front().queueLength() == queueLengthBeforeShortage);
@@ -51,7 +54,14 @@ int main() {
     assert(logsAfterShortage.back().type() == gactorio::EventType::Info);
 
     assert(snapshot.productionLines().size() == 1);
-    assert(snapshot.productionLines().front().queueLength() >= 1);
+    const auto& lineSnapshot = snapshot.productionLines().front();
+    assert(lineSnapshot.name() == "Beverage Line");
+    assert(lineSnapshot.queueLength() >= 1);
+    assert(lineSnapshot.machines().size() == 4);
+    assert(lineSnapshot.machines()[0].typeName() == "Carbonator");
+    assert(lineSnapshot.machines()[1].typeName() == "Filler");
+    assert(lineSnapshot.machines()[2].typeName() == "Sealer");
+    assert(lineSnapshot.machines()[3].typeName() == "Labeler");
 
     assert(controller.forceBreak(1) == gactorio::FactoryCommandResult::Success);
     assert(controller.repairMachine(1) == gactorio::FactoryCommandResult::Success);

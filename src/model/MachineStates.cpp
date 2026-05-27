@@ -23,6 +23,15 @@ std::string WorkingState::name() const {
     return "Working";
 }
 
+void PausedState::update(Machine& machine, double deltaTime) {
+    (void)machine;
+    (void)deltaTime;
+}
+
+std::string PausedState::name() const {
+    return "Paused";
+}
+
 void BrokenState::update(Machine& machine, double deltaTime) {
     (void)machine;
     (void)deltaTime;

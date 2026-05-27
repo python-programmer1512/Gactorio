@@ -58,96 +58,105 @@ const std::vector<ProcessStep>& Product::storedRoute() const {
     return route_;
 }
 
-ToyCar::ToyCar()
+SodaCan::SodaCan()
     : Product(
-          101,
-          "Toy Car",
+          static_cast<ProductId>(ProductType::SodaCan),
+          "Soda Can",
           {
-              ItemRequirement(ItemType::MetalPlate, 2),
-              ItemRequirement(ItemType::Screw, 4),
-              ItemRequirement(ItemType::Paint, 1),
+              ItemRequirement(ItemType::Water, 1),
+              ItemRequirement(ItemType::Syrup, 1),
+              ItemRequirement(ItemType::CarbonDioxide, 1),
+              ItemRequirement(ItemType::Can, 1),
+              ItemRequirement(ItemType::Label, 1),
           },
           {
-              ProcessStep(MachineRole::Processor, 2.0),
-              ProcessStep(MachineRole::Buffer, 0.5),
-              ProcessStep(MachineRole::Producer, 4.0),
-              ProcessStep(MachineRole::Buffer, 0.5),
-              ProcessStep(MachineRole::Output, 1.5),
+              ProcessStep(MachineRole::Carbonator, 2.0),
+              ProcessStep(MachineRole::Filler, 3.0),
+              ProcessStep(MachineRole::Sealer, 1.0),
+              ProcessStep(MachineRole::Labeler, 1.0),
           }) {}
 
-ProductId ToyCar::getProductId() const {
+ProductId SodaCan::getProductId() const {
     return storedProductId();
 }
 
-const std::string& ToyCar::getName() const {
+const std::string& SodaCan::getName() const {
     return storedName();
 }
 
-const std::vector<ItemRequirement>& ToyCar::getRequirements() const {
+const std::vector<ItemRequirement>& SodaCan::getRequirements() const {
     return storedRequirements();
 }
 
-const std::vector<ProcessStep>& ToyCar::getRoute() const {
+const std::vector<ProcessStep>& SodaCan::getRoute() const {
     return storedRoute();
 }
 
-MetalBox::MetalBox()
+SparklingWater::SparklingWater()
     : Product(
-          102,
-          "Metal Box",
+          static_cast<ProductId>(ProductType::SparklingWater),
+          "Sparkling Water",
           {
-              ItemRequirement(ItemType::MetalPlate, 3),
-              ItemRequirement(ItemType::Screw, 2),
+              ItemRequirement(ItemType::Water, 1),
+              ItemRequirement(ItemType::CarbonDioxide, 1),
+              ItemRequirement(ItemType::Can, 1),
+              ItemRequirement(ItemType::Label, 1),
           },
           {
-              ProcessStep(MachineRole::Processor, 3.0),
-              ProcessStep(MachineRole::Buffer, 0.5),
+              ProcessStep(MachineRole::Carbonator, 2.5),
+              ProcessStep(MachineRole::Filler, 2.0),
+              ProcessStep(MachineRole::Sealer, 1.0),
+              ProcessStep(MachineRole::Labeler, 1.0),
           }) {}
 
-ProductId MetalBox::getProductId() const {
+ProductId SparklingWater::getProductId() const {
     return storedProductId();
 }
 
-const std::string& MetalBox::getName() const {
+const std::string& SparklingWater::getName() const {
     return storedName();
 }
 
-const std::vector<ItemRequirement>& MetalBox::getRequirements() const {
+const std::vector<ItemRequirement>& SparklingWater::getRequirements() const {
     return storedRequirements();
 }
 
-const std::vector<ProcessStep>& MetalBox::getRoute() const {
+const std::vector<ProcessStep>& SparklingWater::getRoute() const {
     return storedRoute();
 }
 
-DroneFrame::DroneFrame()
+EnergyDrink::EnergyDrink()
     : Product(
-          103,
-          "Drone Frame",
+          static_cast<ProductId>(ProductType::EnergyDrink),
+          "Energy Drink",
           {
-              ItemRequirement(ItemType::RawMaterial, 2),
-              ItemRequirement(ItemType::MetalPlate, 6),
-              ItemRequirement(ItemType::Screw, 8),
+              ItemRequirement(ItemType::Water, 1),
+              ItemRequirement(ItemType::Syrup, 2),
+              ItemRequirement(ItemType::CarbonDioxide, 1),
+              ItemRequirement(ItemType::Can, 1),
+              ItemRequirement(ItemType::Caffeine, 1),
+              ItemRequirement(ItemType::Label, 1),
           },
           {
-              ProcessStep(MachineRole::Processor, 2.0),
-              ProcessStep(MachineRole::Producer, 6.0),
-              ProcessStep(MachineRole::Output, 2.0),
+              ProcessStep(MachineRole::Carbonator, 3.0),
+              ProcessStep(MachineRole::Filler, 4.0),
+              ProcessStep(MachineRole::Sealer, 1.0),
+              ProcessStep(MachineRole::Labeler, 1.5),
           }) {}
 
-ProductId DroneFrame::getProductId() const {
+ProductId EnergyDrink::getProductId() const {
     return storedProductId();
 }
 
-const std::string& DroneFrame::getName() const {
+const std::string& EnergyDrink::getName() const {
     return storedName();
 }
 
-const std::vector<ItemRequirement>& DroneFrame::getRequirements() const {
+const std::vector<ItemRequirement>& EnergyDrink::getRequirements() const {
     return storedRequirements();
 }
 
-const std::vector<ProcessStep>& DroneFrame::getRoute() const {
+const std::vector<ProcessStep>& EnergyDrink::getRoute() const {
     return storedRoute();
 }
 
