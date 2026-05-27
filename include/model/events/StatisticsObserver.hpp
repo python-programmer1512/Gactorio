@@ -1,6 +1,7 @@
 #pragma once
 
 #include "model/events/Observer.hpp"
+#include "model/memento/FactoryMemento.hpp"
 
 namespace gactorio {
 
@@ -14,6 +15,8 @@ public:
     int brokenMachineEvents() const;
     int repairedMachineEvents() const;
     int stateChangedEvents() const;
+    StatisticsMemento exportState() const;
+    void restoreState(const StatisticsMemento& state);
 
 private:
     int completedProductEvents_ = 0;

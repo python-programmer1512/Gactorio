@@ -3,9 +3,54 @@
 #include "model/MachineStates.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 #include <utility>
 
 namespace gactorio {
+
+namespace {
+
+RecipeMemento exportRecipeState(const Recipe& recipe) {
+    RecipeMemento state;
+    state.id = recipe.id();
+    state.name = recipe.name();
+    state.durationSeconds = recipe.durationSeconds();
+    state.inputs = recipe.inputs();
+    state.outputs = recipe.outputs();
+    return state;
+}
+
+Recipe makeRecipe(const RecipeMemento& state) {
+    Recipe recipe(state.id, state.name, state.durationSeconds);
+    for (const auto& input : state.inputs) {
+        recipe.addInput(input.first, input.second);
+    }
+    for (const auto& output : state.outputs) {
+        recipe.addOutput(output.first, output.second);
+    }
+    return recipe;
+}
+
+MachineTypeKind machineTypeKindOf(const Machine& machine) {
+    if (dynamic_cast<const Carbonator*>(&machine) != nullptr) {
+        return MachineTypeKind::Carbonator;
+    }
+    if (dynamic_cast<const Filler*>(&machine) != nullptr) {
+        return MachineTypeKind::Filler;
+    }
+    if (dynamic_cast<const Conveyor*>(&machine) != nullptr) {
+        return MachineTypeKind::Conveyor;
+    }
+    if (dynamic_cast<const Sealer*>(&machine) != nullptr) {
+        return MachineTypeKind::Sealer;
+    }
+    if (dynamic_cast<const Labeler*>(&machine) != nullptr) {
+        return MachineTypeKind::Labeler;
+    }
+    throw std::logic_error("unknown machine type for memento export");
+}
+
+} // namespace
 
 Machine::Machine(MachineId id, std::string name)
     : Machine(id, std::move(name), 1.0, 100.0, 0.0) {}
@@ -173,6 +218,64 @@ void Machine::resume() {
         return;
     }
     transitionToIdle("resumed");
+}
+
+void Machine::restoreStateObject(MachineStatus status) {
+    status_ = status;
+    state_ = makeMachineState(status_);
+}
+
+MachineMemento Machine::exportState(const std::unordered_map<const ProductionTask*, TaskMementoId>& taskIds) const {
+    MachineMemento state;
+    state.type = machineTypeKindOf(*this);
+    state.id = id_;
+    state.name = name_;
+    state.status = status_;
+    state.rawProgress = progress_;
+    state.health = health_;
+    state.processingSpeed = processingSpeed_;
+    state.breakdownProbability = breakdownProbability_;
+    state.maintenanceElapsed = maintenanceElapsed_;
+    state.maintenanceDuration = maintenanceDuration_;
+    state.simulationTime = simulationTime_;
+    if (recipe_.has_value()) {
+        state.recipe = exportRecipeState(*recipe_);
+    }
+    if (task_ != nullptr) {
+        const auto found = taskIds.find(task_.get());
+        if (found != taskIds.end()) {
+            state.assignedTaskId = found->second;
+        }
+    }
+    return state;
+}
+
+void Machine::restoreState(
+    const MachineMemento& state,
+    const std::unordered_map<TaskMementoId, std::shared_ptr<ProductionTask>>& tasks) {
+    id_ = state.id;
+    name_ = state.name;
+    recipe_.reset();
+    if (state.recipe.has_value()) {
+        recipe_ = makeRecipe(*state.recipe);
+    }
+
+    task_.reset();
+    if (state.assignedTaskId.has_value()) {
+        const auto found = tasks.find(*state.assignedTaskId);
+        if (found != tasks.end()) {
+            task_ = found->second;
+        }
+    }
+
+    progress_ = state.rawProgress;
+    health_ = state.health;
+    processingSpeed_ = state.processingSpeed;
+    breakdownProbability_ = state.breakdownProbability;
+    maintenanceElapsed_ = state.maintenanceElapsed;
+    maintenanceDuration_ = state.maintenanceDuration;
+    simulationTime_ = state.simulationTime;
+    restoreStateObject(state.status);
 }
 
 void Machine::advanceProduction(double deltaTime) {

@@ -37,6 +37,20 @@ int main() {
     assert(stats.repairedMachineEvents() == 1);
     assert(stats.stateChangedEvents() >= 3);
 
+    const auto savedStats = stats.exportState();
+    stats.onEvent(gactorio::Event(3.0, gactorio::EventType::ProductCompleted, 1, "extra completed product"));
+    stats.onEvent(gactorio::Event(4.0, gactorio::EventType::MachineBroken, 1, "extra breakdown"));
+    assert(stats.completedProductEvents() == savedStats.completedProductEvents + 1);
+    assert(stats.brokenMachineEvents() == savedStats.brokenMachineEvents + 1);
+
+    stats.restoreState(savedStats);
+    assert(stats.completedProductEvents() == savedStats.completedProductEvents);
+    assert(stats.startedTaskEvents() == savedStats.startedTaskEvents);
+    assert(stats.completedStepEvents() == savedStats.completedStepEvents);
+    assert(stats.brokenMachineEvents() == savedStats.brokenMachineEvents);
+    assert(stats.repairedMachineEvents() == savedStats.repairedMachineEvents);
+    assert(stats.stateChangedEvents() == savedStats.stateChangedEvents);
+
     bool sawTaskEnqueued = false;
     bool sawStateChanged = false;
     for (const auto& event : log.events()) {
@@ -57,6 +71,29 @@ int main() {
     limitedLog.onEvent(gactorio::Event(2.0, gactorio::EventType::Info, 1, "third beverage event"));
     assert(limitedLog.events().size() == 2);
     assert(limitedLog.events().front().message() == std::string("second beverage event"));
+
+    const auto savedLog = limitedLog.exportState();
+    assert(savedLog.maxEvents == 2);
+    assert(savedLog.events.size() == 2);
+    assert(savedLog.events.front().message == std::string("second beverage event"));
+
+    limitedLog.onEvent(gactorio::Event(3.0, gactorio::EventType::MachineBroken, 2, "fourth beverage event"));
+    assert(limitedLog.events().size() == 2);
+    assert(limitedLog.events().front().message() == std::string("third beverage event"));
+
+    limitedLog.restoreState(savedLog);
+    assert(limitedLog.events().size() == 2);
+    assert(limitedLog.events().front().simulationTime() == 1.0);
+    assert(limitedLog.events().front().type() == gactorio::EventType::Info);
+    assert(limitedLog.events().front().sourceId() == 1);
+    assert(limitedLog.events().front().message() == std::string("second beverage event"));
+    assert(limitedLog.events().back().simulationTime() == 2.0);
+    assert(limitedLog.events().back().message() == std::string("third beverage event"));
+
+    limitedLog.onEvent(gactorio::Event(4.0, gactorio::EventType::Info, 3, "after restore"));
+    assert(limitedLog.events().size() == 2);
+    assert(limitedLog.events().front().message() == std::string("third beverage event"));
+    assert(limitedLog.events().back().message() == std::string("after restore"));
 
     return 0;
 }

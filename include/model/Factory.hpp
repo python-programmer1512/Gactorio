@@ -7,6 +7,7 @@
 #include "model/events/EventBus.hpp"
 #include "model/events/EventLogObserver.hpp"
 #include "model/events/StatisticsObserver.hpp"
+#include "model/memento/FactoryMemento.hpp"
 
 #include <memory>
 #include <vector>
@@ -47,12 +48,19 @@ public:
     void resetClock();
     void stopClock();
     void setClockSpeed(double speedMultiplier);
+    FactoryMemento createMemento() const;
+    void restoreFromMemento(const FactoryMemento& state);
 
 protected:
     EventLog& mutableEventLog();
     Statistics& mutableStatistics();
+    virtual std::vector<RecipeMemento> exportRecipeStates() const;
+    virtual void restoreRecipeStates(const std::vector<RecipeMemento>& recipes);
 
 private:
+    void rebuildMachineRegistry();
+    void reconnectEventBus();
+
     SimClock clock_;
     Inventory inventory_;
     std::vector<ProductionLine> productionLines_;

@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace gactorio {
@@ -51,6 +52,11 @@ public:
     double getBreakdownProbability() const;
     void pause();
     void resume();
+    void restoreStateObject(MachineStatus status);
+    MachineMemento exportState(const std::unordered_map<const ProductionTask*, TaskMementoId>& taskIds) const;
+    void restoreState(
+        const MachineMemento& state,
+        const std::unordered_map<TaskMementoId, std::shared_ptr<ProductionTask>>& tasks);
 
     virtual std::string typeName() const = 0;
     virtual ProcessType processType() const = 0;

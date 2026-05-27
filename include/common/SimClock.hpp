@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/Types.hpp"
+#include "model/memento/FactoryMemento.hpp"
 
 namespace gactorio {
 
@@ -19,6 +20,8 @@ public:
     double speedMultiplier() const;
     bool isPaused() const;
     bool isStopped() const;
+    SimClockMemento exportState() const;
+    void restoreState(const SimClockMemento& state);
 
 private:
     SimulationTime currentTime_ = 0.0;
@@ -29,4 +32,3 @@ private:
 };
 
 } // namespace gactorio
-

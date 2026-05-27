@@ -4,6 +4,23 @@
 
 namespace gactorio {
 
+std::unique_ptr<MachineState> makeMachineState(MachineStatus status) {
+    switch (status) {
+    case MachineStatus::Working:
+        return std::make_unique<WorkingState>();
+    case MachineStatus::Paused:
+        return std::make_unique<PausedState>();
+    case MachineStatus::Broken:
+        return std::make_unique<BrokenState>();
+    case MachineStatus::Maintenance:
+        return std::make_unique<MaintenanceState>();
+    case MachineStatus::Idle:
+    case MachineStatus::Blocked:
+    default:
+        return std::make_unique<IdleState>();
+    }
+}
+
 void IdleState::update(Machine& machine, double deltaTime) {
     (void)deltaTime;
     if (machine.hasTask() || machine.recipe().has_value()) {

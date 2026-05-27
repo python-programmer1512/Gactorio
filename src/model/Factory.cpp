@@ -1,6 +1,7 @@
 #include "model/Factory.hpp"
 
 #include <algorithm>
+#include <unordered_map>
 #include <utility>
 
 namespace gactorio {
@@ -156,12 +157,78 @@ void Factory::setClockSpeed(double speedMultiplier) {
     clock_.setSpeed(speedMultiplier);
 }
 
+FactoryMemento Factory::createMemento() const {
+    FactoryMemento state;
+    state.clock = clock_.exportState();
+    state.inventory = inventory_.exportState();
+    state.recipes = exportRecipeStates();
+
+    std::unordered_map<const ProductionTask*, TaskMementoId> taskIds;
+    TaskMementoId nextTaskId = 1;
+    state.productionLines.reserve(productionLines_.size());
+    for (const auto& line : productionLines_) {
+        state.productionLines.push_back(line.exportState(taskIds, nextTaskId));
+    }
+
+    state.eventLog = eventLog_.exportState();
+    state.statistics = statistics_.exportState();
+    return state;
+}
+
+void Factory::restoreFromMemento(const FactoryMemento& state) {
+    productionLines_.clear();
+    machines_.clear();
+
+    clock_.restoreState(state.clock);
+    inventory_.restoreState(state.inventory);
+    restoreRecipeStates(state.recipes);
+
+    std::unordered_map<TaskMementoId, std::shared_ptr<ProductionTask>> restoredTasks;
+    productionLines_.reserve(state.productionLines.size());
+    for (const auto& lineState : state.productionLines) {
+        ProductionLine line(lineState.id, lineState.name);
+        line.restoreState(lineState, restoredTasks);
+        productionLines_.push_back(std::move(line));
+    }
+
+    rebuildMachineRegistry();
+    reconnectEventBus();
+    eventLog_.restoreState(state.eventLog);
+    statistics_.restoreState(state.statistics);
+}
+
 EventLog& Factory::mutableEventLog() {
     return eventLog_;
 }
 
 Statistics& Factory::mutableStatistics() {
     return statistics_;
+}
+
+std::vector<RecipeMemento> Factory::exportRecipeStates() const {
+    return {};
+}
+
+void Factory::restoreRecipeStates(const std::vector<RecipeMemento>& recipes) {
+    (void)recipes;
+}
+
+void Factory::rebuildMachineRegistry() {
+    machines_.clear();
+    for (auto& line : productionLines_) {
+        for (const auto& machine : line.machines()) {
+            machines_.push_back(machine.get());
+        }
+    }
+}
+
+void Factory::reconnectEventBus() {
+    eventBus_ = EventBus{};
+    eventBus_.subscribe(&eventLog_);
+    eventBus_.subscribe(&statistics_);
+    for (auto& line : productionLines_) {
+        line.setEventBus(&eventBus_);
+    }
 }
 
 } // namespace gactorio

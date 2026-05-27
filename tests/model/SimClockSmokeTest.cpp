@@ -23,6 +23,8 @@ int main() {
     assert(clock.update(10.0) == 0.0);
     assert(clock.now() == 7.0);
 
+    const auto pausedState = clock.exportState();
+
     clock.resume();
     assert(!clock.isPaused());
     assert(!clock.isStopped());
@@ -42,6 +44,15 @@ int main() {
     assert(clock.speedMultiplier() == 0.0);
     assert(clock.update(5.0) == 0.0);
     assert(clock.now() == 12.0);
+
+    clock.restoreState(pausedState);
+    assert(clock.now() == 7.0);
+    assert(clock.getDeltaTime() == 0.0);
+    assert(clock.speedMultiplier() == 2.5);
+    assert(clock.isPaused());
+    assert(!clock.isStopped());
+    assert(clock.update(3.0) == 0.0);
+    assert(clock.now() == 7.0);
 
     clock.reset();
     assert(clock.now() == 0.0);

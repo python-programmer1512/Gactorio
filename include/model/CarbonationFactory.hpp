@@ -13,9 +13,12 @@ public:
 
     const std::vector<Recipe>& recipes() const;
 
+protected:
+    std::vector<RecipeMemento> exportRecipeStates() const override;
+    void restoreRecipeStates(const std::vector<RecipeMemento>& recipes) override;
+
 private:
     std::vector<Recipe> recipes_;
 };
 
 } // namespace gactorio
-

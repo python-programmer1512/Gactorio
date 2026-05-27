@@ -83,11 +83,18 @@ FactoryController::FactoryController() {
     createDefaultCarbonationFactory();
 }
 
+void FactoryController::recordCurrentState() {
+    if (factory_ && !suppressAutoHistory_) {
+        history_.record(factory_->createMemento());
+    }
+}
+
 void FactoryController::createDefaultCarbonationFactory() {
     factory_ = std::make_unique<CarbonationFactory>();
 }
 
 void FactoryController::reset() {
+    recordCurrentState();
     createDefaultCarbonationFactory();
 }
 
@@ -103,6 +110,7 @@ void FactoryController::startSimulation() {
 
 void FactoryController::pauseSimulation() {
     if (factory_) {
+        recordCurrentState();
         factory_->pauseClock();
     }
 }
@@ -113,18 +121,21 @@ void FactoryController::resetSimulation() {
 
 void FactoryController::resumeSimulation() {
     if (factory_) {
+        recordCurrentState();
         factory_->resumeClock();
     }
 }
 
 void FactoryController::resetSimulationClock() {
     if (factory_) {
+        recordCurrentState();
         factory_->resetClock();
     }
 }
 
 void FactoryController::stopSimulation() {
     if (factory_) {
+        recordCurrentState();
         factory_->stopClock();
     }
 }
@@ -135,6 +146,7 @@ void FactoryController::setSpeed(double speedMultiplier) {
 
 void FactoryController::setSimulationSpeed(double speedMultiplier) {
     if (factory_) {
+        recordCurrentState();
         factory_->setClockSpeed(speedMultiplier);
     }
 }
@@ -149,7 +161,12 @@ FactoryCommandResult FactoryController::enqueueProduct(LineId lineId, ProductTyp
         return FactoryCommandResult::UnknownProduct;
     }
 
-    return toCommandResult(factory_->enqueueProduct(lineId, std::move(product)));
+    const auto previous = factory_->createMemento();
+    const auto result = toCommandResult(factory_->enqueueProduct(lineId, std::move(product)));
+    if (result == FactoryCommandResult::Success) {
+        history_.record(previous);
+    }
+    return result;
 }
 
 FactoryCommandResult FactoryController::forceBreak(MachineId id) {
@@ -162,6 +179,7 @@ FactoryCommandResult FactoryController::forceBreak(MachineId id) {
         return FactoryCommandResult::NotFound;
     }
 
+    recordCurrentState();
     machine->forceBreak();
     return FactoryCommandResult::Success;
 }
@@ -176,6 +194,7 @@ FactoryCommandResult FactoryController::repairMachine(MachineId id) {
         return FactoryCommandResult::NotFound;
     }
 
+    recordCurrentState();
     machine->repair();
     return FactoryCommandResult::Success;
 }
@@ -190,6 +209,7 @@ FactoryCommandResult FactoryController::pauseMachine(MachineId id) {
         return FactoryCommandResult::NotFound;
     }
 
+    recordCurrentState();
     machine->pause();
     return FactoryCommandResult::Success;
 }
@@ -204,8 +224,66 @@ FactoryCommandResult FactoryController::resumeMachine(MachineId id) {
         return FactoryCommandResult::NotFound;
     }
 
+    recordCurrentState();
     machine->resume();
     return FactoryCommandResult::Success;
+}
+
+FactoryCommandResult FactoryController::saveState() {
+    if (!factory_) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+
+    history_.record(factory_->createMemento());
+    return FactoryCommandResult::Success;
+}
+
+FactoryCommandResult FactoryController::undo() {
+    if (!factory_) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+
+    auto previous = history_.undo(factory_->createMemento());
+    if (!previous.has_value()) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+
+    suppressAutoHistory_ = true;
+    factory_->restoreFromMemento(*previous);
+    suppressAutoHistory_ = false;
+    return FactoryCommandResult::Success;
+}
+
+FactoryCommandResult FactoryController::redo() {
+    if (!factory_) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+
+    auto next = history_.redo(factory_->createMemento());
+    if (!next.has_value()) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+
+    suppressAutoHistory_ = true;
+    factory_->restoreFromMemento(*next);
+    suppressAutoHistory_ = false;
+    return FactoryCommandResult::Success;
+}
+
+bool FactoryController::canUndo() const {
+    return history_.canUndo();
+}
+
+bool FactoryController::canRedo() const {
+    return history_.canRedo();
+}
+
+void FactoryController::clearHistory() {
+    history_.clear();
+}
+
+SimulationHistoryStatus FactoryController::getHistoryStatus() const {
+    return SimulationHistoryStatus(canUndo(), canRedo());
 }
 
 FactorySnapshot FactoryController::getFactorySnapshot() const {

@@ -1,8 +1,13 @@
 #pragma once
 
+#include "common/Types.hpp"
 #include "model/MachineState.hpp"
 
+#include <memory>
+
 namespace gactorio {
+
+std::unique_ptr<MachineState> makeMachineState(MachineStatus status);
 
 class IdleState final : public MachineState {
 public:

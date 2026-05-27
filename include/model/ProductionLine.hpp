@@ -10,6 +10,7 @@
 #include <deque>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace gactorio {
@@ -36,6 +37,12 @@ public:
     void addMachine(std::unique_ptr<Machine> machine);
     Machine* findMachine(MachineId id);
     const Machine* findMachine(MachineId id) const;
+    ProductionLineMemento exportState(
+        std::unordered_map<const ProductionTask*, TaskMementoId>& taskIds,
+        TaskMementoId& nextTaskId) const;
+    void restoreState(
+        const ProductionLineMemento& state,
+        std::unordered_map<TaskMementoId, std::shared_ptr<ProductionTask>>& restoredTasks);
     void update(double deltaTime);
 
 private:

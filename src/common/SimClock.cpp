@@ -62,5 +62,22 @@ bool SimClock::isStopped() const {
     return stopped_;
 }
 
-} // namespace gactorio
+SimClockMemento SimClock::exportState() const {
+    SimClockMemento state;
+    state.currentTime = currentTime_;
+    state.lastDeltaTime = lastDeltaTime_;
+    state.speedMultiplier = speedMultiplier_;
+    state.paused = paused_;
+    state.stopped = stopped_;
+    return state;
+}
 
+void SimClock::restoreState(const SimClockMemento& state) {
+    currentTime_ = state.currentTime;
+    lastDeltaTime_ = state.lastDeltaTime;
+    speedMultiplier_ = state.speedMultiplier;
+    paused_ = state.paused;
+    stopped_ = state.stopped;
+}
+
+} // namespace gactorio

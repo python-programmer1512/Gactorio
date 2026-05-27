@@ -53,4 +53,24 @@ int StatisticsObserver::stateChangedEvents() const {
     return stateChangedEvents_;
 }
 
+StatisticsMemento StatisticsObserver::exportState() const {
+    StatisticsMemento state;
+    state.completedProductEvents = completedProductEvents_;
+    state.startedTaskEvents = startedTaskEvents_;
+    state.completedStepEvents = completedStepEvents_;
+    state.brokenMachineEvents = brokenMachineEvents_;
+    state.repairedMachineEvents = repairedMachineEvents_;
+    state.stateChangedEvents = stateChangedEvents_;
+    return state;
+}
+
+void StatisticsObserver::restoreState(const StatisticsMemento& state) {
+    completedProductEvents_ = state.completedProductEvents;
+    startedTaskEvents_ = state.startedTaskEvents;
+    completedStepEvents_ = state.completedStepEvents;
+    brokenMachineEvents_ = state.brokenMachineEvents;
+    repairedMachineEvents_ = state.repairedMachineEvents;
+    stateChangedEvents_ = state.stateChangedEvents;
+}
+
 } // namespace gactorio

@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 int main() {
@@ -21,6 +22,13 @@ int main() {
     assert(carbonator.getProcessingSpeed() == 1.5);
     assert(carbonator.getHealth() == 88.0);
     assert(carbonator.getBreakdownProbability() == 0.07);
+
+    const std::unordered_map<const gactorio::ProductionTask*, gactorio::TaskMementoId> noTaskIds;
+    assert(carbonator.exportState(noTaskIds).type == gactorio::MachineTypeKind::Carbonator);
+    assert(conveyor.exportState(noTaskIds).type == gactorio::MachineTypeKind::Conveyor);
+    assert(filler.exportState(noTaskIds).type == gactorio::MachineTypeKind::Filler);
+    assert(sealer.exportState(noTaskIds).type == gactorio::MachineTypeKind::Sealer);
+    assert(labeler.exportState(noTaskIds).type == gactorio::MachineTypeKind::Labeler);
 
     std::vector<std::unique_ptr<gactorio::Machine>> machines;
     machines.push_back(std::make_unique<gactorio::Carbonator>(10, "Poly Carbonator"));

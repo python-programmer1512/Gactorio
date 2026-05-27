@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/Types.hpp"
+#include "model/memento/FactoryMemento.hpp"
 #include "model/Product.hpp"
 
 #include <map>
@@ -22,6 +23,9 @@ public:
 
     const std::map<ItemType, int>& items() const;
     const std::map<ProductId, int>& products() const;
+
+    InventoryMemento exportState() const;
+    void restoreState(const InventoryMemento& state);
 
 private:
     std::map<ItemType, int> items_;

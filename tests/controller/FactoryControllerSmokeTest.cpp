@@ -11,7 +11,25 @@ int main() {
     controller.startSimulation();
     controller.setSpeed(2.0);
 
+    assert(controller.canUndo());
+    assert(!controller.canRedo());
+
+    auto snapshot = controller.getFactorySnapshot();
+    const auto queueLengthBeforeFirstSuccess = snapshot.productionLines().front().queueLength();
     assert(controller.enqueueProduct(1, gactorio::ProductType::SparklingWater) == gactorio::FactoryCommandResult::Success);
+    assert(controller.canUndo());
+    assert(controller.undo() == gactorio::FactoryCommandResult::Success);
+    snapshot = controller.getFactorySnapshot();
+    assert(snapshot.productionLines().front().queueLength() == queueLengthBeforeFirstSuccess);
+    assert(controller.canRedo());
+    auto historyStatus = controller.getHistoryStatus();
+    assert(historyStatus.canUndo());
+    assert(historyStatus.canRedo());
+    assert(controller.redo() == gactorio::FactoryCommandResult::Success);
+    snapshot = controller.getFactorySnapshot();
+    assert(snapshot.productionLines().front().queueLength() == queueLengthBeforeFirstSuccess + 1);
+    assert(!controller.canRedo());
+
     assert(controller.enqueueProduct(999, gactorio::ProductType::SodaCan) == gactorio::FactoryCommandResult::NotFound);
     assert(controller.enqueueProduct(1, gactorio::ProductType::Unknown) == gactorio::FactoryCommandResult::UnknownProduct);
 
@@ -34,7 +52,7 @@ int main() {
                    == gactorio::FactoryCommandResult::Success);
     }
 
-    auto snapshot = controller.getFactorySnapshot();
+    snapshot = controller.getFactorySnapshot();
     bool sawWaterInventory = false;
     for (const auto& entry : snapshot.inventory().items()) {
         if (entry.name() == "Water") {
@@ -78,6 +96,47 @@ int main() {
     controller.resetSimulation();
     snapshot = controller.getFactorySnapshot();
     assert(snapshot.simulationTime() == 0.0);
+
+    controller.clearHistory();
+    assert(!controller.canUndo());
+    assert(!controller.canRedo());
+    assert(controller.enqueueProduct(999, gactorio::ProductType::SodaCan) == gactorio::FactoryCommandResult::NotFound);
+    assert(controller.forceBreak(999) == gactorio::FactoryCommandResult::NotFound);
+    assert(!controller.canUndo());
+    assert(!controller.canRedo());
+
+    assert(controller.enqueueProduct(1, gactorio::ProductType::SparklingWater) == gactorio::FactoryCommandResult::Success);
+    snapshot = controller.getFactorySnapshot();
+    const auto queueLengthBeforeReset = snapshot.productionLines().front().queueLength();
+    controller.clearHistory();
+    controller.reset();
+    assert(controller.canUndo());
+    snapshot = controller.getFactorySnapshot();
+    assert(snapshot.productionLines().front().queueLength() == 1);
+    assert(controller.undo() == gactorio::FactoryCommandResult::Success);
+    snapshot = controller.getFactorySnapshot();
+    assert(snapshot.productionLines().front().queueLength() == queueLengthBeforeReset);
+
+    controller.clearHistory();
+    assert(controller.saveState() == gactorio::FactoryCommandResult::Success);
+    controller.tick(2.0);
+    snapshot = controller.getFactorySnapshot();
+    assert(snapshot.simulationTime() == 2.0);
+    assert(controller.undo() == gactorio::FactoryCommandResult::Success);
+    snapshot = controller.getFactorySnapshot();
+    assert(snapshot.simulationTime() == 0.0);
+    assert(controller.canRedo());
+    controller.pauseSimulation();
+    assert(!controller.canRedo());
+
+    controller.reset();
+    controller.clearHistory();
+    assert(controller.saveState() == gactorio::FactoryCommandResult::Success);
+    controller.tick(2.0);
+    assert(controller.undo() == gactorio::FactoryCommandResult::Success);
+    assert(controller.redo() == gactorio::FactoryCommandResult::Success);
+    snapshot = controller.getFactorySnapshot();
+    assert(snapshot.simulationTime() == 2.0);
 
     return 0;
 }

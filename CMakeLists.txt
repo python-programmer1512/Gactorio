@@ -29,6 +29,7 @@ add_library(gactorio_backend
     src/dto/EventSnapshot.cpp
     src/dto/StatisticsSnapshot.cpp
     src/dto/FactorySnapshot.cpp
+    src/controller/SimulationHistory.cpp
     src/controller/FactoryController.cpp
 )
 
@@ -60,6 +61,8 @@ set(SMOKE_TESTS
     production_line_smoke_test:tests/model/ProductionLineSmokeTest.cpp
     factory_flow_smoke_test:tests/model/FactoryFlowSmokeTest.cpp
     factory_inventory_enqueue_smoke_test:tests/model/FactoryInventoryEnqueueSmokeTest.cpp
+    simulation_history_smoke_test:tests/controller/SimulationHistorySmokeTest.cpp
+    memento_integration_smoke_test:tests/controller/MementoIntegrationSmokeTest.cpp
     factory_controller_smoke_test:tests/controller/FactoryControllerSmokeTest.cpp
 )
 

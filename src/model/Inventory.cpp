@@ -78,4 +78,16 @@ const std::map<ProductId, int>& Inventory::products() const {
     return products_;
 }
 
+InventoryMemento Inventory::exportState() const {
+    InventoryMemento state;
+    state.items = items_;
+    state.products = products_;
+    return state;
+}
+
+void Inventory::restoreState(const InventoryMemento& state) {
+    items_ = state.items;
+    products_ = state.products;
+}
+
 } // namespace gactorio

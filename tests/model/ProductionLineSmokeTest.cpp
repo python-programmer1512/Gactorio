@@ -6,6 +6,7 @@
 #include <cassert>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 namespace {
@@ -98,6 +99,59 @@ int main() {
     snapshot = line.getSnapshot();
     assert(snapshot.queueLength() == 0);
     assert(snapshot.currentTaskName().empty());
+
+    gactorio::ProductionLine mementoLine(10, "Memento Line");
+    mementoLine.setEventBus(&bus);
+    mementoLine.addMachine(std::make_unique<gactorio::Carbonator>(10, "Memento Carbonator"));
+    mementoLine.addMachine(std::make_unique<gactorio::Filler>(11, "Memento Filler"));
+    mementoLine.enqueueProduct(std::make_shared<gactorio::SodaCan>());
+    mementoLine.update(0.0);
+
+    assert(mementoLine.queueLength() == 1);
+    assert(mementoLine.currentTask() != nullptr);
+    assert(mementoLine.machines().front()->hasTask());
+
+    std::unordered_map<const gactorio::ProductionTask*, gactorio::TaskMementoId> taskIds;
+    gactorio::TaskMementoId nextTaskId = 1;
+    auto lineState = mementoLine.exportState(taskIds, nextTaskId);
+    assert(lineState.id == 10);
+    assert(lineState.name == "Memento Line");
+    assert(lineState.taskQueue.size() == 1);
+    assert(lineState.taskQueue.front().taskId == 1);
+    assert(lineState.machines.size() == 2);
+    assert(lineState.machines.front().assignedTaskId.has_value());
+    assert(*lineState.machines.front().assignedTaskId == lineState.taskQueue.front().taskId);
+
+    lineState.completedProducts.push_back(static_cast<gactorio::ProductId>(gactorio::ProductType::EnergyDrink));
+
+    gactorio::EventBus restoredBus;
+    gactorio::EventLogObserver restoredLog;
+    restoredBus.subscribe(&restoredLog);
+
+    gactorio::ProductionLine restoredLine(0, "Temporary Line");
+    restoredLine.setEventBus(&restoredBus);
+    std::unordered_map<gactorio::TaskMementoId, std::shared_ptr<gactorio::ProductionTask>> restoredTasks;
+    restoredLine.restoreState(lineState, restoredTasks);
+
+    assert(restoredLog.events().empty());
+    assert(restoredLine.id() == 10);
+    assert(restoredLine.name() == "Memento Line");
+    assert(restoredLine.queueLength() == 1);
+    assert(restoredTasks.count(1) == 1);
+    assert(restoredLine.currentTask() == restoredTasks.at(1));
+    assert(restoredLine.machines().front()->hasTask());
+    assert(restoredLine.machines().front()->getStatus() == gactorio::MachineStatus::Working);
+
+    const auto restoredCompleted = restoredLine.collectCompletedProducts();
+    assert(restoredCompleted.size() == 1);
+    assert(restoredCompleted.front() == static_cast<gactorio::ProductId>(gactorio::ProductType::EnergyDrink));
+    assert(restoredLine.queueLength() == 1);
+
+    restoredLine.update(2.0);
+    assert(restoredLine.currentTask() == restoredTasks.at(1));
+    assert(restoredLine.currentTask()->currentStepIndex() == 1);
+    assert(restoredTasks.at(1)->currentStepIndex() == 1);
+    assert(!restoredLog.events().empty());
 
     return 0;
 }

@@ -2,6 +2,7 @@
 
 #include "model/events/Event.hpp"
 #include "model/events/Observer.hpp"
+#include "model/memento/FactoryMemento.hpp"
 
 #include <cstddef>
 #include <vector>
@@ -14,6 +15,8 @@ public:
 
     void onEvent(const Event& event) override;
     const std::vector<Event>& events() const;
+    EventLogMemento exportState() const;
+    void restoreState(const EventLogMemento& state);
 
 private:
     std::size_t maxEvents_;

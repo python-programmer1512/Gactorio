@@ -1,5 +1,6 @@
 #pragma once
 
+#include "model/memento/FactoryMemento.hpp"
 #include "model/Product.hpp"
 
 #include <cstddef>
@@ -21,6 +22,9 @@ public:
     const std::string& getProductName() const;
     std::size_t currentStepIndex() const;
     std::size_t totalStepCount() const;
+    ProductionTaskMemento exportState(TaskMementoId id) const;
+    void restoreCurrentStepIndex(std::size_t currentStepIndex);
+    static std::shared_ptr<ProductionTask> fromState(const ProductionTaskMemento& state);
 
 private:
     std::shared_ptr<Product> ownedProduct_;

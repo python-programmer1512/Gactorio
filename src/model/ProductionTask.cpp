@@ -1,8 +1,27 @@
 #include "model/ProductionTask.hpp"
 
 #include <algorithm>
+#include <utility>
 
 namespace gactorio {
+
+namespace {
+
+std::shared_ptr<Product> makeProduct(ProductId productId) {
+    switch (static_cast<ProductType>(productId)) {
+    case ProductType::SodaCan:
+        return std::make_shared<SodaCan>();
+    case ProductType::SparklingWater:
+        return std::make_shared<SparklingWater>();
+    case ProductType::EnergyDrink:
+        return std::make_shared<EnergyDrink>();
+    case ProductType::Unknown:
+    default:
+        return nullptr;
+    }
+}
+
+} // namespace
 
 ProductionTask::ProductionTask(const Product& product)
     : product_(&product) {}
@@ -57,6 +76,29 @@ std::size_t ProductionTask::totalStepCount() const {
         return 0;
     }
     return product_->getRoute().size();
+}
+
+ProductionTaskMemento ProductionTask::exportState(TaskMementoId id) const {
+    ProductionTaskMemento state;
+    state.taskId = id;
+    state.productId = getProductId();
+    state.currentStepIndex = currentStepIndex_;
+    return state;
+}
+
+void ProductionTask::restoreCurrentStepIndex(std::size_t currentStepIndex) {
+    currentStepIndex_ = currentStepIndex;
+}
+
+std::shared_ptr<ProductionTask> ProductionTask::fromState(const ProductionTaskMemento& state) {
+    auto product = makeProduct(state.productId);
+    if (product == nullptr) {
+        return nullptr;
+    }
+
+    auto task = std::make_shared<ProductionTask>(std::move(product));
+    task->restoreCurrentStepIndex(state.currentStepIndex);
+    return task;
 }
 
 } // namespace gactorio
