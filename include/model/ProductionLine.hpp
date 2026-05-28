@@ -4,6 +4,7 @@
 #include "dto/ProductionLineSnapshot.hpp"
 #include "model/Machine.hpp"
 #include "model/Product.hpp"
+#include "model/ProductCatalog.hpp"
 #include "model/ProductionTask.hpp"
 #include "model/events/EventBus.hpp"
 
@@ -42,7 +43,8 @@ public:
         TaskMementoId& nextTaskId) const;
     void restoreState(
         const ProductionLineMemento& state,
-        std::unordered_map<TaskMementoId, std::shared_ptr<ProductionTask>>& restoredTasks);
+        std::unordered_map<TaskMementoId, std::shared_ptr<ProductionTask>>& restoredTasks,
+        const ProductCatalog& productCatalog);
     void update(double deltaTime);
 
 private:

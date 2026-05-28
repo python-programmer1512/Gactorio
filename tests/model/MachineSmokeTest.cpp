@@ -1,4 +1,5 @@
 #include "model/Machine.hpp"
+#include "model/DefaultProducts.hpp"
 #include "model/ProductionTask.hpp"
 #include "model/events/EventBus.hpp"
 #include "model/events/EventLogObserver.hpp"
@@ -8,7 +9,12 @@
 #include <unordered_map>
 
 int main() {
-    const gactorio::EnergyDrink product;
+    constexpr gactorio::ProductId EnergyDrinkProductId = 103;
+
+    gactorio::ProductCatalog catalog;
+    gactorio::registerDefaultProducts(catalog);
+    auto product = catalog.createProduct(EnergyDrinkProductId);
+    assert(product != nullptr);
     auto task = std::make_shared<gactorio::ProductionTask>(product);
     gactorio::Carbonator machine(1, "Carbonator 1");
 
@@ -38,7 +44,7 @@ int main() {
 
     gactorio::Recipe recipe(12, "Machine Test Recipe", 3.0);
     recipe.addInput(gactorio::ItemType::Water, 1);
-    recipe.addOutput(static_cast<gactorio::ProductId>(gactorio::ProductType::EnergyDrink), 1);
+    recipe.addOutput(EnergyDrinkProductId, 1);
     machine.setRecipe(recipe);
 
     const auto savedState = machine.exportState(taskIds);
@@ -59,7 +65,7 @@ int main() {
     assert(*savedState.assignedTaskId == 7);
 
     const auto taskState = task->exportState(7);
-    const auto restoredTask = gactorio::ProductionTask::fromState(taskState);
+    const auto restoredTask = gactorio::ProductionTask::fromState(taskState, catalog);
     assert(restoredTask != nullptr);
 
     std::unordered_map<gactorio::TaskMementoId, std::shared_ptr<gactorio::ProductionTask>> restoredTasks;

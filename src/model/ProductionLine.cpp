@@ -205,7 +205,8 @@ ProductionLineMemento ProductionLine::exportState(
 
 void ProductionLine::restoreState(
     const ProductionLineMemento& state,
-    std::unordered_map<TaskMementoId, std::shared_ptr<ProductionTask>>& restoredTasks) {
+    std::unordered_map<TaskMementoId, std::shared_ptr<ProductionTask>>& restoredTasks,
+    const ProductCatalog& productCatalog) {
     id_ = state.id;
     name_ = state.name;
     taskQueue_.clear();
@@ -213,7 +214,7 @@ void ProductionLine::restoreState(
     machines_.clear();
 
     for (const auto& taskState : state.taskQueue) {
-        auto task = ProductionTask::fromState(taskState);
+        auto task = ProductionTask::fromState(taskState, productCatalog);
         if (task == nullptr) {
             continue;
         }

@@ -3,6 +3,7 @@
 #include "common/SimClock.hpp"
 #include "common/Types.hpp"
 #include "model/Inventory.hpp"
+#include "model/ProductCatalog.hpp"
 #include "model/ProductionLine.hpp"
 #include "model/events/EventBus.hpp"
 #include "model/events/EventLogObserver.hpp"
@@ -33,11 +34,14 @@ public:
     const std::vector<Machine*>& machines() const;
     const EventLog& eventLog() const;
     const Statistics& statistics() const;
+    const ProductCatalog& productCatalog() const;
+    ProductCatalog& productCatalog();
     EventBus& eventBus();
     const EventBus& eventBus() const;
     const SimClock& clock() const;
 
     void addProductionLine(ProductionLine line);
+    ProductionRequestResult enqueueProduct(LineId lineId, std::shared_ptr<Product> product);
     ProductionRequestResult enqueueProduct(LineId lineId, std::unique_ptr<Product> product);
     ProductionLine* findProductionLine(LineId id);
     const ProductionLine* findProductionLine(LineId id) const;
@@ -62,6 +66,7 @@ private:
     void reconnectEventBus();
 
     SimClock clock_;
+    ProductCatalog productCatalog_;
     Inventory inventory_;
     std::vector<ProductionLine> productionLines_;
     std::vector<Machine*> machines_;

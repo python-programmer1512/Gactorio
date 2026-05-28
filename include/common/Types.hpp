@@ -23,13 +23,6 @@ enum class ItemType : std::uint64_t {
     Label = 6
 };
 
-enum class ProductType : std::uint64_t {
-    Unknown = 0,
-    SodaCan = 101,
-    SparklingWater = 102,
-    EnergyDrink = 103
-};
-
 enum class ProcessType {
     Unknown,
     Carbonation,

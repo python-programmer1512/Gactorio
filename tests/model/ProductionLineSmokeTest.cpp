@@ -1,3 +1,4 @@
+#include "model/DefaultProducts.hpp"
 #include "model/ProductionLine.hpp"
 #include "model/events/EventBus.hpp"
 #include "model/events/EventLogObserver.hpp"
@@ -37,6 +38,12 @@ public:
 } // namespace
 
 int main() {
+    constexpr gactorio::ProductId SodaCanProductId = 101;
+    constexpr gactorio::ProductId EnergyDrinkProductId = 103;
+
+    gactorio::ProductCatalog catalog;
+    gactorio::registerDefaultProducts(catalog);
+
     gactorio::EventBus bus;
     gactorio::EventLogObserver log;
     gactorio::StatisticsObserver stats;
@@ -51,7 +58,7 @@ int main() {
     line.addMachine(std::make_unique<gactorio::Labeler>(4, "Labeler"));
 
     line.machines().front()->pause();
-    line.enqueueProduct(std::make_shared<gactorio::SodaCan>());
+    line.enqueueProduct(catalog.createProduct(SodaCanProductId));
 
     assert(line.queueLength() == 1);
     assert(line.currentTask() != nullptr);
@@ -104,7 +111,7 @@ int main() {
     mementoLine.setEventBus(&bus);
     mementoLine.addMachine(std::make_unique<gactorio::Carbonator>(10, "Memento Carbonator"));
     mementoLine.addMachine(std::make_unique<gactorio::Filler>(11, "Memento Filler"));
-    mementoLine.enqueueProduct(std::make_shared<gactorio::SodaCan>());
+    mementoLine.enqueueProduct(catalog.createProduct(SodaCanProductId));
     mementoLine.update(0.0);
 
     assert(mementoLine.queueLength() == 1);
@@ -122,7 +129,7 @@ int main() {
     assert(lineState.machines.front().assignedTaskId.has_value());
     assert(*lineState.machines.front().assignedTaskId == lineState.taskQueue.front().taskId);
 
-    lineState.completedProducts.push_back(static_cast<gactorio::ProductId>(gactorio::ProductType::EnergyDrink));
+    lineState.completedProducts.push_back(EnergyDrinkProductId);
 
     gactorio::EventBus restoredBus;
     gactorio::EventLogObserver restoredLog;
@@ -131,7 +138,7 @@ int main() {
     gactorio::ProductionLine restoredLine(0, "Temporary Line");
     restoredLine.setEventBus(&restoredBus);
     std::unordered_map<gactorio::TaskMementoId, std::shared_ptr<gactorio::ProductionTask>> restoredTasks;
-    restoredLine.restoreState(lineState, restoredTasks);
+    restoredLine.restoreState(lineState, restoredTasks, catalog);
 
     assert(restoredLog.events().empty());
     assert(restoredLine.id() == 10);
@@ -144,7 +151,7 @@ int main() {
 
     const auto restoredCompleted = restoredLine.collectCompletedProducts();
     assert(restoredCompleted.size() == 1);
-    assert(restoredCompleted.front() == static_cast<gactorio::ProductId>(gactorio::ProductType::EnergyDrink));
+    assert(restoredCompleted.front() == EnergyDrinkProductId);
     assert(restoredLine.queueLength() == 1);
 
     restoredLine.update(2.0);

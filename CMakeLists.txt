@@ -11,6 +11,8 @@ add_library(gactorio_backend
     src/common/SimClock.cpp
     src/model/Item.cpp
     src/model/Product.cpp
+    src/model/ProductCatalog.cpp
+    src/model/DefaultProducts.cpp
     src/model/ProductionTask.cpp
     src/model/Recipe.cpp
     src/model/Inventory.cpp
@@ -61,6 +63,7 @@ set(SMOKE_TESTS
     production_line_smoke_test:tests/model/ProductionLineSmokeTest.cpp
     factory_flow_smoke_test:tests/model/FactoryFlowSmokeTest.cpp
     factory_inventory_enqueue_smoke_test:tests/model/FactoryInventoryEnqueueSmokeTest.cpp
+    product_catalog_integration_smoke_test:tests/model/ProductCatalogIntegrationSmokeTest.cpp
     simulation_history_smoke_test:tests/controller/SimulationHistorySmokeTest.cpp
     memento_integration_smoke_test:tests/controller/MementoIntegrationSmokeTest.cpp
     factory_controller_smoke_test:tests/controller/FactoryControllerSmokeTest.cpp

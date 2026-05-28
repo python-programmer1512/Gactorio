@@ -5,24 +5,6 @@
 
 namespace gactorio {
 
-namespace {
-
-std::shared_ptr<Product> makeProduct(ProductId productId) {
-    switch (static_cast<ProductType>(productId)) {
-    case ProductType::SodaCan:
-        return std::make_shared<SodaCan>();
-    case ProductType::SparklingWater:
-        return std::make_shared<SparklingWater>();
-    case ProductType::EnergyDrink:
-        return std::make_shared<EnergyDrink>();
-    case ProductType::Unknown:
-    default:
-        return nullptr;
-    }
-}
-
-} // namespace
-
 ProductionTask::ProductionTask(const Product& product)
     : product_(&product) {}
 
@@ -90,8 +72,10 @@ void ProductionTask::restoreCurrentStepIndex(std::size_t currentStepIndex) {
     currentStepIndex_ = currentStepIndex;
 }
 
-std::shared_ptr<ProductionTask> ProductionTask::fromState(const ProductionTaskMemento& state) {
-    auto product = makeProduct(state.productId);
+std::shared_ptr<ProductionTask> ProductionTask::fromState(
+    const ProductionTaskMemento& state,
+    const ProductCatalog& catalog) {
+    auto product = catalog.createProduct(state.productId);
     if (product == nullptr) {
         return nullptr;
     }

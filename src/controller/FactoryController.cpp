@@ -11,21 +11,7 @@ namespace gactorio {
 
 namespace {
 
-std::string productTypeName(ProductId productId) {
-    switch (static_cast<ProductType>(productId)) {
-    case ProductType::SodaCan:
-        return "Soda Can";
-    case ProductType::SparklingWater:
-        return "Sparkling Water";
-    case ProductType::EnergyDrink:
-        return "Energy Drink";
-    case ProductType::Unknown:
-    default:
-        return "Unknown Product";
-    }
-}
-
-InventorySnapshot makeInventorySnapshot(const Inventory& inventory) {
+InventorySnapshot makeInventorySnapshot(const Inventory& inventory, const ProductCatalog& productCatalog) {
     InventorySnapshot snapshot;
     for (const auto& item : inventory.items()) {
         snapshot.addItem(
@@ -34,23 +20,9 @@ InventorySnapshot makeInventorySnapshot(const Inventory& inventory) {
             item.second);
     }
     for (const auto& product : inventory.products()) {
-        snapshot.addItem(std::to_string(product.first), productTypeName(product.first), product.second);
+        snapshot.addItem(std::to_string(product.first), productCatalog.displayName(product.first), product.second);
     }
     return snapshot;
-}
-
-std::unique_ptr<Product> makeProduct(ProductType productType) {
-    switch (productType) {
-    case ProductType::SodaCan:
-        return std::make_unique<SodaCan>();
-    case ProductType::SparklingWater:
-        return std::make_unique<SparklingWater>();
-    case ProductType::EnergyDrink:
-        return std::make_unique<EnergyDrink>();
-    case ProductType::Unknown:
-    default:
-        return nullptr;
-    }
 }
 
 StatisticsSnapshot makeStatisticsSnapshot(const Statistics& statistics) {
@@ -151,12 +123,12 @@ void FactoryController::setSimulationSpeed(double speedMultiplier) {
     }
 }
 
-FactoryCommandResult FactoryController::enqueueProduct(LineId lineId, ProductType productType) {
+FactoryCommandResult FactoryController::enqueueProduct(LineId lineId, ProductId productId) {
     if (!factory_) {
         return FactoryCommandResult::InvalidRequest;
     }
 
-    auto product = makeProduct(productType);
+    auto product = factory_->productCatalog().createProduct(productId);
     if (product == nullptr) {
         return FactoryCommandResult::UnknownProduct;
     }
@@ -286,6 +258,14 @@ SimulationHistoryStatus FactoryController::getHistoryStatus() const {
     return SimulationHistoryStatus(canUndo(), canRedo());
 }
 
+const ProductCatalog& FactoryController::productCatalog() const {
+    return factory_->productCatalog();
+}
+
+ProductCatalog& FactoryController::productCatalog() {
+    return factory_->productCatalog();
+}
+
 FactorySnapshot FactoryController::getFactorySnapshot() const {
     return snapshot();
 }
@@ -316,7 +296,7 @@ FactorySnapshot FactoryController::snapshot() const {
 
     FactorySnapshot snapshot(
         factory_->simulationTime(),
-        makeInventorySnapshot(factory_->inventory()),
+        makeInventorySnapshot(factory_->inventory(), factory_->productCatalog()),
         makeStatisticsSnapshot(factory_->statistics()));
 
     for (const auto& line : factory_->productionLines()) {

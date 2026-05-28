@@ -48,6 +48,8 @@ struct HasRestoreState<T, std::void_t<decltype(&T::restoreState)>> : std::true_t
 } // namespace
 
 int main() {
+    constexpr gactorio::ProductId SodaCanProductId = 101;
+
     static_assert(HasCreateMemento<gactorio::Factory>::value);
     static_assert(HasRestoreFromMemento<gactorio::Factory>::value);
     static_assert(!HasCreateMemento<gactorio::Inventory>::value);
@@ -62,7 +64,7 @@ int main() {
     const auto initialQueueLength = snapshot.productionLines().front().queueLength();
     const auto initialWater = inventoryQuantity(snapshot, "Water");
 
-    assert(controller.enqueueProduct(1, gactorio::ProductType::SodaCan) == gactorio::FactoryCommandResult::Success);
+    assert(controller.enqueueProduct(1, SodaCanProductId) == gactorio::FactoryCommandResult::Success);
     snapshot = controller.getFactorySnapshot();
     assert(snapshot.productionLines().front().queueLength() == initialQueueLength + 1);
     assert(inventoryQuantity(snapshot, "Water") == initialWater - 1);
@@ -119,7 +121,7 @@ int main() {
     controller.clearHistory();
     snapshot = controller.getFactorySnapshot();
     const auto queueBeforeReset = snapshot.productionLines().front().queueLength();
-    assert(controller.enqueueProduct(1, gactorio::ProductType::SodaCan) == gactorio::FactoryCommandResult::Success);
+    assert(controller.enqueueProduct(1, SodaCanProductId) == gactorio::FactoryCommandResult::Success);
     controller.clearHistory();
     controller.reset();
     assert(controller.canUndo());

@@ -1,3 +1,4 @@
+#include "model/DefaultProducts.hpp"
 #include "model/Machine.hpp"
 #include "model/ProductionTask.hpp"
 
@@ -42,7 +43,10 @@ int main() {
         assert(machine->getHealth() > 0.0);
     }
 
-    const gactorio::SodaCan sodaCan;
+    gactorio::ProductCatalog catalog;
+    gactorio::registerDefaultProducts(catalog);
+    auto sodaCan = catalog.createProduct(101);
+    assert(sodaCan != nullptr);
     auto task = std::make_shared<gactorio::ProductionTask>(sodaCan);
 
     assert(!labeler.assignTask(task));

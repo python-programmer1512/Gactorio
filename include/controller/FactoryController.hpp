@@ -46,7 +46,7 @@ public:
     void stopSimulation();
     void setSpeed(double speedMultiplier);
     void setSimulationSpeed(double speedMultiplier);
-    FactoryCommandResult enqueueProduct(LineId lineId, ProductType productType);
+    FactoryCommandResult enqueueProduct(LineId lineId, ProductId productId);
     FactoryCommandResult forceBreak(MachineId id);
     FactoryCommandResult repairMachine(MachineId id);
     FactoryCommandResult pauseMachine(MachineId id);
@@ -58,6 +58,8 @@ public:
     bool canRedo() const;
     void clearHistory();
     SimulationHistoryStatus getHistoryStatus() const;
+    const ProductCatalog& productCatalog() const;
+    ProductCatalog& productCatalog();
 
     FactorySnapshot getFactorySnapshot() const;
     std::vector<EventSnapshot> getEventLogs() const;

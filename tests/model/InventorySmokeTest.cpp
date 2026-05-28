@@ -5,6 +5,9 @@
 #include <vector>
 
 int main() {
+    constexpr gactorio::ProductId SodaCanProductId = 101;
+    constexpr gactorio::ProductId EnergyDrinkProductId = 103;
+
     gactorio::Inventory inventory;
     inventory.addItem(gactorio::ItemType::Water, 2);
     inventory.addItem(gactorio::ItemType::Can, 3);
@@ -30,24 +33,24 @@ int main() {
     assert(inventory.getQuantity(gactorio::ItemType::Can) == 1);
     assert(inventory.getQuantity(gactorio::ItemType::Label) == 0);
 
-    inventory.addProduct(static_cast<gactorio::ProductId>(gactorio::ProductType::SodaCan), 2);
+    inventory.addProduct(SodaCanProductId, 2);
     const auto savedState = inventory.exportState();
 
     inventory.addItem(gactorio::ItemType::Water, 10);
     inventory.addItem(gactorio::ItemType::Label, 5);
-    inventory.addProduct(static_cast<gactorio::ProductId>(gactorio::ProductType::EnergyDrink), 1);
+    inventory.addProduct(EnergyDrinkProductId, 1);
 
     assert(inventory.getQuantity(gactorio::ItemType::Water) == 11);
-    assert(inventory.products().at(static_cast<gactorio::ProductId>(gactorio::ProductType::SodaCan)) == 2);
-    assert(inventory.products().at(static_cast<gactorio::ProductId>(gactorio::ProductType::EnergyDrink)) == 1);
+    assert(inventory.products().at(SodaCanProductId) == 2);
+    assert(inventory.products().at(EnergyDrinkProductId) == 1);
 
     inventory.restoreState(savedState);
 
     assert(inventory.getQuantity(gactorio::ItemType::Water) == 1);
     assert(inventory.getQuantity(gactorio::ItemType::Can) == 1);
     assert(inventory.getQuantity(gactorio::ItemType::Label) == 0);
-    assert(inventory.products().at(static_cast<gactorio::ProductId>(gactorio::ProductType::SodaCan)) == 2);
-    assert(inventory.products().count(static_cast<gactorio::ProductId>(gactorio::ProductType::EnergyDrink)) == 0);
+    assert(inventory.products().at(SodaCanProductId) == 2);
+    assert(inventory.products().count(EnergyDrinkProductId) == 0);
 
     return 0;
 }

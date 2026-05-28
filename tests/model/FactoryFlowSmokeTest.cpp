@@ -3,6 +3,8 @@
 #include <cassert>
 
 int main() {
+    constexpr gactorio::ProductId SparklingWaterProductId = 102;
+
     gactorio::CarbonationFactory factory;
 
     assert(factory.machines().size() == 4);
@@ -28,7 +30,7 @@ int main() {
     }
 
     const auto& products = factory.inventory().products();
-    const auto found = products.find(static_cast<gactorio::ProductId>(gactorio::ProductType::SparklingWater));
+    const auto found = products.find(SparklingWaterProductId);
     assert(found != products.end());
     assert(found->second == 1);
     assert(factory.productionLines().front().queueLength() == 0);
@@ -37,7 +39,7 @@ int main() {
     assert(factory.machines().size() == 4);
     assert(factory.productionLines().size() == 1);
     assert(factory.productionLines().front().queueLength() == 1);
-    assert(factory.inventory().products().count(static_cast<gactorio::ProductId>(gactorio::ProductType::SparklingWater)) == 0);
+    assert(factory.inventory().products().count(SparklingWaterProductId) == 0);
     assert(factory.inventory().getQuantity(gactorio::ItemType::Water) == 99);
     assert(factory.eventLog().events().size() == savedEventCount);
     assert(factory.statistics().startedTaskEvents() == savedStartedTasks);
@@ -48,7 +50,7 @@ int main() {
     }
 
     const auto& restoredProducts = factory.inventory().products();
-    const auto restoredFound = restoredProducts.find(static_cast<gactorio::ProductId>(gactorio::ProductType::SparklingWater));
+    const auto restoredFound = restoredProducts.find(SparklingWaterProductId);
     assert(restoredFound != restoredProducts.end());
     assert(restoredFound->second == 1);
     assert(factory.productionLines().front().queueLength() == 0);

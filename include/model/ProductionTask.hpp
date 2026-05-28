@@ -2,6 +2,7 @@
 
 #include "model/memento/FactoryMemento.hpp"
 #include "model/Product.hpp"
+#include "model/ProductCatalog.hpp"
 
 #include <cstddef>
 #include <memory>
@@ -24,7 +25,9 @@ public:
     std::size_t totalStepCount() const;
     ProductionTaskMemento exportState(TaskMementoId id) const;
     void restoreCurrentStepIndex(std::size_t currentStepIndex);
-    static std::shared_ptr<ProductionTask> fromState(const ProductionTaskMemento& state);
+    static std::shared_ptr<ProductionTask> fromState(
+        const ProductionTaskMemento& state,
+        const ProductCatalog& catalog);
 
 private:
     std::shared_ptr<Product> ownedProduct_;

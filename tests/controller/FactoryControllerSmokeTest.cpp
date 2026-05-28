@@ -5,6 +5,11 @@
 #include <vector>
 
 int main() {
+    constexpr gactorio::ProductId UnknownProductId = 0;
+    constexpr gactorio::ProductId SodaCanProductId = 101;
+    constexpr gactorio::ProductId SparklingWaterProductId = 102;
+    constexpr gactorio::ProductId EnergyDrinkProductId = 103;
+
     gactorio::FactoryController controller;
 
     controller.pauseSimulation();
@@ -16,7 +21,7 @@ int main() {
 
     auto snapshot = controller.getFactorySnapshot();
     const auto queueLengthBeforeFirstSuccess = snapshot.productionLines().front().queueLength();
-    assert(controller.enqueueProduct(1, gactorio::ProductType::SparklingWater) == gactorio::FactoryCommandResult::Success);
+    assert(controller.enqueueProduct(1, SparklingWaterProductId) == gactorio::FactoryCommandResult::Success);
     assert(controller.canUndo());
     assert(controller.undo() == gactorio::FactoryCommandResult::Success);
     snapshot = controller.getFactorySnapshot();
@@ -30,8 +35,8 @@ int main() {
     assert(snapshot.productionLines().front().queueLength() == queueLengthBeforeFirstSuccess + 1);
     assert(!controller.canRedo());
 
-    assert(controller.enqueueProduct(999, gactorio::ProductType::SodaCan) == gactorio::FactoryCommandResult::NotFound);
-    assert(controller.enqueueProduct(1, gactorio::ProductType::Unknown) == gactorio::FactoryCommandResult::UnknownProduct);
+    assert(controller.enqueueProduct(999, SodaCanProductId) == gactorio::FactoryCommandResult::NotFound);
+    assert(controller.enqueueProduct(1, UnknownProductId) == gactorio::FactoryCommandResult::UnknownProduct);
 
     const auto logsAfterFirstSuccess = controller.getEventLogs();
     std::vector<gactorio::EventType> enqueueEvents;
@@ -48,7 +53,7 @@ int main() {
     assert(logsAfterFirstSuccess[logsAfterFirstSuccess.size() - 1].sourceId() == 0);
 
     for (int i = 0; i < 98; ++i) {
-        assert(controller.enqueueProduct(1, gactorio::ProductType::SodaCan)
+        assert(controller.enqueueProduct(1, SodaCanProductId)
                    == gactorio::FactoryCommandResult::Success);
     }
 
@@ -63,7 +68,7 @@ int main() {
     assert(sawWaterInventory);
 
     const auto queueLengthBeforeShortage = snapshot.productionLines().front().queueLength();
-    assert(controller.enqueueProduct(1, gactorio::ProductType::EnergyDrink)
+    assert(controller.enqueueProduct(1, EnergyDrinkProductId)
                == gactorio::FactoryCommandResult::InsufficientMaterials);
     snapshot = controller.getFactorySnapshot();
     assert(snapshot.productionLines().front().queueLength() == queueLengthBeforeShortage);
@@ -100,12 +105,12 @@ int main() {
     controller.clearHistory();
     assert(!controller.canUndo());
     assert(!controller.canRedo());
-    assert(controller.enqueueProduct(999, gactorio::ProductType::SodaCan) == gactorio::FactoryCommandResult::NotFound);
+    assert(controller.enqueueProduct(999, SodaCanProductId) == gactorio::FactoryCommandResult::NotFound);
     assert(controller.forceBreak(999) == gactorio::FactoryCommandResult::NotFound);
     assert(!controller.canUndo());
     assert(!controller.canRedo());
 
-    assert(controller.enqueueProduct(1, gactorio::ProductType::SparklingWater) == gactorio::FactoryCommandResult::Success);
+    assert(controller.enqueueProduct(1, SparklingWaterProductId) == gactorio::FactoryCommandResult::Success);
     snapshot = controller.getFactorySnapshot();
     const auto queueLengthBeforeReset = snapshot.productionLines().front().queueLength();
     controller.clearHistory();

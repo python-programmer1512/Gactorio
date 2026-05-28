@@ -1,3 +1,4 @@
+#include "model/DefaultProducts.hpp"
 #include "model/Machine.hpp"
 #include "model/ProductionTask.hpp"
 #include "model/events/EventLogObserver.hpp"
@@ -7,7 +8,10 @@
 #include <memory>
 
 int main() {
-    const gactorio::SodaCan product;
+    gactorio::ProductCatalog catalog;
+    gactorio::registerDefaultProducts(catalog);
+    auto product = catalog.createProduct(101);
+    assert(product != nullptr);
     auto task = std::make_shared<gactorio::ProductionTask>(product);
     gactorio::Carbonator machine(1, "Carbonator State Test");
 

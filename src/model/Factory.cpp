@@ -39,6 +39,14 @@ const Statistics& Factory::statistics() const {
     return statistics_;
 }
 
+const ProductCatalog& Factory::productCatalog() const {
+    return productCatalog_;
+}
+
+ProductCatalog& Factory::productCatalog() {
+    return productCatalog_;
+}
+
 EventBus& Factory::eventBus() {
     return eventBus_;
 }
@@ -60,6 +68,10 @@ void Factory::addProductionLine(ProductionLine line) {
 }
 
 ProductionRequestResult Factory::enqueueProduct(LineId lineId, std::unique_ptr<Product> product) {
+    return enqueueProduct(lineId, std::shared_ptr<Product>(std::move(product)));
+}
+
+ProductionRequestResult Factory::enqueueProduct(LineId lineId, std::shared_ptr<Product> product) {
     auto* line = findProductionLine(lineId);
     if (line == nullptr) {
         return ProductionRequestResult::LineNotFound;
@@ -85,7 +97,7 @@ ProductionRequestResult Factory::enqueueProduct(LineId lineId, std::unique_ptr<P
         lineId,
         "Consumed inputs for " + productName));
 
-    line->enqueueProduct(std::shared_ptr<Product>(std::move(product)));
+    line->enqueueProduct(std::move(product));
     return ProductionRequestResult::Success;
 }
 
@@ -187,7 +199,7 @@ void Factory::restoreFromMemento(const FactoryMemento& state) {
     productionLines_.reserve(state.productionLines.size());
     for (const auto& lineState : state.productionLines) {
         ProductionLine line(lineState.id, lineState.name);
-        line.restoreState(lineState, restoredTasks);
+        line.restoreState(lineState, restoredTasks, productCatalog_);
         productionLines_.push_back(std::move(line));
     }
 

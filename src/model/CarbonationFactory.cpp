@@ -1,5 +1,6 @@
 #include "model/CarbonationFactory.hpp"
 
+#include "model/DefaultProducts.hpp"
 #include "model/Machine.hpp"
 #include "model/Product.hpp"
 
@@ -8,6 +9,29 @@
 namespace gactorio {
 
 namespace {
+
+constexpr ProductId SodaCanProductId = 101;
+constexpr ProductId SparklingWaterProductId = 102;
+
+// Kept for the recipe/memento path; product definitions live in DefaultProducts.
+void addLegacyDemoRecipes(std::vector<Recipe>& recipes) {
+    Recipe sodaCan(1, "Soda Can", 4.0);
+    sodaCan.addInput(ItemType::Water, 1);
+    sodaCan.addInput(ItemType::Syrup, 1);
+    sodaCan.addInput(ItemType::CarbonDioxide, 1);
+    sodaCan.addInput(ItemType::Can, 1);
+    sodaCan.addInput(ItemType::Label, 1);
+    sodaCan.addOutput(SodaCanProductId, 1);
+    recipes.push_back(sodaCan);
+
+    Recipe sparklingWater(2, "Sparkling Water", 3.0);
+    sparklingWater.addInput(ItemType::Water, 1);
+    sparklingWater.addInput(ItemType::CarbonDioxide, 1);
+    sparklingWater.addInput(ItemType::Can, 1);
+    sparklingWater.addInput(ItemType::Label, 1);
+    sparklingWater.addOutput(SparklingWaterProductId, 1);
+    recipes.push_back(sparklingWater);
+}
 
 RecipeMemento exportRecipeState(const Recipe& recipe) {
     RecipeMemento state;
@@ -33,22 +57,8 @@ Recipe makeRecipe(const RecipeMemento& state) {
 } // namespace
 
 CarbonationFactory::CarbonationFactory() {
-    Recipe sodaCan(1, "Soda Can", 4.0);
-    sodaCan.addInput(ItemType::Water, 1);
-    sodaCan.addInput(ItemType::Syrup, 1);
-    sodaCan.addInput(ItemType::CarbonDioxide, 1);
-    sodaCan.addInput(ItemType::Can, 1);
-    sodaCan.addInput(ItemType::Label, 1);
-    sodaCan.addOutput(static_cast<ProductId>(ProductType::SodaCan), 1);
-    recipes_.push_back(sodaCan);
-
-    Recipe sparklingWater(2, "Sparkling Water", 3.0);
-    sparklingWater.addInput(ItemType::Water, 1);
-    sparklingWater.addInput(ItemType::CarbonDioxide, 1);
-    sparklingWater.addInput(ItemType::Can, 1);
-    sparklingWater.addInput(ItemType::Label, 1);
-    sparklingWater.addOutput(static_cast<ProductId>(ProductType::SparklingWater), 1);
-    recipes_.push_back(sparklingWater);
+    registerDefaultProducts(productCatalog());
+    addLegacyDemoRecipes(recipes_);
 
     inventory().addItem(ItemType::Water, 100);
     inventory().addItem(ItemType::Syrup, 100);
@@ -64,7 +74,10 @@ CarbonationFactory::CarbonationFactory() {
     line.addMachine(std::make_unique<Labeler>(4, "Labeler"));
     addProductionLine(std::move(line));
 
-    (void)enqueueProduct(1, std::make_unique<SparklingWater>());
+    auto initialProduct = productCatalog().createProduct(SparklingWaterProductId);
+    if (initialProduct != nullptr) {
+        (void)enqueueProduct(1, std::move(initialProduct));
+    }
 }
 
 const std::vector<Recipe>& CarbonationFactory::recipes() const {

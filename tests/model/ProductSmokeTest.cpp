@@ -1,26 +1,38 @@
+#include "model/DefaultProducts.hpp"
 #include "model/Product.hpp"
+#include "model/ProductCatalog.hpp"
 
 #include <cassert>
 
 int main() {
-    const gactorio::SodaCan sodaCan;
-    const gactorio::SparklingWater sparklingWater;
-    const gactorio::EnergyDrink energyDrink;
+    constexpr gactorio::ProductId SodaCanProductId = 101;
+    constexpr gactorio::ProductId SparklingWaterProductId = 102;
+    constexpr gactorio::ProductId EnergyDrinkProductId = 103;
 
-    assert(sodaCan.getProductId() != sparklingWater.getProductId());
-    assert(sparklingWater.getProductId() != energyDrink.getProductId());
+    gactorio::ProductCatalog catalog;
+    gactorio::registerDefaultProducts(catalog);
 
-    assert(sodaCan.getRequirements().size() == 5);
-    assert(sparklingWater.getRequirements().size() == 4);
-    assert(energyDrink.getRequirements().size() == 6);
+    const auto sodaCan = catalog.createProduct(SodaCanProductId);
+    const auto sparklingWater = catalog.createProduct(SparklingWaterProductId);
+    const auto energyDrink = catalog.createProduct(EnergyDrinkProductId);
+    assert(sodaCan != nullptr);
+    assert(sparklingWater != nullptr);
+    assert(energyDrink != nullptr);
 
-    assert(sodaCan.getRoute().size() == 4);
-    assert(sparklingWater.getRoute().size() == 4);
-    assert(energyDrink.getRoute().size() == 4);
+    assert(sodaCan->getProductId() != sparklingWater->getProductId());
+    assert(sparklingWater->getProductId() != energyDrink->getProductId());
 
-    assert(sodaCan.getRequirements().front().itemType() == gactorio::ItemType::Water);
-    assert(sodaCan.getRoute().front().requiredRole() == gactorio::MachineRole::Carbonator);
-    assert(energyDrink.getRoute().front().requiredRole() == gactorio::MachineRole::Carbonator);
+    assert(sodaCan->getRequirements().size() == 5);
+    assert(sparklingWater->getRequirements().size() == 4);
+    assert(energyDrink->getRequirements().size() == 6);
+
+    assert(sodaCan->getRoute().size() == 4);
+    assert(sparklingWater->getRoute().size() == 4);
+    assert(energyDrink->getRoute().size() == 4);
+
+    assert(sodaCan->getRequirements().front().itemType() == gactorio::ItemType::Water);
+    assert(sodaCan->getRoute().front().requiredRole() == gactorio::MachineRole::Carbonator);
+    assert(energyDrink->getRoute().front().requiredRole() == gactorio::MachineRole::Carbonator);
 
     return 0;
 }
