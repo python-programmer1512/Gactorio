@@ -6,7 +6,7 @@
 // =============================================================================
 'use strict';
 
-console.log('[gactorio] app.js loaded — build', '2026-06-01-f');
+console.log('[gactorio] app.js loaded — build', '2026-06-01-g');
 
 let controller = null;
 let lastTime   = 0;

@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- Aggressively defeat browser caching so a fresh wasm always wins. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma"        content="no-cache">
+    <meta http-equiv="Expires"       content="0">
     <title>Gactorio — Energy Drink Factory</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -73,9 +77,9 @@
 
     <!-- 1) Emscripten glue (loads gactorio.wasm and creates `Module`) -->
     <!-- ?v= cache-busts the deployed CDN when we rebuild the wasm. -->
-    <script src="gactorio.js?v=20260601f"></script>
+    <script src="gactorio.js?v=20260601g"></script>
 
     <!-- 2) Our UI logic — talks to Module.Controller only -->
-    <script src="app.js?v=20260601f"></script>
+    <script src="app.js?v=20260601g"></script>
 </body>
 </html>
