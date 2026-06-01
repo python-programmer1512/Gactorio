@@ -1,5 +1,7 @@
 # =============================================================================
-# build_web.ps1 — compile the C++ backend + embind layer to web/gactorio.{js,wasm}.
+# build_web.ps1 — compile the C++ backend + embind layer to docs/gactorio.{js,wasm}.
+#
+# Output lands directly in docs/ because GitHub Pages serves that folder.
 #
 # Prerequisites:
 #   1. Install Emscripten SDK (https://emscripten.org/docs/getting_started/downloads.html).
@@ -10,8 +12,8 @@
 #   .\build_web.ps1
 #
 # Output:
-#   web/gactorio.js    (Emscripten glue)
-#   web/gactorio.wasm  (compiled C++ binary)
+#   docs/gactorio.js    (Emscripten glue)
+#   docs/gactorio.wasm  (compiled C++ binary)
 # =============================================================================
 $ErrorActionPreference = 'Stop'
 
@@ -55,6 +57,6 @@ emcc @sources `
     --bind `
     -s ALLOW_MEMORY_GROWTH=1 `
     -s EXPORT_NAME=Module `
-    -o web/gactorio.js
+    -o docs/gactorio.js
 
-Write-Host "OK  ->  web/gactorio.js + web/gactorio.wasm"
+Write-Host "OK  ->  docs/gactorio.js + docs/gactorio.wasm"

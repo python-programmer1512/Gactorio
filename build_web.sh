@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-# Build the C++ backend + embind layer to web/gactorio.{js,wasm} via Emscripten.
+# Build the C++ backend + embind layer to docs/gactorio.{js,wasm} via Emscripten.
+# Output lands in docs/ because GitHub Pages serves that folder.
 # Prereq: Emscripten SDK installed and `emcc --version` works.
 
 set -e
+
+# 1) Regenerate include/common/Config.h from data/factory_config.json so any
+#    hyperparameter edits in the JSON propagate to the C++ build.
+python tools/gen_config.py
 
 SOURCES=(
     src/common/Types.cpp
@@ -27,6 +32,7 @@ SOURCES=(
     src/dto/EventSnapshot.cpp
     src/dto/StatisticsSnapshot.cpp
     src/dto/FactorySnapshot.cpp
+    src/controller/SimulationHistory.cpp
     src/controller/FactoryController.cpp
     src/controller/Controller.cpp
     src/web/bindings.cpp
@@ -39,6 +45,6 @@ emcc "${SOURCES[@]}" \
     --bind \
     -s ALLOW_MEMORY_GROWTH=1 \
     -s EXPORT_NAME=Module \
-    -o web/gactorio.js
+    -o docs/gactorio.js
 
-echo "OK -> web/gactorio.js + web/gactorio.wasm"
+echo "OK -> docs/gactorio.js + docs/gactorio.wasm"
