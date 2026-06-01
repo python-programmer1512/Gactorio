@@ -29,7 +29,7 @@ int main() {
     machine.update(13.5);
     machine.forceBreak();
     machine.repair();
-    machine.update(2.0);
+    machine.update(4.0);  // wait out kRepairAllDelaySeconds (3 s)
 
     assert(!log.events().empty());
     assert(stats.startedTaskEvents() == 1);

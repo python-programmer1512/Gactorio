@@ -15,6 +15,10 @@
 # =============================================================================
 $ErrorActionPreference = 'Stop'
 
+# 1) Regenerate include/common/Config.h from data/factory_config.json so any
+#    hyperparameter edits in the JSON propagate to the C++ build.
+python tools/gen_config.py
+
 $sources = @(
     'src/common/Types.cpp',
     'src/common/SimClock.cpp',

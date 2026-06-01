@@ -46,8 +46,9 @@ int main() {
     assert(!machine.canAcceptTask());
 
     // forceBreak cleared the task, so after maintenance completes the
-    // machine returns to Idle (not Working).
-    machine.update(2.0);
+    // machine returns to Idle (not Working). Maintenance duration is now
+    // config::kRepairAllDelaySeconds (3 s), so we feed a 4 s tick.
+    machine.update(4.0);
     assert(machine.getStatus() == gactorio::MachineStatus::Idle);
     assert(machine.getHealth() == 100.0);
     assert(machine.canAcceptTask());

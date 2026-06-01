@@ -154,6 +154,20 @@ FactoryCommandResult FactoryController::repairMachine(MachineId id) {
     return FactoryCommandResult::Success;
 }
 
+FactoryCommandResult FactoryController::incrementalRepairMachine(MachineId id) {
+    if (!factory_) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+
+    auto* machine = factory_->findMachine(id);
+    if (machine == nullptr) {
+        return FactoryCommandResult::NotFound;
+    }
+
+    machine->incrementalRepair();
+    return FactoryCommandResult::Success;
+}
+
 FactoryCommandResult FactoryController::pauseMachine(MachineId id) {
     if (!factory_) {
         return FactoryCommandResult::InvalidRequest;

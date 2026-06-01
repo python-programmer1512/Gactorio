@@ -1,5 +1,6 @@
 #include "model/Machine.hpp"
 
+#include "common/Config.h"
 #include "model/MachineStates.hpp"
 
 #include <algorithm>
@@ -33,9 +34,10 @@ Machine::Machine(
     : id_(id),
       name_(std::move(name)),
       state_(std::make_unique<IdleState>()),
-      health_(std::clamp(initialHealth, 0.0, 100.0)),
+      health_(std::clamp(initialHealth, 0.0, config::kInitialHealth)),
       processingSpeed_(std::max(0.0, processingSpeed)),
       breakdownProbability_(std::clamp(breakdownProbability, 0.0, 1.0)) {
+    maintenanceDuration_ = config::kRepairAllDelaySeconds;
     if (health_ <= 0.0) {
         status_ = MachineStatus::Broken;
         state_ = std::make_unique<BrokenState>();
@@ -136,6 +138,15 @@ void Machine::repair() {
     transitionToMaintenance("repair requested");
 }
 
+void Machine::incrementalRepair() {
+    // Quick +X HP boost. Does not change state, does not revive a broken
+    // machine — use repair()/repairAll for that.
+    if (status_ == MachineStatus::Broken) {
+        return;
+    }
+    health_ = std::min(100.0, health_ + config::kIncrementalRepairHp);
+}
+
 MachineId Machine::getId() const {
     return id_;
 }
@@ -193,17 +204,19 @@ void Machine::resume() {
 void Machine::advanceProduction(double deltaTime) {
     // ----- Random wear-and-tear -------------------------------------------
     // While a machine has a task and is working, every tick there is a small
-    // chance of taking random HP damage. If HP reaches zero the task is
-    // preserved (not cleared) so that Repair can resume it from progress 0.
+    // chance of taking random HP damage. Probability + damage range come from
+    // data/factory_config.json via the generated gactorio::config:: constants.
+    // If HP reaches zero the task is preserved so Repair-All can resume it
+    // from progress 0.
     if (task_ != nullptr) {
         const double dt = std::max(0.0, deltaTime);
-        // 50% chance per second of taking damage, scaled to dt.
-        const double damageChance = 0.5 * dt;
+        const double damageChance = config::kDamageChancePerSecond * dt;
         if (uniform01() < damageChance) {
-            const double dmg = 5.0 + uniform01() * 10.0;    // 5 .. 15 HP
+            const double range = config::kDamageMaxHp - config::kDamageMinHp;
+            const double dmg   = config::kDamageMinHp + uniform01() * range;
             health_ = std::max(0.0, health_ - dmg);
             if (health_ <= 0.0) {
-                progress_ = 0.0;                            // restart current step on repair
+                progress_ = 0.0;
                 transitionToBroken("HP depleted while working");
                 return;
             }
@@ -251,7 +264,7 @@ void Machine::advanceProduction(double deltaTime) {
 void Machine::advanceMaintenance(double deltaTime) {
     maintenanceElapsed_ += std::max(0.0, deltaTime);
     if (maintenanceElapsed_ >= maintenanceDuration_) {
-        health_ = 100.0;
+        health_ = config::kInitialHealth;
         progress_ = 0.0;
         notify(EventType::MachineRepaired, name_ + " repaired");
         if (task_ != nullptr) {

@@ -6,7 +6,7 @@
 // =============================================================================
 'use strict';
 
-console.log('[gactorio] app.js loaded — build', '2026-06-01-c');
+console.log('[gactorio] app.js loaded — build', '2026-06-01-e');
 
 let controller = null;
 let lastTime   = 0;
@@ -71,8 +71,12 @@ function renderFactory(lines) {
             const m = line.machines.get(j);
             const stateCls = `state-${m.state.toLowerCase()}`;
             const isBroken = m.state === 'Broken';
-            // Repair is enabled only when the machine is actually broken (HP 0).
-            const repairAttr = isBroken ? '' : 'disabled';
+            // Repair is always available (incremental +HP). Repair All is a
+            // big-button full-restore that only makes sense when the machine
+            // is broken — show it conditionally.
+            const repairAllBtn = isBroken
+                ? `<button class="small danger" data-act="repairAll" data-machine="${m.id}">Repair All</button>`
+                : '';
             machineRows += `
                 <tr>
                     <td>${esc(m.name)}</td>
@@ -81,7 +85,8 @@ function renderFactory(lines) {
                     <td>${m.health.toFixed(0)}</td>
                     <td><progress max="1" value="${m.progress.toFixed(3)}"></progress></td>
                     <td>
-                        <button class="small" data-act="repair" data-machine="${m.id}" ${repairAttr}>Repair</button>
+                        <button class="small" data-act="repair" data-machine="${m.id}">Repair</button>
+                        ${repairAllBtn}
                     </td>
                 </tr>`;
         }
@@ -177,9 +182,14 @@ function bindUI() {
                 console.log('[gactorio] enqueue result =', ok);
             } else if (act === 'repair') {
                 const id = parseInt(btn.dataset.machine, 10);
-                console.log('[gactorio] repair', id);
+                console.log('[gactorio] repair (+5 HP)', id);
                 const ok = controller.repair(id);
                 console.log('[gactorio] repair result =', ok);
+            } else if (act === 'repairAll') {
+                const id = parseInt(btn.dataset.machine, 10);
+                console.log('[gactorio] repairAll', id);
+                const ok = controller.repairAll(id);
+                console.log('[gactorio] repairAll result =', ok);
             }
         } catch (err) {
             console.error('[gactorio] action threw:', err);

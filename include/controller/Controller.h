@@ -97,7 +97,12 @@ public:
     void setSpeed(double multiplier);
     bool enqueue      (LineId line,    ProductKind product);
     bool breakMachine (MachineId id);
+    // Always-available quick repair: +config::kIncrementalRepairHp HP.
     bool repair       (MachineId id);
+    // Only meaningful when the machine is Broken (HP=0). Triggers a long
+    // maintenance routine (config::kRepairAllDelaySeconds) that fully
+    // restores HP and resumes the paused task from the start of its step.
+    bool repairAll    (MachineId id);
 
     // ---- Query (read Model, returns cached View) ----------------------------
     const FactoryView& snapshot() const;

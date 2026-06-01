@@ -1,6 +1,16 @@
 {
-  "$schema_version": "0.2.0",
-  "_note": "Temporary config. Will migrate to DB/server later. Times are in seconds, energy in kWh per unit. 10개 세부 공정을 4개 스테이션으로 통합.",
+  "$schema_version": "0.3.0",
+  "_note": "Temporary config. Will migrate to DB/server later. Times are in seconds, energy in kWh per unit. 10개 세부 공정을 4개 스테이션으로 통합. globals 섹션의 값은 빌드 시 tools/gen_config.py 가 include/common/Config.h 로 생성한다.",
+
+  "globals": {
+    "_note": "Runtime hyperparameters loaded into gactorio::config::* at build time.",
+    "initialHealth":           100.0,
+    "damageChancePerSecond":   0.5,
+    "damageMinHp":             1.0,
+    "damageMaxHp":             5.0,
+    "incrementalRepairHp":     5.0,
+    "repairAllDelaySeconds":   3.0
+  },
 
   "stations": [
     {

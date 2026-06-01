@@ -32,7 +32,9 @@ int main() {
     machine.update(1.0);
     assert(machine.getStatus() == gactorio::MachineStatus::Maintenance);
 
-    machine.update(1.0);
+    // Maintenance lasts config::kRepairAllDelaySeconds (3 s by default), so
+    // we need a 3+ s tick to complete it.
+    machine.update(3.0);
     assert(machine.getStatus() == gactorio::MachineStatus::Idle);
     assert(machine.stateName() == "Idle");
 

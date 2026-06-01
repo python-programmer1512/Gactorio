@@ -140,6 +140,11 @@ bool Controller::breakMachine(MachineId id) {
 }
 bool Controller::repair(MachineId id) {
     m_impl->dirty = true;
+    return m_impl->backend.incrementalRepairMachine(id)
+        == gactorio::FactoryCommandResult::Success;
+}
+bool Controller::repairAll(MachineId id) {
+    m_impl->dirty = true;
     return m_impl->backend.repairMachine(id)
         == gactorio::FactoryCommandResult::Success;
 }

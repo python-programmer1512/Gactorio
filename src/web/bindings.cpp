@@ -87,5 +87,6 @@ EMSCRIPTEN_BINDINGS(gactorio_module) {
         .function("enqueue",      &Controller::enqueue)
         .function("breakMachine", &Controller::breakMachine)
         .function("repair",       &Controller::repair)
+        .function("repairAll",    &Controller::repairAll)
         .function("snapshot",     &Controller::snapshot);
 }

@@ -29,7 +29,8 @@ public:
     void setSimulationSpeed(double speedMultiplier);
     FactoryCommandResult enqueueProduct(LineId lineId, ProductType productType);
     FactoryCommandResult forceBreak(MachineId id);
-    FactoryCommandResult repairMachine(MachineId id);
+    FactoryCommandResult repairMachine(MachineId id);       // full restore w/ delay
+    FactoryCommandResult incrementalRepairMachine(MachineId id);  // +5 HP instant
     FactoryCommandResult pauseMachine(MachineId id);
     FactoryCommandResult resumeMachine(MachineId id);
 
