@@ -6,11 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(GACTORIO_BUILD_GUI   "Build the ImGui GUI executable"  ON)
-option(GACTORIO_BUILD_TESTS "Build BE smoke tests"             ON)
+option(GACTORIO_BUILD_TESTS "Build BE smoke tests" ON)
 
 # =============================================================================
-# Backend library — pure simulation (no UI dependencies).
+# Backend library — pure simulation. Used by:
+#   - the CLI sanity executable (native build)
+#   - the Emscripten/WASM target (web build)
+#   - all smoke tests
+# No view code lives in this project anymore — the View is in web/ (HTML/JS).
 # =============================================================================
 add_library(gactorio_backend
     src/common/Types.cpp
@@ -36,66 +39,40 @@ add_library(gactorio_backend
     src/dto/StatisticsSnapshot.cpp
     src/dto/FactorySnapshot.cpp
     src/controller/FactoryController.cpp
+    src/controller/Controller.cpp
 )
 target_include_directories(gactorio_backend PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# Console example (BE only, no GUI deps)
+# CLI sanity executable (native only)
 add_executable(gactorio_backend_example src/backend_example.cpp)
 target_link_libraries(gactorio_backend_example PRIVATE gactorio_backend)
 
 # =============================================================================
-# GUI Application — BE + GLFW + OpenGL + ImGui.
+# Web (WebAssembly) target — only active under Emscripten.
+# Configure with `emcmake cmake -S . -B build-web` to enable this branch,
+# OR simply run `./build_web.ps1` / `./build_web.sh` for a one-shot build.
 # =============================================================================
-if (GACTORIO_BUILD_GUI)
-    find_package(glfw3 REQUIRED)
-    find_package(OpenGL REQUIRED)
-
-    include(FetchContent)
-    FetchContent_Declare(
-        imgui
-        GIT_REPOSITORY https://github.com/ocornut/imgui.git
-        GIT_TAG        v1.91.5
+if (EMSCRIPTEN)
+    add_executable(gactorio src/web/bindings.cpp)
+    target_link_libraries(gactorio PRIVATE gactorio_backend)
+    set_target_properties(gactorio PROPERTIES
+        SUFFIX ".js"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/web"
     )
-    FetchContent_MakeAvailable(imgui)
-
-    add_library(imgui STATIC
-        ${imgui_SOURCE_DIR}/imgui.cpp
-        ${imgui_SOURCE_DIR}/imgui_demo.cpp
-        ${imgui_SOURCE_DIR}/imgui_draw.cpp
-        ${imgui_SOURCE_DIR}/imgui_tables.cpp
-        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-    )
-    target_include_directories(imgui PUBLIC
-        ${imgui_SOURCE_DIR}
-        ${imgui_SOURCE_DIR}/backends
-    )
-    target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
-
-    add_executable(gactorio
-        src/main.cpp
-        src/views/Application.cpp
-        src/views/AppUI.cpp
-        src/views/FactoryPanel.cpp
-    )
-    target_include_directories(gactorio PRIVATE src/views)
-    target_link_libraries(gactorio PRIVATE
-        gactorio_backend
-        imgui
-        glfw
-        OpenGL::GL
+    target_link_options(gactorio PRIVATE
+        "--bind"
+        "-sALLOW_MEMORY_GROWTH=1"
+        "-sEXPORT_NAME=Module"
     )
 endif()
 
 # =============================================================================
-# BE smoke tests
+# Backend smoke tests (skipped under Emscripten — they need a native runner).
 # =============================================================================
-if (GACTORIO_BUILD_TESTS)
+if (GACTORIO_BUILD_TESTS AND NOT EMSCRIPTEN)
     enable_testing()
-
     set(SMOKE_TESTS
         product_smoke_test:tests/model/ProductSmokeTest.cpp
         inventory_smoke_test:tests/model/InventorySmokeTest.cpp
