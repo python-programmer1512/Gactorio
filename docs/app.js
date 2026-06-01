@@ -6,11 +6,13 @@
 // =============================================================================
 'use strict';
 
-console.log('[gactorio] app.js loaded — build', '2026-06-01-g');
+console.log('[gactorio] app.js loaded — build', '2026-06-01-h');
 
-let controller = null;
-let lastTime   = 0;
-let paused     = false;
+let controller   = null;
+let lastTime     = 0;
+let paused       = false;
+let lastRenderMs = 0;
+const RENDER_INTERVAL_MS = 100;   // throttle DOM rebuild to 10 Hz
 
 // Boot when the wasm runtime is ready. Guard for the case where it's already
 // initialized by the time this script runs (race-safe).
@@ -33,10 +35,20 @@ if (typeof Module !== 'undefined') {
 // Main loop
 // ---------------------------------------------------------------------------
 function frame(now) {
-    const dt  = (now - lastTime) / 1000;
-    lastTime  = now;
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
+
+    // Always advance simulation at full vsync rate.
     controller.tick(dt);
-    render(controller.snapshot());
+
+    // Throttle DOM rebuild — every frame would replace innerHTML 60 times
+    // a second, which destroys buttons between mousedown and mouseup and
+    // silently swallows clicks on the dynamic factory panel.
+    if (now - lastRenderMs >= RENDER_INTERVAL_MS) {
+        render(controller.snapshot());
+        lastRenderMs = now;
+    }
+
     requestAnimationFrame(frame);
 }
 
@@ -176,10 +188,14 @@ function bindUI() {
         document.getElementById('speed-label').textContent = v.toFixed(1) + '×';
     });
 
-    // Per-line / per-machine buttons (rebuilt every frame → use delegation).
-    document.body.addEventListener('click', e => {
+    // Per-line / per-machine buttons live inside an innerHTML that is
+    // rebuilt periodically, so they cannot rely on the 'click' event:
+    // mousedown and mouseup may straddle a DOM swap, silently dropping
+    // the click. Listen to 'pointerdown' instead — it fires on press,
+    // before the swap, and covers mouse + touch + pen.
+    document.body.addEventListener('pointerdown', e => {
         const btn = e.target.closest('button[data-act]');
-        if (!btn) return;
+        if (!btn || btn.disabled) return;
         const act = btn.dataset.act;
 
         try {
