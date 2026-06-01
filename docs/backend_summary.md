@@ -10,7 +10,7 @@ The current default factory is `CarbonationFactory`, which builds a carbonation 
 Raw Material -> Carbonator -> Filler -> Sealer -> Labeler -> Finished Goods
 ```
 
-Legacy prototype folders such as `src/models`, `src/views`, and `src/controllers` are not part of the active CMake target.
+Legacy UI prototype folders have been removed from `src`; the repository now keeps the backend-focused Model, Controller, DTO, and test code in the active CMake target.
 
 ## Build And Test
 
