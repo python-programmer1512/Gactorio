@@ -89,14 +89,15 @@ struct Controller::Impl {
 
         for (const auto& line : snap.productionLines()) {
             LineView lv;
-            lv.id                  = line.id();
+            lv.id                  = static_cast<LineId>(line.id());
             lv.name                = line.name();
             lv.queueLength         = line.queueLength();
             lv.currentTaskName     = line.currentTaskName();
             lv.currentTaskProgress = line.currentTaskProgress();
             for (const auto& m : line.machines()) {
                 lv.machines.push_back({
-                    m.id(), m.name(), m.typeName(),
+                    static_cast<MachineId>(m.id()),
+                    m.name(), m.typeName(),
                     stateName(m.status()), m.progress(), m.health()
                 });
             }

@@ -19,8 +19,9 @@
 
 namespace ctrl {
 
-using LineId    = std::uint64_t;
-using MachineId = std::uint64_t;
+// uint32 keeps embind happy without -sWASM_BIGINT and is plenty for our IDs.
+using LineId    = std::uint32_t;
+using MachineId = std::uint32_t;
 
 enum class ProductKind {
     Unknown,
