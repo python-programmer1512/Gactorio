@@ -38,6 +38,7 @@ add_library(gactorio_backend
     src/dto/EventSnapshot.cpp
     src/dto/StatisticsSnapshot.cpp
     src/dto/FactorySnapshot.cpp
+    src/controller/SimulationHistory.cpp
     src/controller/FactoryController.cpp
     src/controller/Controller.cpp
 )
@@ -85,6 +86,7 @@ if (GACTORIO_BUILD_TESTS AND NOT EMSCRIPTEN)
         production_line_smoke_test:tests/model/ProductionLineSmokeTest.cpp
         factory_flow_smoke_test:tests/model/FactoryFlowSmokeTest.cpp
         factory_controller_smoke_test:tests/controller/FactoryControllerSmokeTest.cpp
+        memento_smoke_test:tests/controller/MementoSmokeTest.cpp
     )
     foreach(entry IN LISTS SMOKE_TESTS)
         string(REPLACE ":" ";" pair "${entry}")

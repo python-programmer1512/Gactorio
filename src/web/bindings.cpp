@@ -86,7 +86,11 @@ EMSCRIPTEN_BINDINGS(gactorio_module) {
         .function("setSpeed",     &Controller::setSpeed)
         .function("enqueue",      &Controller::enqueue)
         .function("breakMachine", &Controller::breakMachine)
-        .function("repair",       &Controller::repair)
-        .function("repairAll",    &Controller::repairAll)
-        .function("snapshot",     &Controller::snapshot);
+        .function("repair",         &Controller::repair)
+        .function("repairAll",      &Controller::repairAll)
+        .function("saveCheckpoint", &Controller::saveCheckpoint)
+        .function("undo",           &Controller::undo)
+        .function("canUndo",        &Controller::canUndo)
+        .function("historySize",    &Controller::historySize)
+        .function("snapshot",       &Controller::snapshot);
 }

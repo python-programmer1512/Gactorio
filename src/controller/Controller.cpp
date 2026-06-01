@@ -154,4 +154,23 @@ const FactoryView& Controller::snapshot() const {
     return m_impl->cached;
 }
 
+// ---- Memento façade ---------------------------------------------------------
+void Controller::saveCheckpoint() {
+    m_impl->backend.saveCheckpoint();
+}
+
+bool Controller::undo() {
+    if (!m_impl->backend.undo()) return false;
+    m_impl->dirty = true;
+    return true;
+}
+
+bool Controller::canUndo() const {
+    return m_impl->backend.canUndo();
+}
+
+std::size_t Controller::historySize() const {
+    return m_impl->backend.historySize();
+}
+
 } // namespace ctrl

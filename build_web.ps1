@@ -42,6 +42,7 @@ $sources = @(
     'src/dto/EventSnapshot.cpp',
     'src/dto/StatisticsSnapshot.cpp',
     'src/dto/FactorySnapshot.cpp',
+    'src/controller/SimulationHistory.cpp',
     'src/controller/FactoryController.cpp',
     'src/controller/Controller.cpp',
     'src/web/bindings.cpp'

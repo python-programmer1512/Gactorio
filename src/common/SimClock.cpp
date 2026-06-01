@@ -62,5 +62,10 @@ bool SimClock::isStopped() const {
     return stopped_;
 }
 
+void SimClock::setNow(SimulationTime t) {
+    currentTime_   = std::max(0.0, t);
+    lastDeltaTime_ = 0.0;
+}
+
 } // namespace gactorio
 

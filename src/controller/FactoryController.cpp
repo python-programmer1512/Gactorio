@@ -241,4 +241,28 @@ FactorySnapshot FactoryController::snapshot() const {
     return snapshot;
 }
 
+// =============================================================================
+// Memento façade — Caretaker access from the public Controller surface.
+// =============================================================================
+void FactoryController::saveCheckpoint() {
+    if (!factory_) return;
+    history_.push(factory_->createMemento());
+}
+
+bool FactoryController::undo() {
+    if (!factory_) return false;
+    auto m = history_.pop();
+    if (!m.has_value()) return false;
+    factory_->restoreFromMemento(*m);
+    return true;
+}
+
+bool FactoryController::canUndo() const {
+    return history_.canUndo();
+}
+
+std::size_t FactoryController::historySize() const {
+    return history_.size();
+}
+
 } // namespace gactorio

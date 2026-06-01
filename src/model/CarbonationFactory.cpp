@@ -55,4 +55,13 @@ const std::vector<Recipe>& CarbonationFactory::recipes() const {
     return recipes_;
 }
 
+std::shared_ptr<Product> CarbonationFactory::createProductById(ProductId id) const {
+    switch (id) {
+    case static_cast<ProductId>(ProductType::VoltzClassic): return std::make_shared<VoltzClassic>();
+    case static_cast<ProductId>(ProductType::HyperBolt):    return std::make_shared<HyperBolt>();
+    case static_cast<ProductId>(ProductType::AuroraZero):   return std::make_shared<AuroraZero>();
+    default: return nullptr;
+    }
+}
+
 } // namespace gactorio

@@ -104,6 +104,14 @@ public:
     // restores HP and resumes the paused task from the start of its step.
     bool repairAll    (MachineId id);
 
+    // ---- Memento (snapshot history) ----------------------------------------
+    // Capture current Factory state and push onto an internal stack.
+    void   saveCheckpoint();
+    // Pop the most recent snapshot and restore Factory state from it.
+    bool   undo();
+    bool   canUndo()     const;
+    std::size_t historySize() const;
+
     // ---- Query (read Model, returns cached View) ----------------------------
     const FactoryView& snapshot() const;
 

@@ -138,6 +138,30 @@ void Machine::repair() {
     transitionToMaintenance("repair requested");
 }
 
+void Machine::resetForRestore(double newHealth, MachineStatus newStatus) {
+    task_.reset();
+    progress_           = 0.0;
+    maintenanceElapsed_ = 0.0;
+    health_             = std::clamp(newHealth, 0.0, config::kInitialHealth);
+
+    switch (newStatus) {
+    case MachineStatus::Broken:
+        status_ = MachineStatus::Broken;
+        setState(std::make_unique<BrokenState>());
+        break;
+    case MachineStatus::Maintenance:
+        status_ = MachineStatus::Maintenance;
+        setState(std::make_unique<MaintenanceState>());
+        break;
+    case MachineStatus::Working:
+    case MachineStatus::Idle:
+    default:
+        status_ = MachineStatus::Idle;
+        setState(std::make_unique<IdleState>());
+        break;
+    }
+}
+
 void Machine::incrementalRepair() {
     // Quick +X HP boost. Does not change state, does not revive a broken
     // machine — use repair()/repairAll for that.

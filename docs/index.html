@@ -33,6 +33,15 @@
                 </label>
             </div>
 
+            <h3>Memento (Undo / Redo)</h3>
+            <div class="row">
+                <button id="btn-save">Save Checkpoint</button>
+                <button id="btn-undo" disabled>Undo</button>
+                <span style="color:#888; font-size:12px; margin-left:8px;">
+                    history: <b id="history-size">0</b>
+                </span>
+            </div>
+
             <h3>Statistics</h3>
             <div id="stats-grid"></div>
         </section>
@@ -64,9 +73,9 @@
 
     <!-- 1) Emscripten glue (loads gactorio.wasm and creates `Module`) -->
     <!-- ?v= cache-busts the deployed CDN when we rebuild the wasm. -->
-    <script src="gactorio.js?v=20260601e"></script>
+    <script src="gactorio.js?v=20260601f"></script>
 
     <!-- 2) Our UI logic — talks to Module.Controller only -->
-    <script src="app.js?v=20260601e"></script>
+    <script src="app.js?v=20260601f"></script>
 </body>
 </html>

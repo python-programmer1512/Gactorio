@@ -6,7 +6,7 @@
 // =============================================================================
 'use strict';
 
-console.log('[gactorio] app.js loaded — build', '2026-06-01-e');
+console.log('[gactorio] app.js loaded — build', '2026-06-01-f');
 
 let controller = null;
 let lastTime   = 0;
@@ -49,6 +49,13 @@ function render(snap) {
     renderFactory(snap.lines);
     renderEvents(snap.events);
     renderInventory(snap.inventory);
+    renderMemento();
+}
+
+function renderMemento() {
+    const size = controller.historySize();
+    document.getElementById('history-size').textContent = size;
+    document.getElementById('btn-undo').disabled = !controller.canUndo();
 }
 
 function renderStats(s) {
@@ -154,6 +161,14 @@ function bindUI() {
     });
     document.getElementById('btn-reset').addEventListener('click', () => {
         controller.reset();
+    });
+    document.getElementById('btn-save').addEventListener('click', () => {
+        controller.saveCheckpoint();
+        console.log('[gactorio] checkpoint saved, history =', controller.historySize());
+    });
+    document.getElementById('btn-undo').addEventListener('click', () => {
+        const ok = controller.undo();
+        console.log('[gactorio] undo result =', ok, 'history =', controller.historySize());
     });
     document.getElementById('speed').addEventListener('input', e => {
         const v = parseFloat(e.target.value);

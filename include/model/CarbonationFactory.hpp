@@ -13,6 +13,11 @@ public:
 
     const std::vector<Recipe>& recipes() const;
 
+protected:
+    // Memento helper — maps a ProductId back to a concrete Product instance
+    // (VoltzClassic = 101, HyperBolt = 102, AuroraZero = 103).
+    std::shared_ptr<Product> createProductById(ProductId id) const override;
+
 private:
     std::vector<Recipe> recipes_;
 };

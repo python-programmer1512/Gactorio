@@ -2,11 +2,13 @@
 
 #include "common/Types.hpp"
 #include "controller/FactoryCommand.hpp"
+#include "controller/SimulationHistory.hpp"
 #include "dto/EventSnapshot.hpp"
 #include "dto/FactorySnapshot.hpp"
 #include "dto/StatisticsSnapshot.hpp"
 #include "model/CarbonationFactory.hpp"
 
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -39,8 +41,15 @@ public:
     StatisticsSnapshot getStatistics() const;
     FactorySnapshot snapshot() const;
 
+    // ---- Memento (Caretaker-side façade) ---------------------------------
+    void        saveCheckpoint();
+    bool        undo();
+    bool        canUndo() const;
+    std::size_t historySize() const;
+
 private:
     std::unique_ptr<CarbonationFactory> factory_;
+    SimulationHistory                   history_;
 };
 
 } // namespace gactorio
