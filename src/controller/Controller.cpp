@@ -94,13 +94,19 @@ struct Controller::Impl {
             lv.queueLength         = line.queueLength();
             lv.currentTaskName     = line.currentTaskName();
             lv.currentTaskProgress = line.currentTaskProgress();
+            bool busy = lv.queueLength > 0 || !lv.currentTaskName.empty();
             for (const auto& m : line.machines()) {
                 lv.machines.push_back({
                     static_cast<MachineId>(m.id()),
                     m.name(), m.typeName(),
                     stateName(m.status()), m.progress(), m.health()
                 });
+                if (m.status() == gactorio::MachineStatus::Working ||
+                    m.status() == gactorio::MachineStatus::Maintenance) {
+                    busy = true;
+                }
             }
+            lv.isRemovable = !busy;
             cached.lines.push_back(std::move(lv));
         }
 
@@ -131,6 +137,19 @@ void Controller::setSpeed(double mult)         { m_impl->backend.setSimulationSp
 bool Controller::enqueue(LineId line, ProductKind p) {
     m_impl->dirty = true;
     return m_impl->backend.enqueueProduct(line, toModel(p))
+        == gactorio::FactoryCommandResult::Success;
+}
+LineId Controller::enqueueAuto(ProductKind p) {
+    m_impl->dirty = true;
+    return static_cast<LineId>(m_impl->backend.enqueueAuto(toModel(p)));
+}
+LineId Controller::addLine() {
+    m_impl->dirty = true;
+    return static_cast<LineId>(m_impl->backend.addLine());
+}
+bool Controller::removeLine(LineId id) {
+    m_impl->dirty = true;
+    return m_impl->backend.removeLine(id)
         == gactorio::FactoryCommandResult::Success;
 }
 bool Controller::breakMachine(MachineId id) {

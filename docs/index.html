@@ -59,8 +59,33 @@
         <!-- Factory (production lines + machines) — middle column  -->
         <!-- ====================================================== -->
         <section id="factory">
-            <h2>Factory</h2>
+            <div class="factory-header">
+                <h2>Factory</h2>
+                <button id="btn-add-line" class="small">+ Add Line</button>
+            </div>
             <div id="factory-content">Loading WebAssembly…</div>
+        </section>
+
+        <!-- ====================================================== -->
+        <!-- Products — second-from-right column                   -->
+        <!-- ====================================================== -->
+        <section id="products">
+            <h2>Products</h2>
+            <p class="hint">Click to enqueue on the shortest line.</p>
+            <div class="product-list">
+                <button class="product-btn" data-act="enqueueAuto" data-kind="VoltzClassic">
+                    <b>Voltz Classic</b>
+                    <span>40 s · 8.5 kWh</span>
+                </button>
+                <button class="product-btn" data-act="enqueueAuto" data-kind="HyperBolt">
+                    <b>Hyper Bolt</b>
+                    <span>48 s · 10.4 kWh</span>
+                </button>
+                <button class="product-btn" data-act="enqueueAuto" data-kind="AuroraZero">
+                    <b>Aurora Zero</b>
+                    <span>49 s · 10.2 kWh</span>
+                </button>
+            </div>
         </section>
 
         <!-- ====================================================== -->
@@ -74,9 +99,9 @@
 
     <!-- 1) Emscripten glue (loads gactorio.wasm and creates `Module`) -->
     <!-- ?v= cache-busts the deployed CDN when we rebuild the wasm. -->
-    <script src="gactorio.js?v=20260601i"></script>
+    <script src="gactorio.js?v=20260601j"></script>
 
     <!-- 2) Our UI logic — talks to Module.Controller only -->
-    <script src="app.js?v=20260601i"></script>
+    <script src="app.js?v=20260601j"></script>
 </body>
 </html>

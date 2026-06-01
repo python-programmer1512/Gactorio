@@ -44,6 +44,7 @@ EMSCRIPTEN_BINDINGS(gactorio_module) {
         .field("queueLength",         &LineView::queueLength)
         .field("currentTaskName",     &LineView::currentTaskName)
         .field("currentTaskProgress", &LineView::currentTaskProgress)
+        .field("isRemovable",         &LineView::isRemovable)
         .field("machines",            &LineView::machines);
     register_vector<LineView>("VectorLineView");
 
@@ -85,6 +86,9 @@ EMSCRIPTEN_BINDINGS(gactorio_module) {
         .function("reset",        &Controller::reset)
         .function("setSpeed",     &Controller::setSpeed)
         .function("enqueue",      &Controller::enqueue)
+        .function("enqueueAuto",  &Controller::enqueueAuto)
+        .function("addLine",      &Controller::addLine)
+        .function("removeLine",   &Controller::removeLine)
         .function("breakMachine", &Controller::breakMachine)
         .function("repair",         &Controller::repair)
         .function("repairAll",      &Controller::repairAll)

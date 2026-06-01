@@ -126,6 +126,39 @@ FactoryCommandResult FactoryController::enqueueProduct(LineId lineId, ProductTyp
     return FactoryCommandResult::Success;
 }
 
+LineId FactoryController::enqueueAuto(ProductType productType) {
+    if (!factory_) return 0;
+    const auto& lines = factory_->productionLines();
+    if (lines.empty()) return 0;
+
+    // Pick the line with the smallest queue. Ties broken by order (first wins).
+    const ProductionLine* best = nullptr;
+    std::size_t bestQ = 0;
+    for (const auto& l : lines) {
+        if (best == nullptr || l.queueLength() < bestQ) {
+            best  = &l;
+            bestQ = l.queueLength();
+        }
+    }
+    if (best == nullptr) return 0;
+    if (enqueueProduct(best->id(), productType) == FactoryCommandResult::Success) {
+        return best->id();
+    }
+    return 0;
+}
+
+LineId FactoryController::addLine() {
+    if (!factory_) return 0;
+    return factory_->addDynamicLine();
+}
+
+FactoryCommandResult FactoryController::removeLine(LineId id) {
+    if (!factory_) return FactoryCommandResult::InvalidRequest;
+    return factory_->removeProductionLine(id)
+        ? FactoryCommandResult::Success
+        : FactoryCommandResult::InvalidRequest;
+}
+
 FactoryCommandResult FactoryController::forceBreak(MachineId id) {
     if (!factory_) {
         return FactoryCommandResult::InvalidRequest;

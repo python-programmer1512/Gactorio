@@ -31,6 +31,7 @@ public:
     const SimClock& clock() const;
 
     void addProductionLine(ProductionLine line);
+    bool removeProductionLine(LineId id);
     ProductionLine* findProductionLine(LineId id);
     const ProductionLine* findProductionLine(LineId id) const;
     Machine* findMachine(MachineId id);

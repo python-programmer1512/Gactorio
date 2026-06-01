@@ -30,6 +30,13 @@ public:
     void setSpeed(double speedMultiplier);
     void setSimulationSpeed(double speedMultiplier);
     FactoryCommandResult enqueueProduct(LineId lineId, ProductType productType);
+    // Enqueue to whichever line currently has the smallest queue.
+    // Returns the chosen LineId, or 0 if no line accepted the product.
+    LineId               enqueueAuto(ProductType productType);
+    // Add a brand-new beverage line and return its LineId.
+    LineId               addLine();
+    // Remove a line iff it is idle (empty queue, no in-flight task).
+    FactoryCommandResult removeLine(LineId id);
     FactoryCommandResult forceBreak(MachineId id);
     FactoryCommandResult repairMachine(MachineId id);       // full restore w/ delay
     FactoryCommandResult incrementalRepairMachine(MachineId id);  // +5 HP instant

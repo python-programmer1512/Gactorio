@@ -48,6 +48,7 @@ struct LineView {
     std::size_t queueLength;
     std::string currentTaskName;       // empty if idle
     double      currentTaskProgress;   // 0.0 .. 1.0
+    bool        isRemovable;           // true ⇒ line can be safely deleted
     std::vector<MachineView> machines;
 };
 
@@ -96,6 +97,12 @@ public:
     void reset();
     void setSpeed(double multiplier);
     bool enqueue      (LineId line,    ProductKind product);
+    // Enqueue to whichever line currently has the smallest queue.
+    LineId enqueueAuto(ProductKind product);
+    // Spawn a new beverage line. Returns its LineId (0 on failure).
+    LineId addLine();
+    // Remove a line. Returns false if the line is busy or unknown.
+    bool   removeLine (LineId id);
     bool breakMachine (MachineId id);
     // Always-available quick repair: +config::kIncrementalRepairHp HP.
     bool repair       (MachineId id);

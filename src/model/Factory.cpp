@@ -58,6 +58,28 @@ void Factory::addProductionLine(ProductionLine line) {
     productionLines_.push_back(std::move(line));
 }
 
+bool Factory::removeProductionLine(LineId id) {
+    auto it = std::find_if(productionLines_.begin(), productionLines_.end(),
+        [id](const ProductionLine& l) { return l.id() == id; });
+    if (it == productionLines_.end()) return false;
+
+    // Removal is only allowed when nothing is in flight on the line.
+    if (it->queueLength() > 0) return false;
+    for (const auto& m : it->machines()) {
+        if (m->hasTask()) return false;
+        if (m->getStatus() == MachineStatus::Working ||
+            m->getStatus() == MachineStatus::Maintenance) return false;
+    }
+
+    // Drop the cached Machine* pointers belonging to this line.
+    for (const auto& m : it->machines()) {
+        auto mit = std::find(machines_.begin(), machines_.end(), m.get());
+        if (mit != machines_.end()) machines_.erase(mit);
+    }
+    productionLines_.erase(it);
+    return true;
+}
+
 ProductionLine* Factory::findProductionLine(LineId id) {
     for (auto& line : productionLines_) {
         if (line.id() == id) {

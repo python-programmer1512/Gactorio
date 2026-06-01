@@ -6,7 +6,7 @@
 // =============================================================================
 'use strict';
 
-console.log('[gactorio] app.js loaded — build', '2026-06-01-i');
+console.log('[gactorio] app.js loaded — build', '2026-06-01-j');
 
 let controller   = null;
 let lastTime     = 0;
@@ -114,16 +114,19 @@ function renderFactory(lines) {
             ? `${esc(line.currentTaskName)} · ${(line.currentTaskProgress * 100).toFixed(0)}%`
             : '<span style="color:#666">(idle)</span>';
 
+        // Disappear (remove) button only when the line is truly idle.
+        const disappearBtn = line.isRemovable
+            ? `<button class="small danger" data-act="removeLine" data-line="${line.id}">Disappear</button>`
+            : '';
+
         html += `
             <div class="line">
-                <h3>${esc(line.name)}</h3>
+                <div class="line-header">
+                    <h3>${esc(line.name)}</h3>
+                    ${disappearBtn}
+                </div>
                 <div class="meta">Queue: <b>${line.queueLength}</b> · Active: ${active}</div>
                 <progress max="1" value="${line.currentTaskProgress.toFixed(3)}"></progress>
-                <div class="enqueue">
-                    <button class="small" data-act="enqueue" data-line="${line.id}" data-kind="VoltzClassic">+ Voltz Classic</button>
-                    <button class="small" data-act="enqueue" data-line="${line.id}" data-kind="HyperBolt">+ Hyper Bolt</button>
-                    <button class="small" data-act="enqueue" data-line="${line.id}" data-kind="AuroraZero">+ Aurora Zero</button>
-                </div>
                 <table>
                     <thead><tr><th>Name</th><th>Type</th><th>State</th><th>HP</th><th>Progress</th><th></th></tr></thead>
                     <tbody>${machineRows}</tbody>
@@ -182,6 +185,10 @@ function bindUI() {
         const ok = controller.undo();
         console.log('[gactorio] undo result =', ok, 'history =', controller.historySize());
     });
+    document.getElementById('btn-add-line').addEventListener('click', () => {
+        const id = controller.addLine();
+        console.log('[gactorio] addLine -> id', id);
+    });
     document.getElementById('speed').addEventListener('input', e => {
         const v = parseFloat(e.target.value);
         controller.setSpeed(v);
@@ -199,18 +206,19 @@ function bindUI() {
         const act = btn.dataset.act;
 
         try {
-            if (act === 'enqueue') {
-                const lineId   = parseInt(btn.dataset.line, 10);
+            if (act === 'enqueueAuto') {
                 const kindName = btn.dataset.kind;
                 const kindEnum = Module.ProductKind[kindName];
-                console.log('[gactorio] enqueue', { lineId, kindName, kindEnum });
                 if (kindEnum === undefined) {
-                    console.error('[gactorio] ProductKind not found:', kindName,
-                                  'available:', Object.keys(Module.ProductKind || {}));
+                    console.error('[gactorio] ProductKind not found:', kindName);
                     return;
                 }
-                const ok = controller.enqueue(lineId, kindEnum);
-                console.log('[gactorio] enqueue result =', ok);
+                const chosenLineId = controller.enqueueAuto(kindEnum);
+                console.log('[gactorio] enqueueAuto', kindName, '→ line', chosenLineId);
+            } else if (act === 'removeLine') {
+                const id = parseInt(btn.dataset.line, 10);
+                const ok = controller.removeLine(id);
+                console.log('[gactorio] removeLine', id, '→', ok);
             } else if (act === 'repair') {
                 const id = parseInt(btn.dataset.machine, 10);
                 console.log('[gactorio] repair (+5 HP)', id);
