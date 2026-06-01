@@ -70,6 +70,9 @@ function renderFactory(lines) {
         for (let j = 0; j < line.machines.size(); j++) {
             const m = line.machines.get(j);
             const stateCls = `state-${m.state.toLowerCase()}`;
+            const isBroken = m.state === 'Broken';
+            // Repair is enabled only when the machine is actually broken (HP 0).
+            const repairAttr = isBroken ? '' : 'disabled';
             machineRows += `
                 <tr>
                     <td>${esc(m.name)}</td>
@@ -78,8 +81,7 @@ function renderFactory(lines) {
                     <td>${m.health.toFixed(0)}</td>
                     <td><progress max="1" value="${m.progress.toFixed(3)}"></progress></td>
                     <td>
-                        <button class="small danger" data-act="break"  data-machine="${m.id}">Break</button>
-                        <button class="small"        data-act="repair" data-machine="${m.id}">Repair</button>
+                        <button class="small" data-act="repair" data-machine="${m.id}" ${repairAttr}>Repair</button>
                     </td>
                 </tr>`;
         }
@@ -173,11 +175,6 @@ function bindUI() {
                 }
                 const ok = controller.enqueue(lineId, kindEnum);
                 console.log('[gactorio] enqueue result =', ok);
-            } else if (act === 'break') {
-                const id = parseInt(btn.dataset.machine, 10);
-                console.log('[gactorio] breakMachine', id);
-                const ok = controller.breakMachine(id);
-                console.log('[gactorio] break result =', ok);
             } else if (act === 'repair') {
                 const id = parseInt(btn.dataset.machine, 10);
                 console.log('[gactorio] repair', id);
