@@ -2,44 +2,46 @@
 // app.js — the View layer.
 //
 // All communication with the simulation goes through `controller`, a JS proxy
-// for the C++ ctrl::Controller exposed by web/gactorio.js (Emscripten glue).
-//
-// Commands : controller.tick(dt), controller.pause(), .enqueue(...), ...
-// Queries  : controller.snapshot()  → returns a plain JS object (FactoryView)
-//
-// No other C++ symbol is visible here — the entire Model is hidden behind
-// the Controller API.
+// for the C++ ctrl::Controller exposed by gactorio.js (Emscripten glue).
 // =============================================================================
-
 'use strict';
+
+console.log('[gactorio] app.js loaded — build', '2026-06-01-c');
 
 let controller = null;
 let lastTime   = 0;
 let paused     = false;
 
-// Wait for the wasm runtime to be ready, then build the controller and start.
-Module.onRuntimeInitialized = () => {
+// Boot when the wasm runtime is ready. Guard for the case where it's already
+// initialized by the time this script runs (race-safe).
+function boot() {
+    console.log('[gactorio] wasm runtime ready, creating Controller');
     controller = new Module.Controller();
     lastTime   = performance.now();
     bindUI();
     requestAnimationFrame(frame);
-};
+}
+
+if (typeof Module !== 'undefined') {
+    if (Module.calledRun) boot();
+    else Module.onRuntimeInitialized = boot;
+} else {
+    console.error('[gactorio] Module is undefined — gactorio.js failed to load');
+}
 
 // ---------------------------------------------------------------------------
-// Main loop — runs every animation frame (~60 fps).
+// Main loop
 // ---------------------------------------------------------------------------
 function frame(now) {
     const dt  = (now - lastTime) / 1000;
     lastTime  = now;
-
-    controller.tick(dt);                       // advance simulation
-    render(controller.snapshot());             // re-render whole UI
-
+    controller.tick(dt);
+    render(controller.snapshot());
     requestAnimationFrame(frame);
 }
 
 // ---------------------------------------------------------------------------
-// Rendering — pure read of the snapshot into the DOM.
+// Rendering
 // ---------------------------------------------------------------------------
 function render(snap) {
     document.getElementById('sim-time').textContent = snap.simulationTime.toFixed(2);
@@ -108,7 +110,7 @@ function renderFactory(lines) {
 function renderEvents(events) {
     let html = '';
     const n = events.size();
-    for (let i = n - 1; i >= 0; i--) {        // most recent first
+    for (let i = n - 1; i >= 0; i--) {
         const e = events.get(i);
         html += `<div class="event">
             <span class="time">${e.time.toFixed(2)}s</span>
@@ -134,7 +136,8 @@ function renderInventory(items) {
 }
 
 // ---------------------------------------------------------------------------
-// One-time event wiring (top-level controls + delegated factory buttons)
+// Event wiring — top-level controls + delegated factory buttons.
+// Uses closest() so clicks on text inside a button still resolve to the button.
 // ---------------------------------------------------------------------------
 function bindUI() {
     document.getElementById('btn-pause').addEventListener('click', e => {
@@ -151,23 +154,43 @@ function bindUI() {
         document.getElementById('speed-label').textContent = v.toFixed(1) + '×';
     });
 
-    // Event delegation: per-line/per-machine buttons are rebuilt every frame.
+    // Per-line / per-machine buttons (rebuilt every frame → use delegation).
     document.body.addEventListener('click', e => {
-        const t = e.target;
-        if (!t.dataset.act) return;
-        if (t.dataset.act === 'enqueue') {
-            controller.enqueue(+t.dataset.line, Module.ProductKind[t.dataset.kind]);
-        } else if (t.dataset.act === 'break') {
-            controller.breakMachine(+t.dataset.machine);
-        } else if (t.dataset.act === 'repair') {
-            controller.repair(+t.dataset.machine);
+        const btn = e.target.closest('button[data-act]');
+        if (!btn) return;
+        const act = btn.dataset.act;
+
+        try {
+            if (act === 'enqueue') {
+                const lineId   = parseInt(btn.dataset.line, 10);
+                const kindName = btn.dataset.kind;
+                const kindEnum = Module.ProductKind[kindName];
+                console.log('[gactorio] enqueue', { lineId, kindName, kindEnum });
+                if (kindEnum === undefined) {
+                    console.error('[gactorio] ProductKind not found:', kindName,
+                                  'available:', Object.keys(Module.ProductKind || {}));
+                    return;
+                }
+                const ok = controller.enqueue(lineId, kindEnum);
+                console.log('[gactorio] enqueue result =', ok);
+            } else if (act === 'break') {
+                const id = parseInt(btn.dataset.machine, 10);
+                console.log('[gactorio] breakMachine', id);
+                const ok = controller.breakMachine(id);
+                console.log('[gactorio] break result =', ok);
+            } else if (act === 'repair') {
+                const id = parseInt(btn.dataset.machine, 10);
+                console.log('[gactorio] repair', id);
+                const ok = controller.repair(id);
+                console.log('[gactorio] repair result =', ok);
+            }
+        } catch (err) {
+            console.error('[gactorio] action threw:', err);
         }
     });
 }
 
-// ---------------------------------------------------------------------------
-// Minimal HTML escape so event messages can't break the markup.
-// ---------------------------------------------------------------------------
+// HTML escape — keep arbitrary event messages from breaking markup.
 function esc(s) {
     return String(s)
         .replaceAll('&', '&amp;')
