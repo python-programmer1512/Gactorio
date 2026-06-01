@@ -1,11 +1,13 @@
 /* ---------- Layout ---------- */
 * { box-sizing: border-box; }
+html, body { height: 100%; }
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: #1a1a1c;
     color: #e8e8e8;
     line-height: 1.4;
+    overflow: hidden;             /* the three columns scroll, not the page */
 }
 header {
     padding: 14px 24px;
@@ -15,26 +17,56 @@ header {
 header h1 { margin: 0 0 4px; color: #f4c430; font-size: 22px; }
 header p  { margin: 0; color: #888; font-size: 13px; }
 
+/* Three-column layout: left = control + stats + event log,
+   middle = factory (gets the most space for the future CSS shop floor),
+   right = inventory. All three fill the viewport vertically.        */
 main {
     display: grid;
-    grid-template-columns: 360px 1fr;
-    grid-template-rows: auto auto;
+    grid-template-columns: 320px 1fr 260px;
     gap: 14px;
     padding: 14px;
+    /* viewport minus header (~75 px) minus our padding (28 px) */
+    height: calc(100vh - 103px);
 }
 section {
     background: #2a2a2e;
     border: 1px solid #3a3a3e;
     border-radius: 6px;
     padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;                /* allow children to actually scroll */
 }
 section h2 { margin: 0 0 12px; color: #f4c430; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
 section h3 { margin: 16px 0 8px; color: #aaa; font-size: 13px; }
 
-#sim-control       { grid-column: 1; grid-row: 1 / span 2; }
-#factory           { grid-column: 2; grid-row: 1; }
-#event-log-section { grid-column: 1 / span 2; grid-row: 3; min-height: 200px; max-height: 320px; }
-#inventory         { grid-column: 2; grid-row: 2; }
+/* ---------- Sim Control (left column) ----------------------- */
+/* Event log lives at the bottom of this column and fills whatever
+   vertical room is left after the headers/buttons/stats above it.   */
+#sim-control #event-log {
+    flex: 1 1 auto;
+    min-height: 120px;
+    overflow-y: auto;
+    background: #1f1f22;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-top: 4px;
+}
+
+/* ---------- Factory (middle column) ------------------------- */
+#factory-content {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* ---------- Inventory (right column) ------------------------ */
+#inventory-content {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+}
 
 /* ---------- Controls ---------- */
 .row { margin: 8px 0; }
@@ -57,8 +89,8 @@ button.small                  { padding: 3px 8px; font-size: 12px; }
 button:disabled,
 button:disabled:hover         { background: #3a3a3e; color: #666; cursor: not-allowed; }
 
-.speed { margin-left: 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
-input[type=range] { width: 110px; }
+.speed { margin-left: 4px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; flex-wrap: wrap; }
+input[type=range] { width: 90px; }
 
 /* ---------- Stats grid ---------- */
 #stats-grid {
@@ -94,19 +126,25 @@ progress { width: 100%; height: 10px; }
 .state-paused      { color: #aaa; }
 
 /* ---------- Event log ---------- */
-#event-log {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12px;
-    overflow-y: auto;
-    max-height: 250px;
-}
+#event-log { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
 .event {
     padding: 1px 0;
     border-bottom: 1px dotted #2a2a2e;
     display: grid;
-    grid-template-columns: 70px 150px 1fr;
-    gap: 8px;
+    grid-template-columns: 70px 130px 1fr;
+    gap: 6px;
 }
 .event .time { color: #888; }
 .event .type { color: #f4c430; }
 .event .msg  { color: #ccc; word-break: break-word; }
+
+/* ---------- Custom scrollbar so the side columns feel cohesive --- */
+#event-log::-webkit-scrollbar,
+#factory-content::-webkit-scrollbar,
+#inventory-content::-webkit-scrollbar { width: 8px; }
+#event-log::-webkit-scrollbar-thumb,
+#factory-content::-webkit-scrollbar-thumb,
+#inventory-content::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+#event-log::-webkit-scrollbar-track,
+#factory-content::-webkit-scrollbar-track,
+#inventory-content::-webkit-scrollbar-track { background: transparent; }

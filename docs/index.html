@@ -48,10 +48,15 @@
 
             <h3>Statistics</h3>
             <div id="stats-grid"></div>
+
+            <!-- Event log lives inside the left column now, filling all
+                 remaining vertical space with its own scrollbar. -->
+            <h3>Event Log</h3>
+            <div id="event-log"></div>
         </section>
 
         <!-- ====================================================== -->
-        <!-- Factory (production lines + machines)                 -->
+        <!-- Factory (production lines + machines) — middle column  -->
         <!-- ====================================================== -->
         <section id="factory">
             <h2>Factory</h2>
@@ -59,15 +64,7 @@
         </section>
 
         <!-- ====================================================== -->
-        <!-- Event log                                             -->
-        <!-- ====================================================== -->
-        <section id="event-log-section">
-            <h2>Event Log</h2>
-            <div id="event-log"></div>
-        </section>
-
-        <!-- ====================================================== -->
-        <!-- Inventory                                             -->
+        <!-- Inventory — right column                              -->
         <!-- ====================================================== -->
         <section id="inventory">
             <h2>Inventory</h2>
@@ -77,9 +74,9 @@
 
     <!-- 1) Emscripten glue (loads gactorio.wasm and creates `Module`) -->
     <!-- ?v= cache-busts the deployed CDN when we rebuild the wasm. -->
-    <script src="gactorio.js?v=20260601h"></script>
+    <script src="gactorio.js?v=20260601i"></script>
 
     <!-- 2) Our UI logic — talks to Module.Controller only -->
-    <script src="app.js?v=20260601h"></script>
+    <script src="app.js?v=20260601i"></script>
 </body>
 </html>
