@@ -7,7 +7,9 @@
 #include "model/events/EventBus.hpp"
 #include "model/events/EventLogObserver.hpp"
 #include "model/events/StatisticsObserver.hpp"
+#include "model/memento/FactoryMemento.hpp"
 
+#include <memory>
 #include <vector>
 
 namespace gactorio {
@@ -29,6 +31,7 @@ public:
     const SimClock& clock() const;
 
     void addProductionLine(ProductionLine line);
+    bool removeProductionLine(LineId id);
     ProductionLine* findProductionLine(LineId id);
     const ProductionLine* findProductionLine(LineId id) const;
     Machine* findMachine(MachineId id);
@@ -39,9 +42,22 @@ public:
     void stopClock();
     void setClockSpeed(double speedMultiplier);
 
+    // ---- Memento (Originator side) ---------------------------------------
+    // Capture the current factory state as an opaque snapshot.
+    FactoryMemento createMemento() const;
+    // Apply a previously captured snapshot. In-flight tasks are not
+    // restored (machines reset to Idle with their old HP); the line
+    // queues are repopulated from the snapshot so work can resume.
+    void           restoreFromMemento(const FactoryMemento& memento);
+
 protected:
     EventLog& mutableEventLog();
     Statistics& mutableStatistics();
+
+    // Subclass-supplied product builder. The default Factory cannot rebuild
+    // products from IDs alone, so this is virtual; CarbonationFactory
+    // overrides it to dispatch to VoltzClassic / HyperBolt / AuroraZero.
+    virtual std::shared_ptr<Product> createProductById(ProductId id) const;
 
 private:
     SimClock clock_;

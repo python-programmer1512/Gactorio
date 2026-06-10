@@ -137,4 +137,22 @@ void ProductionLine::update(double deltaTime) {
     (void)collectCompletedProducts();
 }
 
+// ---- Memento support --------------------------------------------------------
+std::vector<ProductId> ProductionLine::pendingProductIds() const {
+    std::vector<ProductId> out;
+    out.reserve(taskQueue_.size());
+    for (const auto& task : taskQueue_) {
+        if (task != nullptr) out.push_back(task->getProductId());
+    }
+    return out;
+}
+
+void ProductionLine::clearQueue() {
+    taskQueue_.clear();
+}
+
+void ProductionLine::clearCompleted() {
+    completedProducts_.clear();
+}
+
 } // namespace gactorio

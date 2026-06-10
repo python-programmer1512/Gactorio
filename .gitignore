@@ -1,8 +1,11 @@
 # Ignored folders
 .claude/
 lecture/
-docs/
+materials/
 unpacked/
+.docx
+.pdf
+
 
 # Build artifacts
 build/

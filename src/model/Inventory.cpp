@@ -74,4 +74,10 @@ const std::map<ProductId, int>& Inventory::products() const {
     return products_;
 }
 
+void Inventory::replaceContents(const std::map<ItemType, int>& newItems,
+                                const std::map<ProductId, int>& newProducts) {
+    items_    = newItems;
+    products_ = newProducts;
+}
+
 } // namespace gactorio

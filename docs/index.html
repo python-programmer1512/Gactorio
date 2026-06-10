@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Aggressively defeat browser caching so a fresh wasm always wins. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma"        content="no-cache">
+    <meta http-equiv="Expires"       content="0">
+    <title>Gactorio — Energy Drink Factory</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Gactorio</h1>
+        <p>Energy Drink Factory Simulator · C++ backend / JS frontend</p>
+    </header>
+
+    <main>
+        <!-- ====================================================== -->
+        <!-- Simulation Control                                    -->
+        <!-- ====================================================== -->
+        <section id="sim-control">
+            <h2>Simulation Control</h2>
+
+            <div class="row">
+                Simulation time:
+                <span id="sim-time" class="big">0.00</span> s
+            </div>
+
+            <div class="row">
+                <button id="btn-pause">Pause</button>
+                <button id="btn-reset">Reset</button>
+                <label class="speed">
+                    Speed
+                    <input id="speed" type="range" min="0.1" max="5" step="0.1" value="1">
+                    <span id="speed-label">1.0×</span>
+                </label>
+            </div>
+
+            <h3>Memento (Undo / Redo)</h3>
+            <div class="row">
+                <button id="btn-save">Save Checkpoint</button>
+                <button id="btn-undo" disabled>Undo</button>
+                <span style="color:#888; font-size:12px; margin-left:8px;">
+                    history: <b id="history-size">0</b>
+                </span>
+            </div>
+
+            <h3>Statistics</h3>
+            <div id="stats-grid"></div>
+
+            <!-- Event log lives inside the left column now, filling all
+                 remaining vertical space with its own scrollbar. -->
+            <h3>Event Log</h3>
+            <div id="event-log"></div>
+        </section>
+
+        <!-- ====================================================== -->
+        <!-- Factory (production lines + machines) — middle column  -->
+        <!-- ====================================================== -->
+        <section id="factory">
+            <div class="factory-header">
+                <h2>Factory</h2>
+                <button id="btn-add-line" class="small">+ Add Line</button>
+            </div>
+            <div id="factory-content">Loading WebAssembly…</div>
+        </section>
+
+        <!-- ====================================================== -->
+        <!-- Products — second-from-right column                   -->
+        <!-- ====================================================== -->
+        <section id="products">
+            <h2>Products</h2>
+            <p class="hint">Click to enqueue on the shortest line.</p>
+            <div class="product-list">
+                <button class="product-btn" data-act="enqueueAuto" data-kind="VoltzClassic">
+                    <b>Voltz Classic</b>
+                    <span>40 s · 8.5 kWh</span>
+                </button>
+                <button class="product-btn" data-act="enqueueAuto" data-kind="HyperBolt">
+                    <b>Hyper Bolt</b>
+                    <span>48 s · 10.4 kWh</span>
+                </button>
+                <button class="product-btn" data-act="enqueueAuto" data-kind="AuroraZero">
+                    <b>Aurora Zero</b>
+                    <span>49 s · 10.2 kWh</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ====================================================== -->
+        <!-- Inventory — right column                              -->
+        <!-- ====================================================== -->
+        <section id="inventory">
+            <h2>Inventory</h2>
+            <div id="inventory-content"></div>
+        </section>
+    </main>
+
+    <!-- 1) Emscripten glue (loads gactorio.wasm and creates `Module`) -->
+    <!-- ?v= cache-busts the deployed CDN when we rebuild the wasm. -->
+    <script src="gactorio.js?v=20260601k"></script>
+
+    <!-- 2) View layer (ES modules): main.js bootstraps Application + panels.
+         Talks to Module.Controller only — never touches the Model directly. -->
+    <script type="module" src="js/main.js?v=20260601k"></script>
+</body>
+</html>
