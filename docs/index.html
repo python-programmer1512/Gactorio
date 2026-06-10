@@ -99,9 +99,10 @@
 
     <!-- 1) Emscripten glue (loads gactorio.wasm and creates `Module`) -->
     <!-- ?v= cache-busts the deployed CDN when we rebuild the wasm. -->
-    <script src="gactorio.js?v=20260601j"></script>
+    <script src="gactorio.js?v=20260601k"></script>
 
-    <!-- 2) Our UI logic — talks to Module.Controller only -->
-    <script src="app.js?v=20260601j"></script>
+    <!-- 2) View layer (ES modules): main.js bootstraps Application + panels.
+         Talks to Module.Controller only — never touches the Model directly. -->
+    <script type="module" src="js/main.js?v=20260601k"></script>
 </body>
 </html>
