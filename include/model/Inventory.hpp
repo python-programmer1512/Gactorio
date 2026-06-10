@@ -23,6 +23,10 @@ public:
     const std::map<ItemType, int>& items() const;
     const std::map<ProductId, int>& products() const;
 
+    // For Memento restore: overwrite both maps in one shot.
+    void replaceContents(const std::map<ItemType, int>& newItems,
+                         const std::map<ProductId, int>& newProducts);
+
 private:
     std::map<ItemType, int> items_;
     std::map<ProductId, int> products_;

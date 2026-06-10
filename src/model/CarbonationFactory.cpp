@@ -55,4 +55,29 @@ const std::vector<Recipe>& CarbonationFactory::recipes() const {
     return recipes_;
 }
 
+LineId CarbonationFactory::addDynamicLine() {
+    const LineId    id      = nextLineId_++;
+    const MachineId baseMid = nextMachineId_;
+    nextMachineId_ += 4;
+
+    const std::string letter(1, static_cast<char>('A' + static_cast<int>(id) - 1));
+
+    ProductionLine line(id, std::string("Beverage Line ") + letter);
+    line.addMachine(std::make_unique<MixingStation>   (baseMid + 0, "Mixer"));
+    line.addMachine(std::make_unique<QualityStation>  (baseMid + 1, "Quality Check"));
+    line.addMachine(std::make_unique<BottlingStation> (baseMid + 2, "Filler"));
+    line.addMachine(std::make_unique<PackagingStation>(baseMid + 3, "Packager"));
+    addProductionLine(std::move(line));
+    return id;
+}
+
+std::shared_ptr<Product> CarbonationFactory::createProductById(ProductId id) const {
+    switch (id) {
+    case static_cast<ProductId>(ProductType::VoltzClassic): return std::make_shared<VoltzClassic>();
+    case static_cast<ProductId>(ProductType::HyperBolt):    return std::make_shared<HyperBolt>();
+    case static_cast<ProductId>(ProductType::AuroraZero):   return std::make_shared<AuroraZero>();
+    default: return nullptr;
+    }
+}
+
 } // namespace gactorio

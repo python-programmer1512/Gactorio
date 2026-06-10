@@ -38,6 +38,11 @@ public:
     const Machine* findMachine(MachineId id) const;
     void update(double deltaTime);
 
+    // ---- Memento support (used by Factory::create/restoreFromMemento) ----
+    std::vector<ProductId> pendingProductIds() const;
+    void clearQueue();
+    void clearCompleted();
+
 private:
     ProductionLineId id_;
     std::string name_;

@@ -40,7 +40,17 @@ public:
     bool canProcess(MachineRole role) const;
     MachineSnapshot getSnapshot() const;
     void forceBreak();
+    // repair() starts the long maintenance routine (full restore after delay).
     void repair();
+    // Adds a small fixed amount of HP (config::kIncrementalRepairHp).
+    // Cannot resurrect a Broken machine — use repair()/repairAll for that.
+    void incrementalRepair();
+
+    // ---- Memento support (used by Factory::restoreFromMemento) -----------
+    // Drops any in-flight task, zeroes progress, overwrites HP, and forces
+    // the machine into the given status.
+    void resetForRestore(double newHealth, MachineStatus newStatus);
+
     MachineId getId() const;
     const std::string& getName() const;
     MachineStatus getStatus() const;

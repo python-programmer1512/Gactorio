@@ -1,11 +1,26 @@
 #include "model/Machine.hpp"
 
+#include "common/Config.h"
 #include "model/MachineStates.hpp"
 
 #include <algorithm>
+#include <random>
 #include <utility>
 
 namespace gactorio {
+
+namespace {
+// Shared per-thread RNG for HP-damage rolls. Avoids the overhead of
+// reseeding every tick while keeping behaviour reproducible-ish per run.
+std::mt19937& rng() {
+    thread_local std::mt19937 gen{std::random_device{}()};
+    return gen;
+}
+double uniform01() {
+    std::uniform_real_distribution<double> d(0.0, 1.0);
+    return d(rng());
+}
+} // namespace
 
 Machine::Machine(MachineId id, std::string name)
     : Machine(id, std::move(name), 1.0, 100.0, 0.0) {}
@@ -19,9 +34,10 @@ Machine::Machine(
     : id_(id),
       name_(std::move(name)),
       state_(std::make_unique<IdleState>()),
-      health_(std::clamp(initialHealth, 0.0, 100.0)),
+      health_(std::clamp(initialHealth, 0.0, config::kInitialHealth)),
       processingSpeed_(std::max(0.0, processingSpeed)),
       breakdownProbability_(std::clamp(breakdownProbability, 0.0, 1.0)) {
+    maintenanceDuration_ = config::kRepairAllDelaySeconds;
     if (health_ <= 0.0) {
         status_ = MachineStatus::Broken;
         state_ = std::make_unique<BrokenState>();
@@ -110,11 +126,49 @@ MachineSnapshot Machine::getSnapshot() const {
 }
 
 void Machine::forceBreak() {
+    // forceBreak is a debug / test hook — it discards the in-flight task so
+    // the machine returns cleanly to Idle after maintenance. (Game-flow
+    // damage from advanceProduction does not call this path, so the task is
+    // preserved there and Repair restarts it from progress 0.)
+    task_.reset();
     transitionToBroken("forced breakdown");
 }
 
 void Machine::repair() {
     transitionToMaintenance("repair requested");
+}
+
+void Machine::resetForRestore(double newHealth, MachineStatus newStatus) {
+    task_.reset();
+    progress_           = 0.0;
+    maintenanceElapsed_ = 0.0;
+    health_             = std::clamp(newHealth, 0.0, config::kInitialHealth);
+
+    switch (newStatus) {
+    case MachineStatus::Broken:
+        status_ = MachineStatus::Broken;
+        setState(std::make_unique<BrokenState>());
+        break;
+    case MachineStatus::Maintenance:
+        status_ = MachineStatus::Maintenance;
+        setState(std::make_unique<MaintenanceState>());
+        break;
+    case MachineStatus::Working:
+    case MachineStatus::Idle:
+    default:
+        status_ = MachineStatus::Idle;
+        setState(std::make_unique<IdleState>());
+        break;
+    }
+}
+
+void Machine::incrementalRepair() {
+    // Quick +X HP boost. Does not change state, does not revive a broken
+    // machine — use repair()/repairAll for that.
+    if (status_ == MachineStatus::Broken) {
+        return;
+    }
+    health_ = std::min(100.0, health_ + config::kIncrementalRepairHp);
 }
 
 MachineId Machine::getId() const {
@@ -172,6 +226,28 @@ void Machine::resume() {
 }
 
 void Machine::advanceProduction(double deltaTime) {
+    // ----- Random wear-and-tear -------------------------------------------
+    // While a machine has a task and is working, every tick there is a small
+    // chance of taking random HP damage. Probability + damage range come from
+    // data/factory_config.json via the generated gactorio::config:: constants.
+    // If HP reaches zero the task is preserved so Repair-All can resume it
+    // from progress 0.
+    if (task_ != nullptr) {
+        const double dt = std::max(0.0, deltaTime);
+        const double damageChance = config::kDamageChancePerSecond * dt;
+        if (uniform01() < damageChance) {
+            const double range = config::kDamageMaxHp - config::kDamageMinHp;
+            const double dmg   = config::kDamageMinHp + uniform01() * range;
+            health_ = std::max(0.0, health_ - dmg);
+            if (health_ <= 0.0) {
+                progress_ = 0.0;
+                transitionToBroken("HP depleted while working");
+                return;
+            }
+        }
+    }
+    // ----------------------------------------------------------------------
+
     if (task_ != nullptr && task_->currentStep() != nullptr) {
         const auto stepDuration = task_->currentStep()->baseDurationSeconds();
         if (stepDuration <= 0.0) {
@@ -212,11 +288,18 @@ void Machine::advanceProduction(double deltaTime) {
 void Machine::advanceMaintenance(double deltaTime) {
     maintenanceElapsed_ += std::max(0.0, deltaTime);
     if (maintenanceElapsed_ >= maintenanceDuration_) {
-        health_ = 100.0;
+        health_ = config::kInitialHealth;
         progress_ = 0.0;
-        task_.reset();
         notify(EventType::MachineRepaired, name_ + " repaired");
-        transitionToIdle("maintenance completed");
+        if (task_ != nullptr) {
+            // A task survived the breakdown (i.e. HP depleted naturally).
+            // Resume it from the start of its current step.
+            notify(EventType::TaskStarted, name_ + " restarted " + task_->getProductName());
+            transitionToWorking("repair complete, resuming task");
+        } else {
+            // No task in flight (forceBreak or finished cleanly).
+            transitionToIdle("maintenance completed");
+        }
     }
 }
 
@@ -229,7 +312,9 @@ void Machine::transitionToIdle(const std::string& reason) {
 }
 
 void Machine::transitionToWorking(const std::string& reason) {
-    if (status_ == MachineStatus::Broken || status_ == MachineStatus::Maintenance) {
+    // Block from Broken (must repair first), but allow from Maintenance —
+    // that's how a finished repair resumes the preserved task.
+    if (status_ == MachineStatus::Broken) {
         return;
     }
 

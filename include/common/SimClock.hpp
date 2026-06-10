@@ -13,6 +13,8 @@ public:
     void stop();
     void reset();
     void setSpeed(double speedMultiplier);
+    // For Memento restore: jump clock straight to a saved value.
+    void setNow(SimulationTime t);
 
     SimulationTime now() const;
     SimulationTime getDeltaTime() const;
