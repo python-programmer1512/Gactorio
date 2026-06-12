@@ -1,0 +1,127 @@
+<mxfile host="Electron" agent="Codex">
+  <diagram id="core-simulation-class-diagram" name="Core Simulation Class Diagram">
+    <mxGraphModel dx="2571" dy="1749" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=24;fontStyle=1;align=left;verticalAlign=middle;" value="Gactorio Core Simulation Class Diagram" vertex="1">
+          <mxGeometry height="40" width="560" x="40" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="Factory" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eaf7ea;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;Factory&lt;/b&gt;&lt;hr&gt;- clock_: SimClock&lt;br&gt;- inventory_: Inventory&lt;br&gt;- productionLines_: vector&amp;lt;ProductionLine&amp;gt;&lt;br&gt;- machines_: vector&amp;lt;Machine*&amp;gt; // cache&lt;br&gt;- eventBus_: EventBus&lt;hr&gt;+ addProductionLine(line)&lt;br&gt;+ enqueueProduct(lineId, product)&lt;br&gt;+ update(realDeltaTime): SimulationTime&lt;br&gt;+ findProductionLine(id)&lt;br&gt;+ findMachine(id)&lt;br&gt;+ createMemento() const&lt;br&gt;+ restoreFromMemento(m)" vertex="1">
+          <mxGeometry height="245" width="330" x="155" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="CarbonationFactory" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eaf7ea;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;CarbonationFactory&lt;/b&gt;&lt;hr&gt;- recipes_: vector&amp;lt;Recipe&amp;gt;&lt;br&gt;- nextLineId_: LineId&lt;br&gt;- nextMachineId_: MachineId&lt;hr&gt;+ CarbonationFactory()&lt;br&gt;+ addDynamicLine(): LineId&lt;br&gt;+ createMemento() const override&lt;br&gt;+ restoreFromMemento(m) override&lt;br&gt;# createProductById(id) const override&lt;br&gt;# createLineForMemento(lineMemento) const override" vertex="1">
+          <mxGeometry height="210" width="330" x="1050" y="107.5" as="geometry" />
+        </mxCell>
+        <mxCell id="ProductionLine" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;ProductionLine&lt;/b&gt;&lt;hr&gt;- id_: ProductionLineId&lt;br&gt;- name_: string&lt;br&gt;- taskQueue_: deque&amp;lt;shared_ptr&amp;lt;ProductionTask&amp;gt;&amp;gt;&lt;br&gt;- completedProducts_: vector&amp;lt;ProductId&amp;gt;&lt;br&gt;- machines_: vector&amp;lt;unique_ptr&amp;lt;Machine&amp;gt;&amp;gt;&lt;br&gt;- eventBus_: EventBus*&lt;hr&gt;+ enqueueProduct(product)&lt;br&gt;+ assignAvailableTask()&lt;br&gt;+ collectCompletedProducts(): vector&amp;lt;ProductId&amp;gt;&lt;br&gt;+ addMachine(machine)&lt;br&gt;+ update(deltaTime)&lt;br&gt;+ pendingProductIds() const" vertex="1">
+          <mxGeometry height="270" width="360" x="360" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="Machine" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;i&gt;&lt;b&gt;Machine&lt;/b&gt;&lt;/i&gt;&lt;hr&gt;- id_: MachineId&lt;br&gt;- name_: string&lt;br&gt;- recipe_: optional&amp;lt;Recipe&amp;gt;&lt;br&gt;- task_: shared_ptr&amp;lt;ProductionTask&amp;gt;&lt;br&gt;- state_: unique_ptr&amp;lt;MachineState&amp;gt;&lt;br&gt;- eventBus_: EventBus*&lt;br&gt;- status_: MachineStatus&lt;br&gt;- progress_: double&lt;br&gt;- health_: double&lt;hr&gt;+ assignTask(task)&lt;br&gt;+ update(deltaTime)&lt;br&gt;+ canAcceptTask() const&lt;br&gt;+ canProcess(role) const&lt;br&gt;+ pause() / resume()&lt;br&gt;+ forceBreak() / repair()&lt;br&gt;+ resetForRestore(health, status)&lt;br&gt;+ typeName() const = 0&lt;br&gt;+ role() const = 0" vertex="1">
+          <mxGeometry height="330" width="370" x="1030" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="Stations" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;Concrete Machines&lt;/b&gt;&lt;hr&gt;MixingStation&lt;br&gt;QualityStation&lt;br&gt;BottlingStation&lt;br&gt;PackagingStation&lt;hr&gt;+ typeName() const override&lt;br&gt;+ processType() const override&lt;br&gt;+ role() const override&lt;br&gt;+ canAcceptRecipe(recipe) const override" vertex="1">
+          <mxGeometry height="190" width="260" x="1085" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="ProductionTask" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffdf5;strokeColor=#d6b656;align=left;spacing=8;" value="&lt;b&gt;ProductionTask&lt;/b&gt;&lt;hr&gt;- ownedProduct_: shared_ptr&amp;lt;Product&amp;gt;&lt;br&gt;- product_: const Product*&lt;br&gt;- currentStepIndex_: size_t&lt;hr&gt;+ currentStep() const: ProcessStep*&lt;br&gt;+ advanceStep()&lt;br&gt;+ isCompleted() const&lt;br&gt;+ getProgressInRoute() const&lt;br&gt;+ getProductId() const&lt;br&gt;+ getProductName() const" vertex="1">
+          <mxGeometry height="190" width="360" x="540" y="990" as="geometry" />
+        </mxCell>
+        <mxCell id="Product" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffdf5;strokeColor=#d6b656;align=left;spacing=8;" value="&lt;i&gt;&lt;b&gt;Product&lt;/b&gt;&lt;/i&gt;&lt;hr&gt;- id_: ProductId&lt;br&gt;- name_: string&lt;br&gt;- requirements_: vector&amp;lt;ItemRequirement&amp;gt;&lt;br&gt;- route_: vector&amp;lt;ProcessStep&amp;gt;&lt;hr&gt;+ getProductId() const = 0&lt;br&gt;+ getName() const = 0&lt;br&gt;+ getRequirements() const = 0&lt;br&gt;+ getRoute() const = 0" vertex="1">
+          <mxGeometry height="190" width="330" x="1050" y="1130" as="geometry" />
+        </mxCell>
+        <mxCell id="ProcessStep" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffdf5;strokeColor=#d6b656;align=left;spacing=8;" value="&lt;b&gt;ProcessStep&lt;/b&gt;&lt;hr&gt;- requiredRole_: MachineRole&lt;br&gt;- baseDurationSeconds_: SimulationTime&lt;hr&gt;+ requiredRole() const&lt;br&gt;+ baseDurationSeconds() const" vertex="1">
+          <mxGeometry height="125" width="260" x="1530" y="1022.5" as="geometry" />
+        </mxCell>
+        <mxCell id="ItemRequirement" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffdf5;strokeColor=#d6b656;align=left;spacing=8;" value="&lt;b&gt;ItemRequirement&lt;/b&gt;&lt;hr&gt;- itemType_: ItemType&lt;br&gt;- quantity_: int&lt;hr&gt;+ itemType() const&lt;br&gt;+ quantity() const" vertex="1">
+          <mxGeometry height="120" width="260" x="1085" y="1407.5" as="geometry" />
+        </mxCell>
+        <mxCell id="MachineState" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8f5ff;strokeColor=#9673a6;align=left;spacing=8;" value="&lt;i&gt;&lt;b&gt;MachineState&lt;/b&gt;&lt;/i&gt;&lt;hr&gt;+ enter(machine)&lt;br&gt;+ update(machine, deltaTime) = 0&lt;br&gt;+ exit(machine)&lt;br&gt;+ name() const = 0" vertex="1">
+          <mxGeometry height="130" width="280" x="1480" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="ConcreteStates" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8f5ff;strokeColor=#9673a6;align=left;spacing=8;" value="&lt;b&gt;Concrete States&lt;/b&gt;&lt;hr&gt;IdleState&lt;br&gt;WorkingState&lt;br&gt;BrokenState&lt;br&gt;MaintenanceState" vertex="1">
+          <mxGeometry height="100" width="230" x="1800" y="725" as="geometry" />
+        </mxCell>
+        <mxCell id="Inventory" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eef7ff;strokeColor=#6c8ebf;align=left;spacing=8;" value="&lt;b&gt;Inventory&lt;/b&gt;&lt;hr&gt;- items_: map&amp;lt;ItemType,int&amp;gt;&lt;br&gt;- products_: map&amp;lt;ProductId,int&amp;gt;&lt;hr&gt;+ consume(requirements)&lt;br&gt;+ addProduct(productId, quantity)&lt;br&gt;+ replaceContents(...)" vertex="1">
+          <mxGeometry height="135" width="330" x="155" y="1400" as="geometry" />
+        </mxCell>
+        <mxCell id="SimClock" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eef7ff;strokeColor=#6c8ebf;align=left;spacing=8;" value="&lt;b&gt;SimClock&lt;/b&gt;&lt;hr&gt;+ update(realDeltaTime)&lt;br&gt;+ pause() / resume()&lt;br&gt;+ stop() / reset()&lt;br&gt;+ setSpeed(multiplier)&lt;br&gt;+ setNow(time)" vertex="1">
+          <mxGeometry height="125" width="250" x="40" y="1250" as="geometry" />
+        </mxCell>
+        <mxCell id="EventBus" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eef7ff;strokeColor=#6c8ebf;align=left;spacing=8;" value="&lt;b&gt;EventBus&lt;/b&gt;&lt;hr&gt;+ subscribe(observer)&lt;br&gt;+ publish(event) const" vertex="1">
+          <mxGeometry height="85" width="220" x="820" y="432.5" as="geometry" />
+        </mxCell>
+        <mxCell id="Recipe" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eef7ff;strokeColor=#6c8ebf;align=left;spacing=8;" value="&lt;b&gt;Recipe&lt;/b&gt;&lt;hr&gt;- id_: RecipeId&lt;br&gt;- inputs_: map&amp;lt;ItemType,int&amp;gt;&lt;br&gt;- outputs_: map&amp;lt;ProductId,int&amp;gt;" vertex="1">
+          <mxGeometry height="95" width="250" x="1400" y="427.5" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=13;align=left;" value="Legend: filled diamond = composition, open diamond = aggregation, open arrow = association, dashed = dependency, triangle = inheritance" vertex="1">
+          <mxGeometry height="25" width="880" x="40" y="1570" as="geometry" />
+        </mxCell>
+        <mxCell id="e-carbonation-inherits-factory" edge="1" parent="1" source="CarbonationFactory" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#000000;" target="Factory" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-stations-inherit-machine" edge="1" parent="1" source="Stations" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#000000;" target="Machine" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-states-inherit" edge="1" parent="1" source="ConcreteStates" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#000000;" target="MachineState" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-factory-line" edge="1" parent="1" source="Factory" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="ProductionLine" value="productionLines_ 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-factory-inventory" edge="1" parent="1" source="Factory" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="Inventory" value="inventory_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-factory-clock" edge="1" parent="1" source="Factory" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="SimClock" value="clock_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-factory-eventbus" edge="1" parent="1" source="Factory" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="EventBus" value="eventBus_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-cfactory-recipe" edge="1" parent="1" source="CarbonationFactory" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="Recipe" value="recipes_ 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-line-machine" edge="1" parent="1" source="ProductionLine" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="Machine" value="machines_ 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-line-task" edge="1" parent="1" source="ProductionLine" style="startArrow=diamond;startFill=0;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="ProductionTask" value="taskQueue_ 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-machine-task" edge="1" parent="1" source="Machine" style="startArrow=diamond;startFill=0;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="ProductionTask" value="task_ 0..1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-machine-state" edge="1" parent="1" source="Machine" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="MachineState" value="state_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-task-product" edge="1" parent="1" source="ProductionTask" style="startArrow=diamond;startFill=0;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="Product" value="product_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-product-step" edge="1" parent="1" source="Product" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="ProcessStep" value="route_ 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-product-req" edge="1" parent="1" source="Product" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="ItemRequirement" value="requirements_ 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-factory-machine-cache" edge="1" parent="1" source="Factory" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="Machine" value="machines_ cache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-line-eventbus" edge="1" parent="1" source="ProductionLine" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="EventBus" value="eventBus_*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-machine-eventbus" edge="1" parent="1" source="Machine" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="EventBus" value="eventBus_*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-machine-recipe" edge="1" parent="1" source="Machine" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="Recipe" value="recipe_ 0..1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-task-current-step" edge="1" parent="1" source="ProductionTask" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" target="ProcessStep" value="currentStep()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-inventory-product-req" edge="1" parent="1" source="Inventory" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" target="ItemRequirement" value="consume(requirements)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-cfactory-stations" edge="1" parent="1" source="CarbonationFactory" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" target="Stations" value="creates line topology">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

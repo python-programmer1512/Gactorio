@@ -1,0 +1,142 @@
+<mxfile host="Electron" agent="Codex">
+  <diagram id="observer-event-pattern-diagram" name="Observer Event Pattern Diagram">
+    <mxGraphModel dx="1885" dy="1283" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1050" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=24;fontStyle=1;align=left;verticalAlign=middle;" value="Gactorio Observer / Event Pattern Diagram" vertex="1">
+          <mxGeometry height="40" width="620" x="40" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg-publishers" parent="1" style="swimlane;html=1;startSize=30;rounded=0;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=15;" value="Publishers" vertex="1">
+          <mxGeometry height="480" width="430" x="40" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg-eventbus" parent="1" style="swimlane;html=1;startSize=30;rounded=0;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=15;" value="Event Dispatch" vertex="1">
+          <mxGeometry height="480" width="390" x="530" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Event" parent="pkg-eventbus" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;align=left;spacing=8;" value="&lt;b&gt;Event&lt;/b&gt;&lt;hr&gt;- simulationTime_: SimulationTime&lt;br&gt;- type_: EventType&lt;br&gt;- sourceId_: MachineId&lt;br&gt;- message_: string&lt;hr&gt;+ simulationTime() const&lt;br&gt;+ type() const&lt;br&gt;+ sourceId() const&lt;br&gt;+ message() const" vertex="1">
+          <mxGeometry height="170" width="300" x="40" y="295" as="geometry" />
+        </mxCell>
+        <mxCell id="EventBus" parent="pkg-eventbus" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;align=left;spacing=8;" value="&lt;b&gt;EventBus&lt;/b&gt;&lt;hr&gt;- observers_: vector&amp;lt;Observer*&amp;gt;&lt;hr&gt;+ subscribe(observer: Observer*)&lt;br&gt;+ publish(event: const Event&amp;amp;) const&lt;hr&gt;&lt;i&gt;Does not own observers&lt;/i&gt;" vertex="1">
+          <mxGeometry height="165" width="300" x="45" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="e-bus-event" edge="1" parent="pkg-eventbus" source="EventBus" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" target="Event" value="publish(event)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg-subscribers" parent="1" style="swimlane;html=1;startSize=30;rounded=0;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=15;" value="Subscribers / Observers" vertex="1">
+          <mxGeometry height="450" width="650" x="1200" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="Observer" parent="pkg-subscribers" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;align=left;spacing=8;" value="&lt;i&gt;&lt;b&gt;Observer&lt;/b&gt;&lt;/i&gt;&lt;hr&gt;+ onEvent(event: const Event&amp;amp;) = 0" vertex="1">
+          <mxGeometry height="80" width="250" x="160" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="StatisticsObserver" parent="pkg-subscribers" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;align=left;spacing=8;" value="&lt;b&gt;StatisticsObserver&lt;/b&gt;&lt;hr&gt;- completedProductEvents_: int&lt;br&gt;- startedTaskEvents_: int&lt;br&gt;- completedStepEvents_: int&lt;br&gt;- brokenMachineEvents_: int&lt;br&gt;- repairedMachineEvents_: int&lt;br&gt;- stateChangedEvents_: int&lt;hr&gt;+ onEvent(event) override&lt;br&gt;+ counter getters" vertex="1">
+          <mxGeometry height="205" width="260" x="370" y="182.5" as="geometry" />
+        </mxCell>
+        <mxCell id="e-stat-inherits-observer" edge="1" parent="pkg-subscribers" source="StatisticsObserver" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#000000;" target="Observer" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg-owner" parent="1" style="swimlane;html=1;startSize=30;rounded=0;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=15;" value="Owner / Wiring" vertex="1">
+          <mxGeometry height="320" width="650" x="500" y="535" as="geometry" />
+        </mxCell>
+        <mxCell id="FactoryWiring" parent="pkg-owner" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacing=8;" value="&lt;b&gt;Factory constructor wiring&lt;/b&gt;&lt;hr&gt;eventBus_.subscribe(&amp;amp;eventLog_)&lt;br&gt;eventBus_.subscribe(&amp;amp;statistics_)&lt;hr&gt;&lt;b&gt;Line wiring&lt;/b&gt;&lt;br&gt;line.setEventBus(&amp;amp;eventBus_)&lt;br&gt;machine.setEventBus(eventBus_)" vertex="1">
+          <mxGeometry height="185" width="200" x="20" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg-dto" parent="1" style="swimlane;html=1;startSize=30;rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=15;" value="DTO Projection" vertex="1">
+          <mxGeometry height="450" width="710" x="1170" y="525" as="geometry" />
+        </mxCell>
+        <mxCell id="ProductionLine" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;ProductionLine&lt;/b&gt;&lt;hr&gt;- eventBus_: EventBus*&lt;hr&gt;+ setEventBus(eventBus)&lt;br&gt;+ enqueueProduct(product)&lt;hr&gt;&lt;i&gt;Publishes TaskEnqueued when a product is queued&lt;/i&gt;" vertex="1">
+          <mxGeometry height="140" width="330" x="75" y="145" as="geometry" />
+        </mxCell>
+        <mxCell id="Machine" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;Machine&lt;/b&gt;&lt;hr&gt;- eventBus_: EventBus*&lt;hr&gt;+ setEventBus(eventBus)&lt;br&gt;+ assignTask(task)&lt;br&gt;+ pause() / resume()&lt;br&gt;+ advanceProduction(deltaTime)&lt;br&gt;+ advanceMaintenance(deltaTime)&lt;br&gt;- notify(type, message) const&lt;hr&gt;&lt;i&gt;Publishes task, step, product, repair, breakdown, and state events&lt;/i&gt;" vertex="1">
+          <mxGeometry height="210" width="330" x="75" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="EventLogObserver" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;align=left;spacing=8;" value="&lt;b&gt;EventLogObserver&lt;/b&gt;&lt;hr&gt;- events_: vector&amp;lt;Event&amp;gt;&lt;hr&gt;+ onEvent(event) override&lt;br&gt;+ events() const&lt;hr&gt;&lt;i&gt;Stores event history&lt;/i&gt;" vertex="1">
+          <mxGeometry height="140" width="270" x="1230" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="Factory" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;align=left;spacing=8;" value="&lt;b&gt;Factory&lt;/b&gt;&lt;hr&gt;- eventBus_: EventBus&lt;br&gt;- eventLog_: EventLogObserver&lt;br&gt;- statistics_: StatisticsObserver&lt;br&gt;- productionLines_: vector&amp;lt;ProductionLine&amp;gt;&lt;hr&gt;+ Factory()&lt;br&gt;+ addProductionLine(line)&lt;br&gt;+ eventLog() const&lt;br&gt;+ statistics() const&lt;hr&gt;&lt;i&gt;Owns bus and subscribers; wires line/machine publishers&lt;/i&gt;" vertex="1">
+          <mxGeometry height="200" width="360" x="710" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=13;align=left;" value="Legend: filled diamond = owned by Factory / EventLog, open arrow = non-owning association or call, dashed = publish/convert dependency, triangle = Observer inheritance" vertex="1">
+          <mxGeometry height="25" width="1100" x="40" y="990" as="geometry" />
+        </mxCell>
+        <mxCell id="e-log-inherits-observer" edge="1" parent="1" source="EventLogObserver" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#000000;" target="Observer" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-factory-bus" edge="1" parent="1" source="Factory" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="EventBus" value="eventBus_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-factory-log" edge="1" parent="1" source="Factory" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="EventLogObserver" value="eventLog_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-factory-stat" edge="1" parent="1" source="Factory" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="StatisticsObserver" value="statistics_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-bus-observer" edge="1" parent="1" source="EventType" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="Observer" value="observers_ non-owning">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-log-event" edge="1" parent="1" source="EventLogObserver" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="Event" value="events_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-line-bus" edge="1" parent="1" source="ProductionLine" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="EventBus" value="eventBus_*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-machine-bus" edge="1" parent="1" source="Machine" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="EventBus" value="eventBus_*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-line-event" edge="1" parent="1" source="ProductionLine" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" target="Event" value="publish(Event(TaskEnqueued))">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-machine-event" edge="1" parent="1" source="Machine" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" target="Event" value="notify(type, message)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-event-type" edge="1" parent="1" source="Event" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="EventType" value="type_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-stat-eventtype" edge="1" parent="1" source="StatisticsObserver" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" target="EventType" value="switch(event.type())">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-controller-log" edge="1" parent="1" source="FactoryController" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;" target="EventLogObserver" value="reads eventLog().events()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-controller-stat" edge="1" parent="1" source="FactoryController" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;" target="StatisticsObserver" value="reads statistics()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mhQCIihnqjORaNlZxa-i-1" edge="1" parent="1" source="EventBus" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="EventType" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="865" y="217" as="sourcePoint" />
+            <mxPoint x="1200" y="194" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EventType" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacing=8;" value="&lt;&lt;enum&gt;&gt;&lt;br&gt;&lt;b&gt;EventType&lt;/b&gt;&lt;hr&gt;Info&lt;br&gt;TaskEnqueued&lt;br&gt;TaskStarted&lt;br&gt;StepCompleted&lt;br&gt;ProductCompleted&lt;br&gt;MachineBroken&lt;br&gt;MachineRepaired&lt;br&gt;StateChanged&lt;br&gt;InputsConsumed&lt;br&gt;MachinePaused" vertex="1">
+          <mxGeometry height="210" width="250" x="930" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="StatisticsSnapshot" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;spacing=8;" value="&lt;b&gt;StatisticsSnapshot&lt;/b&gt;&lt;hr&gt;- completedProductEvents_: int&lt;br&gt;- startedTaskEvents_: int&lt;br&gt;- completedStepEvents_: int&lt;br&gt;- brokenMachineEvents_: int&lt;br&gt;- repairedMachineEvents_: int&lt;br&gt;- stateChangedEvents_: int" vertex="1">
+          <mxGeometry height="150" width="270" x="1580" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="FactoryController" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;spacing=8;" value="&lt;b&gt;FactoryController&lt;/b&gt;&lt;hr&gt;+ getEventLogs() const&lt;br&gt;+ getStatistics() const&lt;br&gt;+ snapshot() const&lt;hr&gt;&lt;i&gt;Converts model observers into DTO snapshots&lt;/i&gt;" vertex="1">
+          <mxGeometry height="140" width="300" x="1190" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="EventSnapshot" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;spacing=8;" value="&lt;b&gt;EventSnapshot&lt;/b&gt;&lt;hr&gt;- simulationTime_: SimulationTime&lt;br&gt;- type_: EventType&lt;br&gt;- message_: string" vertex="1">
+          <mxGeometry height="100" width="250" x="1215" y="812.5" as="geometry" />
+        </mxCell>
+        <mxCell id="FactorySnapshot" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;spacing=8;" value="&lt;b&gt;FactorySnapshot&lt;/b&gt;&lt;hr&gt;- statistics_: StatisticsSnapshot&lt;br&gt;- events_: vector&amp;lt;EventSnapshot&amp;gt;&lt;hr&gt;+ addEvent(event)" vertex="1">
+          <mxGeometry height="135" width="130" x="1660" y="795" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacing=8;" value="EventBus stores Observer* only. Factory owns EventBus, EventLogObserver, and StatisticsObserver as value members.&#xa;DTO snapshots do not subscribe; FactoryController copies observer data into DTO values." vertex="1">
+          <mxGeometry height="95" width="580" x="1215" y="955" as="geometry" />
+        </mxCell>
+        <mxCell id="e-factorysnapshot-statdto" edge="1" parent="1" source="FactorySnapshot" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#666666;" target="StatisticsSnapshot" value="statistics_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-controller-statdto" edge="1" parent="1" source="FactoryController" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;" target="StatisticsSnapshot" value="creates">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-controller-eventdto" edge="1" parent="1" source="FactoryController" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;" target="EventSnapshot" value="creates">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-factorysnapshot-eventdto" edge="1" parent="1" source="FactorySnapshot" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#666666;" target="EventSnapshot" value="events_">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
