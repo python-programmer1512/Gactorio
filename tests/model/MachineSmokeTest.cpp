@@ -29,11 +29,10 @@ int main() {
     assert(machine.getProgress() >= 0.0);
     assert(machine.getProgress() <= 1.0);
 
-    const auto snapshot = machine.getSnapshot();
-    assert(snapshot.id() == machine.getId());
-    assert(snapshot.status() == gactorio::MachineStatus::Working ||
-           snapshot.status() == gactorio::MachineStatus::Broken);
-    assert(snapshot.health() >= 0.0 && snapshot.health() <= 100.0);
+    assert(machine.getId() == 1);
+    assert(machine.getStatus() == gactorio::MachineStatus::Working ||
+           machine.getStatus() == gactorio::MachineStatus::Broken);
+    assert(machine.getHealth() >= 0.0 && machine.getHealth() <= 100.0);
 
     machine.forceBreak();
     assert(machine.getStatus() == gactorio::MachineStatus::Broken);

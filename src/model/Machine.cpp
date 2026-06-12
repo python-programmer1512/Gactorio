@@ -70,6 +70,10 @@ bool Machine::hasTask() const {
     return task_ != nullptr && !task_->isCompleted();
 }
 
+const ProductionTask* Machine::currentTask() const {
+    return hasTask() ? task_.get() : nullptr;
+}
+
 bool Machine::assignTask(std::shared_ptr<ProductionTask> task) {
     if (!canAcceptTask() || task == nullptr || task->currentStep() == nullptr) {
         return false;
@@ -119,10 +123,6 @@ bool Machine::canAcceptTask() const {
 
 bool Machine::canProcess(MachineRole role) const {
     return this->role() == role;
-}
-
-MachineSnapshot Machine::getSnapshot() const {
-    return MachineSnapshot(id_, name_, typeName(), status_, stateName(), getProgress(), health_);
 }
 
 void Machine::forceBreak() {

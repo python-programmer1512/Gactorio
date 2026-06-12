@@ -36,6 +36,10 @@ double ProductionLineSnapshot::currentTaskProgress() const {
     return currentTaskProgress_;
 }
 
+void ProductionLineSnapshot::setCurrentTaskProgress(double progress) {
+    currentTaskProgress_ = progress;
+}
+
 void ProductionLineSnapshot::addMachine(MachineSnapshot machine) {
     machines_.push_back(std::move(machine));
 }

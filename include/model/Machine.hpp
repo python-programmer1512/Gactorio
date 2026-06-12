@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/Types.hpp"
-#include "dto/MachineSnapshot.hpp"
 #include "model/ProductionTask.hpp"
 #include "model/Recipe.hpp"
 #include "model/events/Event.hpp"
@@ -30,6 +29,7 @@ public:
     double progress() const;
     std::string stateName() const;
     bool hasTask() const;
+    const ProductionTask* currentTask() const;
     const std::optional<Recipe>& recipe() const;
 
     bool assignTask(std::shared_ptr<ProductionTask> task);
@@ -38,7 +38,6 @@ public:
     virtual void update(double deltaTime);
     bool canAcceptTask() const;
     bool canProcess(MachineRole role) const;
-    MachineSnapshot getSnapshot() const;
     void forceBreak();
     // repair() starts the long maintenance routine (full restore after delay).
     void repair();

@@ -4,18 +4,17 @@
 // view-friendly types (ctrl::*) and model types (gactorio::*) lives here.
 #include "common/Types.hpp"
 #include "controller/FactoryController.hpp"
+#include "model/Item.hpp"
+#include "model/ProductCatalog.hpp"
+
+#include <sstream>
+#include <stdexcept>
 
 namespace ctrl {
 namespace {
 
-gactorio::ProductType toModel(ProductKind k) {
-    switch (k) {
-    case ProductKind::VoltzClassic: return gactorio::ProductType::VoltzClassic;
-    case ProductKind::HyperBolt:    return gactorio::ProductType::HyperBolt;
-    case ProductKind::AuroraZero:   return gactorio::ProductType::AuroraZero;
-    case ProductKind::Unknown:      break;
-    }
-    return gactorio::ProductType::Unknown;
+gactorio::ProductId toModelId(ProductKind k) {
+    return static_cast<gactorio::ProductId>(k);
 }
 
 const char* stateName(gactorio::MachineStatus s) {
@@ -50,16 +49,37 @@ const char* eventName(gactorio::EventType t) {
 
 // Gactorio stores inventory IDs as numeric strings (item-types 1-5,
 // product-ids 101-103). Translate them to human-readable labels.
-std::string humanizeInventoryId(const std::string& numeric) {
-    if (numeric == "1")   return "Ingredient";
-    if (numeric == "2")   return "Water";
-    if (numeric == "3")   return "Empty Bottle";
-    if (numeric == "4")   return "Label";
-    if (numeric == "5")   return "Package";
-    if (numeric == "101") return "Voltz Classic";
-    if (numeric == "102") return "Hyper Bolt";
-    if (numeric == "103") return "Aurora Zero";
-    return numeric;
+ItemId parseInventoryId(const std::string& numeric) {
+    try {
+        return static_cast<ItemId>(std::stoul(numeric));
+    } catch (const std::exception&) {
+        return 0;
+    }
+}
+
+bool isProductInventoryId(ItemId id) {
+    return gactorio::findProductDefinition(static_cast<gactorio::ProductId>(id)) != nullptr;
+}
+
+std::string humanizeInventoryId(ItemId id) {
+    if (const auto* product = gactorio::findProductDefinition(static_cast<gactorio::ProductId>(id))) {
+        return product->name;
+    }
+    return gactorio::ItemTypeName::get(static_cast<gactorio::ItemType>(id));
+}
+
+std::string formatRequirements(const gactorio::ProductDefinition& definition) {
+    std::ostringstream out;
+    bool first = true;
+    for (const auto& requirement : definition.requirements) {
+        if (!first) {
+            out << ", ";
+        }
+        first = false;
+        out << gactorio::ItemTypeName::get(requirement.itemType())
+            << " x" << requirement.quantity();
+    }
+    return out.str();
 }
 
 } // namespace
@@ -70,7 +90,21 @@ std::string humanizeInventoryId(const std::string& numeric) {
 struct Controller::Impl {
     gactorio::FactoryController backend;
     mutable FactoryView         cached;
+    std::vector<ProductOption>  products;
     mutable bool                dirty = true;
+
+    Impl() {
+        for (const auto& definition : gactorio::productDefinitions()) {
+            products.push_back({
+                static_cast<ProductId>(definition.id),
+                definition.key,
+                definition.name,
+                definition.tier,
+                definition.totalDurationSeconds,
+                formatRequirements(definition)
+            });
+        }
+    }
 
     void rebuild() const {
         const auto snap = backend.snapshot();
@@ -115,7 +149,13 @@ struct Controller::Impl {
         }
 
         for (const auto& entry : snap.inventory().items()) {
-            cached.inventory.push_back({humanizeInventoryId(entry.id()), entry.quantity()});
+            const auto id = parseInventoryId(entry.id());
+            cached.inventory.push_back({
+                id,
+                humanizeInventoryId(id),
+                entry.quantity(),
+                isProductInventoryId(id)
+            });
         }
 
         dirty = false;
@@ -135,13 +175,20 @@ void Controller::reset()                       { m_impl->backend.resetSimulation
 void Controller::setSpeed(double mult)         { m_impl->backend.setSimulationSpeed(mult); }
 
 bool Controller::enqueue(LineId line, ProductKind p) {
+    return enqueueProduct(line, static_cast<ProductId>(toModelId(p)));
+}
+
+bool Controller::enqueueProduct(LineId line, ProductId p) {
     m_impl->dirty = true;
-    return m_impl->backend.enqueueProduct(line, toModel(p))
+    return m_impl->backend.enqueueProductById(line, static_cast<gactorio::ProductId>(p))
         == gactorio::FactoryCommandResult::Success;
 }
 LineId Controller::enqueueAuto(ProductKind p) {
+    return enqueueAutoProduct(static_cast<ProductId>(toModelId(p)));
+}
+LineId Controller::enqueueAutoProduct(ProductId p) {
     m_impl->dirty = true;
-    return static_cast<LineId>(m_impl->backend.enqueueAuto(toModel(p)));
+    return static_cast<LineId>(m_impl->backend.enqueueAutoById(static_cast<gactorio::ProductId>(p)));
 }
 LineId Controller::addLine() {
     m_impl->dirty = true;
@@ -162,6 +209,11 @@ bool Controller::repair(MachineId id) {
     return m_impl->backend.incrementalRepairMachine(id)
         == gactorio::FactoryCommandResult::Success;
 }
+bool Controller::restockItem(ItemId id) {
+    m_impl->dirty = true;
+    return m_impl->backend.restockItem(static_cast<gactorio::ItemType>(id), 5)
+        == gactorio::FactoryCommandResult::Success;
+}
 bool Controller::repairAll(MachineId id) {
     m_impl->dirty = true;
     return m_impl->backend.repairMachine(id)
@@ -171,6 +223,10 @@ bool Controller::repairAll(MachineId id) {
 const FactoryView& Controller::snapshot() const {
     if (m_impl->dirty) m_impl->rebuild();
     return m_impl->cached;
+}
+
+const std::vector<ProductOption>& Controller::products() const {
+    return m_impl->products;
 }
 
 // ---- Memento façade ---------------------------------------------------------

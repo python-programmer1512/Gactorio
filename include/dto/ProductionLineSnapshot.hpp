@@ -23,6 +23,7 @@ public:
     std::size_t queueLength() const;
     const std::string& currentTaskName() const;
     double currentTaskProgress() const;
+    void setCurrentTaskProgress(double progress);
     void addMachine(MachineSnapshot machine);
     const std::vector<MachineSnapshot>& machines() const;
 

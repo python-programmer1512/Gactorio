@@ -1,4 +1,5 @@
 #include "model/Product.hpp"
+#include "model/ProductCatalog.hpp"
 
 #include <cassert>
 
@@ -6,6 +7,10 @@ int main() {
     const gactorio::VoltzClassic voltz;
     const gactorio::HyperBolt    hyper;
     const gactorio::AuroraZero   aurora;
+
+    const auto& catalog = gactorio::productDefinitions();
+    assert(catalog.size() == 3);
+    assert(gactorio::createProduct(gactorio::ProductType::HyperBolt)->getName() == "Hyper Bolt");
 
     // Every drink has a distinct product id.
     assert(voltz.getProductId() != hyper.getProductId());

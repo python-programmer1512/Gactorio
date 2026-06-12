@@ -1,8 +1,9 @@
 #include "controller/FactoryController.hpp"
 
 #include "model/Machine.hpp"
-#include "model/Product.hpp"
+#include "model/ProductCatalog.hpp"
 
+#include <algorithm>
 #include <memory>
 #include <string>
 
@@ -21,20 +22,6 @@ InventorySnapshot makeInventorySnapshot(const Inventory& inventory) {
     return snapshot;
 }
 
-std::unique_ptr<Product> makeProduct(ProductType productType) {
-    switch (productType) {
-    case ProductType::VoltzClassic:
-        return std::make_unique<VoltzClassic>();
-    case ProductType::HyperBolt:
-        return std::make_unique<HyperBolt>();
-    case ProductType::AuroraZero:
-        return std::make_unique<AuroraZero>();
-    case ProductType::Unknown:
-    default:
-        return nullptr;
-    }
-}
-
 StatisticsSnapshot makeStatisticsSnapshot(const Statistics& statistics) {
     return StatisticsSnapshot(
         statistics.completedProductEvents(),
@@ -45,6 +32,36 @@ StatisticsSnapshot makeStatisticsSnapshot(const Statistics& statistics) {
         statistics.stateChangedEvents());
 }
 
+MachineSnapshot makeMachineSnapshot(const Machine& machine) {
+    return MachineSnapshot(
+        machine.getId(),
+        machine.getName(),
+        machine.typeName(),
+        machine.getStatus(),
+        machine.stateName(),
+        machine.getProgress(),
+        machine.getHealth());
+}
+
+ProductionLineSnapshot makeProductionLineSnapshot(const ProductionLine& line) {
+    std::string currentName;
+    double currentProgress = 0.0;
+    if (const auto task = line.currentTask()) {
+        currentName = task->getProductName();
+        currentProgress = task->getProgressInRoute();
+    }
+
+    ProductionLineSnapshot snapshot(line.id(), line.name(), line.queueLength(), currentName, currentProgress);
+    for (const auto& machine : line.machines()) {
+        if (machine->hasTask()) {
+            currentProgress = std::max(currentProgress, machine->getProgress());
+        }
+        snapshot.addMachine(makeMachineSnapshot(*machine));
+    }
+    snapshot.setCurrentTaskProgress(currentProgress);
+    return snapshot;
+}
+
 } // namespace
 
 FactoryController::FactoryController() {
@@ -53,6 +70,7 @@ FactoryController::FactoryController() {
 
 void FactoryController::createDefaultCarbonationFactory() {
     factory_ = std::make_unique<CarbonationFactory>();
+    history_.clear();
 }
 
 void FactoryController::reset() {
@@ -108,6 +126,10 @@ void FactoryController::setSimulationSpeed(double speedMultiplier) {
 }
 
 FactoryCommandResult FactoryController::enqueueProduct(LineId lineId, ProductType productType) {
+    return enqueueProductById(lineId, static_cast<ProductId>(productType));
+}
+
+FactoryCommandResult FactoryController::enqueueProductById(LineId lineId, ProductId productId) {
     if (!factory_) {
         return FactoryCommandResult::InvalidRequest;
     }
@@ -117,16 +139,20 @@ FactoryCommandResult FactoryController::enqueueProduct(LineId lineId, ProductTyp
         return FactoryCommandResult::NotFound;
     }
 
-    auto product = makeProduct(productType);
+    auto product = createProduct(productId);
     if (product == nullptr) {
         return FactoryCommandResult::InvalidRequest;
     }
-
-    line->enqueueProduct(std::shared_ptr<Product>(std::move(product)));
-    return FactoryCommandResult::Success;
+    return factory_->enqueueProduct(line->id(), std::move(product))
+        ? FactoryCommandResult::Success
+        : FactoryCommandResult::InvalidRequest;
 }
 
 LineId FactoryController::enqueueAuto(ProductType productType) {
+    return enqueueAutoById(static_cast<ProductId>(productType));
+}
+
+LineId FactoryController::enqueueAutoById(ProductId productId) {
     if (!factory_) return 0;
     const auto& lines = factory_->productionLines();
     if (lines.empty()) return 0;
@@ -141,7 +167,7 @@ LineId FactoryController::enqueueAuto(ProductType productType) {
         }
     }
     if (best == nullptr) return 0;
-    if (enqueueProduct(best->id(), productType) == FactoryCommandResult::Success) {
+    if (enqueueProductById(best->id(), productId) == FactoryCommandResult::Success) {
         return best->id();
     }
     return 0;
@@ -199,6 +225,16 @@ FactoryCommandResult FactoryController::incrementalRepairMachine(MachineId id) {
 
     machine->incrementalRepair();
     return FactoryCommandResult::Success;
+}
+
+FactoryCommandResult FactoryController::restockItem(ItemType itemType, int amount) {
+    if (!factory_) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+
+    return factory_->restockItem(itemType, amount)
+        ? FactoryCommandResult::Success
+        : FactoryCommandResult::InvalidRequest;
 }
 
 FactoryCommandResult FactoryController::pauseMachine(MachineId id) {
@@ -263,7 +299,7 @@ FactorySnapshot FactoryController::snapshot() const {
         makeStatisticsSnapshot(factory_->statistics()));
 
     for (const auto& line : factory_->productionLines()) {
-        auto lineSnapshot = line.getSnapshot();
+        auto lineSnapshot = makeProductionLineSnapshot(line);
         snapshot.addProductionLine(std::move(lineSnapshot));
     }
 

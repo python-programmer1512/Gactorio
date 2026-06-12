@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/Types.hpp"
-#include "dto/ProductionLineSnapshot.hpp"
 #include "model/Machine.hpp"
 #include "model/Product.hpp"
 #include "model/ProductionTask.hpp"
@@ -30,7 +29,6 @@ public:
     void enqueueProduct(std::shared_ptr<Product> product);
     std::size_t queueLength() const;
     std::shared_ptr<ProductionTask> currentTask() const;
-    ProductionLineSnapshot getSnapshot() const;
     void assignAvailableTask();
     std::vector<ProductId> collectCompletedProducts();
     void addMachine(std::unique_ptr<Machine> machine);

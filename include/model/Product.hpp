@@ -7,6 +7,8 @@
 
 namespace gactorio {
 
+struct ProductDefinition;
+
 // Item quantity required to start producing a Product unit.
 class ItemRequirement {
 public:
@@ -48,6 +50,8 @@ public:
     virtual const std::vector<ProcessStep>& getRoute() const = 0;
 
 protected:
+    explicit Product(const ProductDefinition& definition);
+
     Product(ProductId id,
             std::string name,
             std::vector<ItemRequirement> requirements,

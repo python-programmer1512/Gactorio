@@ -14,6 +14,7 @@ SOURCES=(
     src/common/SimClock.cpp
     src/model/Item.cpp
     src/model/Product.cpp
+    src/model/ProductCatalog.cpp
     src/model/ProductionTask.cpp
     src/model/Recipe.cpp
     src/model/Inventory.cpp

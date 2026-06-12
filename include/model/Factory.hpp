@@ -10,6 +10,7 @@
 #include "model/memento/FactoryMemento.hpp"
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace gactorio {
@@ -32,6 +33,8 @@ public:
 
     void addProductionLine(ProductionLine line);
     bool removeProductionLine(LineId id);
+    bool enqueueProduct(LineId lineId, std::shared_ptr<Product> product);
+    bool restockItem(ItemType itemType, int amount);
     ProductionLine* findProductionLine(LineId id);
     const ProductionLine* findProductionLine(LineId id) const;
     Machine* findMachine(MachineId id);
@@ -44,22 +47,25 @@ public:
 
     // ---- Memento (Originator side) ---------------------------------------
     // Capture the current factory state as an opaque snapshot.
-    FactoryMemento createMemento() const;
+    virtual FactoryMemento createMemento() const;
     // Apply a previously captured snapshot. In-flight tasks are not
     // restored (machines reset to Idle with their old HP); the line
     // queues are repopulated from the snapshot so work can resume.
-    void           restoreFromMemento(const FactoryMemento& memento);
+    virtual void   restoreFromMemento(const FactoryMemento& memento);
 
 protected:
     EventLog& mutableEventLog();
     Statistics& mutableStatistics();
 
     // Subclass-supplied product builder. The default Factory cannot rebuild
-    // products from IDs alone, so this is virtual; CarbonationFactory
-    // overrides it to dispatch to VoltzClassic / HyperBolt / AuroraZero.
+    // products from IDs alone, so this is virtual; CarbonationFactory delegates
+    // to the product catalog used by the controller and view.
     virtual std::shared_ptr<Product> createProductById(ProductId id) const;
+    virtual std::optional<ProductionLine> createLineForMemento(const LineMemento& memento) const;
 
 private:
+    void rebuildMachineCache();
+
     SimClock clock_;
     Inventory inventory_;
     std::vector<ProductionLine> productionLines_;

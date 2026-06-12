@@ -38,5 +38,31 @@ int main() {
 
     // Empty undo on a drained history returns false.
     assert(!controller.undo());
+
+    // Topology also belongs to the memento: a line created after the
+    // checkpoint disappears after undo, and the next generated id is restored.
+    gactorio::FactoryController topologyController;
+    topologyController.saveCheckpoint();
+    assert(topologyController.addLine() == 2);
+    assert(topologyController.snapshot().productionLines().size() == 2);
+    assert(topologyController.undo());
+    assert(topologyController.snapshot().productionLines().size() == 1);
+    assert(topologyController.addLine() == 2);
+
+    gactorio::FactoryController removedLineController;
+    assert(removedLineController.addLine() == 2);
+    removedLineController.saveCheckpoint();
+    assert(removedLineController.removeLine(2) == gactorio::FactoryCommandResult::Success);
+    assert(removedLineController.snapshot().productionLines().size() == 1);
+    assert(removedLineController.undo());
+    assert(removedLineController.snapshot().productionLines().size() == 2);
+    assert(removedLineController.addLine() == 3);
+
+    // Reset creates a fresh factory, so stale checkpoints must not remain.
+    topologyController.saveCheckpoint();
+    assert(topologyController.canUndo());
+    topologyController.resetSimulation();
+    assert(!topologyController.canUndo());
+
     return 0;
 }

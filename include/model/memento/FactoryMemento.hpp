@@ -45,6 +45,8 @@ struct FactoryMemento {
     std::map<ItemType, int>       items;
     std::map<ProductId, int>      products;
     std::vector<LineMemento>      lines;
+    LineId                        nextLineId = 0;
+    MachineId                     nextMachineId = 0;
 };
 
 } // namespace gactorio

@@ -5,6 +5,21 @@
 
 namespace gactorio {
 
+namespace {
+
+bool isAssignedToMachine(
+    const std::vector<std::unique_ptr<Machine>>& machines,
+    const ProductionTask* task) {
+    return std::any_of(
+        machines.begin(),
+        machines.end(),
+        [task](const std::unique_ptr<Machine>& machine) {
+            return machine->currentTask() == task;
+        });
+}
+
+} // namespace
+
 ProductionLine::ProductionLine(ProductionLineId id, std::string name)
     : id_(id), name_(std::move(name)) {}
 
@@ -50,21 +65,6 @@ std::shared_ptr<ProductionTask> ProductionLine::currentTask() const {
     return taskQueue_.front();
 }
 
-ProductionLineSnapshot ProductionLine::getSnapshot() const {
-    std::string currentName;
-    double currentProgress = 0.0;
-    if (!taskQueue_.empty()) {
-        currentName = taskQueue_.front()->getProductName();
-        currentProgress = taskQueue_.front()->getProgressInRoute();
-    }
-
-    ProductionLineSnapshot snapshot(id_, name_, taskQueue_.size(), currentName, currentProgress);
-    for (const auto& machine : machines_) {
-        snapshot.addMachine(machine->getSnapshot());
-    }
-    return snapshot;
-}
-
 void ProductionLine::addMachine(std::unique_ptr<Machine> machine) {
     machine->setEventBus(eventBus_);
     machines_.push_back(std::move(machine));
@@ -75,35 +75,36 @@ void ProductionLine::assignAvailableTask() {
         return;
     }
 
-    const auto task = taskQueue_.front();
-    const auto* step = task->currentStep();
-    if (step == nullptr) {
-        return;
-    }
-
-    const auto isTaskAlreadyAssigned = std::any_of(
-        machines_.begin(),
-        machines_.end(),
-        [](const std::unique_ptr<Machine>& machine) {
-            return machine->hasTask();
-        });
-
-    if (isTaskAlreadyAssigned) {
-        return;
-    }
-
     for (auto& machine : machines_) {
-        if (machine->canAcceptTask() && machine->canProcess(step->requiredRole())) {
-            machine->assignTask(task);
-            return;
+        if (!machine->canAcceptTask()) {
+            continue;
+        }
+
+        for (const auto& task : taskQueue_) {
+            if (task == nullptr || task->isCompleted()) {
+                continue;
+            }
+            if (isAssignedToMachine(machines_, task.get())) {
+                continue;
+            }
+
+            const auto* step = task->currentStep();
+            if (step != nullptr && machine->canProcess(step->requiredRole())) {
+                machine->assignTask(task);
+                break;
+            }
         }
     }
 }
 
 std::vector<ProductId> ProductionLine::collectCompletedProducts() {
-    while (!taskQueue_.empty() && taskQueue_.front()->isCompleted()) {
-        completedProducts_.push_back(taskQueue_.front()->getProductId());
-        taskQueue_.pop_front();
+    for (auto it = taskQueue_.begin(); it != taskQueue_.end();) {
+        if (*it != nullptr && (*it)->isCompleted()) {
+            completedProducts_.push_back((*it)->getProductId());
+            it = taskQueue_.erase(it);
+        } else {
+            ++it;
+        }
     }
 
     auto completed = std::move(completedProducts_);
@@ -135,6 +136,7 @@ void ProductionLine::update(double deltaTime) {
         machine->update(deltaTime);
     }
     (void)collectCompletedProducts();
+    assignAvailableTask();
 }
 
 // ---- Memento support --------------------------------------------------------

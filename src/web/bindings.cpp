@@ -55,9 +55,20 @@ EMSCRIPTEN_BINDINGS(gactorio_module) {
     register_vector<EventView>("VectorEventView");
 
     value_object<InventoryEntry>("InventoryEntry")
-        .field("id",       &InventoryEntry::id)
-        .field("quantity", &InventoryEntry::quantity);
+        .field("id",        &InventoryEntry::id)
+        .field("name",      &InventoryEntry::name)
+        .field("quantity",  &InventoryEntry::quantity)
+        .field("isProduct", &InventoryEntry::isProduct);
     register_vector<InventoryEntry>("VectorInventoryEntry");
+
+    value_object<ProductOption>("ProductOption")
+        .field("id",              &ProductOption::id)
+        .field("key",             &ProductOption::key)
+        .field("name",            &ProductOption::name)
+        .field("tier",            &ProductOption::tier)
+        .field("durationSeconds", &ProductOption::durationSeconds)
+        .field("requirements",    &ProductOption::requirements);
+    register_vector<ProductOption>("VectorProductOption");
 
     value_object<Statistics>("Statistics")
         .field("tasksStarted",     &Statistics::tasksStarted)
@@ -86,15 +97,19 @@ EMSCRIPTEN_BINDINGS(gactorio_module) {
         .function("reset",        &Controller::reset)
         .function("setSpeed",     &Controller::setSpeed)
         .function("enqueue",      &Controller::enqueue)
+        .function("enqueueProduct", &Controller::enqueueProduct)
         .function("enqueueAuto",  &Controller::enqueueAuto)
+        .function("enqueueAutoProduct", &Controller::enqueueAutoProduct)
         .function("addLine",      &Controller::addLine)
         .function("removeLine",   &Controller::removeLine)
         .function("breakMachine", &Controller::breakMachine)
         .function("repair",         &Controller::repair)
+        .function("restockItem",    &Controller::restockItem)
         .function("repairAll",      &Controller::repairAll)
         .function("saveCheckpoint", &Controller::saveCheckpoint)
         .function("undo",           &Controller::undo)
         .function("canUndo",        &Controller::canUndo)
         .function("historySize",    &Controller::historySize)
+        .function("products",       &Controller::products)
         .function("snapshot",       &Controller::snapshot);
 }

@@ -1,8 +1,23 @@
 #include "model/Product.hpp"
 
+#include "model/ProductCatalog.hpp"
+
+#include <stdexcept>
 #include <utility>
 
 namespace gactorio {
+
+namespace {
+
+const ProductDefinition& definitionFor(ProductType type) {
+    const auto* definition = findProductDefinition(type);
+    if (definition == nullptr) {
+        throw std::logic_error("missing product definition");
+    }
+    return *definition;
+}
+
+} // namespace
 
 // -----------------------------------------------------------------------------
 // ItemRequirement
@@ -35,6 +50,13 @@ Product::Product(ProductId id,
       requirements_(std::move(requirements)),
       route_(std::move(route)) {}
 
+Product::Product(const ProductDefinition& definition)
+    : Product(
+          definition.id,
+          definition.name,
+          definition.requirements,
+          definition.route) {}
+
 Product::~Product() = default;
 
 ProductId          Product::storedProductId()    const { return id_; }
@@ -47,22 +69,7 @@ const std::vector<ProcessStep>&     Product::storedRoute()        const { return
 //   Recipe per data/factory_config.json: 13 + 9 + 9 + 9 = 40s
 // -----------------------------------------------------------------------------
 VoltzClassic::VoltzClassic()
-    : Product(
-          101,
-          "Voltz Classic",
-          {
-              ItemRequirement(ItemType::Ingredient,  2),
-              ItemRequirement(ItemType::Water,       1),
-              ItemRequirement(ItemType::EmptyBottle, 1),
-              ItemRequirement(ItemType::Label,       1),
-              ItemRequirement(ItemType::Package,     1),
-          },
-          {
-              ProcessStep(MachineRole::Mixing,    13.0),
-              ProcessStep(MachineRole::Quality,    9.0),
-              ProcessStep(MachineRole::Bottling,   9.0),
-              ProcessStep(MachineRole::Packaging,  9.0),
-          }) {}
+    : Product(definitionFor(ProductType::VoltzClassic)) {}
 
 ProductId          VoltzClassic::getProductId() const         { return storedProductId(); }
 const std::string& VoltzClassic::getName() const              { return storedName(); }
@@ -74,22 +81,7 @@ const std::vector<ProcessStep>&     VoltzClassic::getRoute()        const { retu
 //   Recipe: 18 + 12 + 9 + 9 = 48s
 // -----------------------------------------------------------------------------
 HyperBolt::HyperBolt()
-    : Product(
-          102,
-          "Hyper Bolt",
-          {
-              ItemRequirement(ItemType::Ingredient,  3),
-              ItemRequirement(ItemType::Water,       1),
-              ItemRequirement(ItemType::EmptyBottle, 1),
-              ItemRequirement(ItemType::Label,       1),
-              ItemRequirement(ItemType::Package,     1),
-          },
-          {
-              ProcessStep(MachineRole::Mixing,    18.0),
-              ProcessStep(MachineRole::Quality,   12.0),
-              ProcessStep(MachineRole::Bottling,   9.0),
-              ProcessStep(MachineRole::Packaging,  9.0),
-          }) {}
+    : Product(definitionFor(ProductType::HyperBolt)) {}
 
 ProductId          HyperBolt::getProductId() const            { return storedProductId(); }
 const std::string& HyperBolt::getName() const                 { return storedName(); }
@@ -101,22 +93,7 @@ const std::vector<ProcessStep>&     HyperBolt::getRoute()        const { return 
 //   Recipe: 17 + 12 + 9 + 11 = 49s
 // -----------------------------------------------------------------------------
 AuroraZero::AuroraZero()
-    : Product(
-          103,
-          "Aurora Zero",
-          {
-              ItemRequirement(ItemType::Ingredient,  2),
-              ItemRequirement(ItemType::Water,       1),
-              ItemRequirement(ItemType::EmptyBottle, 1),
-              ItemRequirement(ItemType::Label,       1),
-              ItemRequirement(ItemType::Package,     1),
-          },
-          {
-              ProcessStep(MachineRole::Mixing,    17.0),
-              ProcessStep(MachineRole::Quality,   12.0),
-              ProcessStep(MachineRole::Bottling,   9.0),
-              ProcessStep(MachineRole::Packaging, 11.0),
-          }) {}
+    : Product(definitionFor(ProductType::AuroraZero)) {}
 
 ProductId          AuroraZero::getProductId() const           { return storedProductId(); }
 const std::string& AuroraZero::getName() const                { return storedName(); }

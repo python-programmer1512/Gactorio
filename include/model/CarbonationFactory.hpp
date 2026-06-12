@@ -17,10 +17,13 @@ public:
     // Returns the LineId of the freshly added line.
     LineId addDynamicLine();
 
+    FactoryMemento createMemento() const override;
+    void restoreFromMemento(const FactoryMemento& memento) override;
+
 protected:
-    // Memento helper — maps a ProductId back to a concrete Product instance
-    // (VoltzClassic = 101, HyperBolt = 102, AuroraZero = 103).
+    // Memento helper — maps a ProductId back to a ProductCatalog entry.
     std::shared_ptr<Product> createProductById(ProductId id) const override;
+    std::optional<ProductionLine> createLineForMemento(const LineMemento& memento) const override;
 
 private:
     std::vector<Recipe> recipes_;

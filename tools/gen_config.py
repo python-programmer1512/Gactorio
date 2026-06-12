@@ -30,9 +30,20 @@ def camel_to_pascal(name: str) -> str:
     return name[:1].upper() + name[1:]
 
 
+def snake_to_pascal(name: str) -> str:
+    """voltz_classic -> VoltzClassic"""
+    return "".join(part[:1].upper() + part[1:] for part in name.split("_") if part)
+
+
+def station_key_to_pascal(name: str) -> str:
+    """MIXING -> Mixing"""
+    return "".join(part[:1].upper() + part[1:].lower() for part in name.split("_") if part)
+
+
 def main() -> int:
     config = json.loads(JSON_PATH.read_text(encoding="utf-8"))
     globals_obj = config.get("globals", {})
+    product_items = config.get("items", [])
 
     lines = [
         "#pragma once",
@@ -54,6 +65,35 @@ def main() -> int:
         ident = "k" + camel_to_pascal(key)
         # always render as double
         lines.append(f"inline constexpr double {ident:<26} = {float(value)};")
+
+    lines.append("")
+    lines.append("// Product route timings generated from data/factory_config.json.")
+    for item in product_items:
+        if not isinstance(item, dict):
+            continue
+        product_key = item.get("id")
+        if not isinstance(product_key, str):
+            continue
+        product_ident = snake_to_pascal(product_key)
+
+        totals = item.get("totals", {})
+        if isinstance(totals, dict):
+            total_time = totals.get("time")
+            if isinstance(total_time, (int, float)):
+                lines.append(f"inline constexpr double kProduct{product_ident}TotalTime = {float(total_time)};")
+
+        recipe = item.get("recipe", {})
+        if not isinstance(recipe, dict):
+            continue
+        for station_key, station_recipe in recipe.items():
+            if not isinstance(station_key, str) or not isinstance(station_recipe, dict):
+                continue
+            station_time = station_recipe.get("time")
+            if not isinstance(station_time, (int, float)):
+                continue
+            station_ident = station_key_to_pascal(station_key)
+            lines.append(
+                f"inline constexpr double kProduct{product_ident}{station_ident}Time = {float(station_time)};")
 
     lines += [
         "",

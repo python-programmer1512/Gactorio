@@ -58,7 +58,21 @@ void Factory::addProductionLine(ProductionLine line) {
     productionLines_.push_back(std::move(line));
 }
 
+void Factory::rebuildMachineCache() {
+    machines_.clear();
+    for (auto& line : productionLines_) {
+        line.setEventBus(&eventBus_);
+        for (const auto& machine : line.machines()) {
+            machines_.push_back(machine.get());
+        }
+    }
+}
+
 bool Factory::removeProductionLine(LineId id) {
+    if (productionLines_.size() <= 1) {
+        return false;
+    }
+
     auto it = std::find_if(productionLines_.begin(), productionLines_.end(),
         [id](const ProductionLine& l) { return l.id() == id; });
     if (it == productionLines_.end()) return false;
@@ -77,6 +91,45 @@ bool Factory::removeProductionLine(LineId id) {
         if (mit != machines_.end()) machines_.erase(mit);
     }
     productionLines_.erase(it);
+    return true;
+}
+
+bool Factory::enqueueProduct(LineId lineId, std::shared_ptr<Product> product) {
+    if (product == nullptr) {
+        return false;
+    }
+
+    auto* line = findProductionLine(lineId);
+    if (line == nullptr) {
+        return false;
+    }
+
+    if (!inventory_.consume(product->getRequirements())) {
+        return false;
+    }
+
+    line->enqueueProduct(std::move(product));
+    return true;
+}
+
+bool Factory::restockItem(ItemType itemType, int amount) {
+    if (amount <= 0) {
+        return false;
+    }
+
+    switch (itemType) {
+    case ItemType::Ingredient:
+    case ItemType::Water:
+    case ItemType::EmptyBottle:
+    case ItemType::Label:
+    case ItemType::Package:
+        break;
+    case ItemType::Unknown:
+    default:
+        return false;
+    }
+
+    inventory_.addItem(itemType, amount);
     return true;
 }
 
@@ -125,6 +178,10 @@ SimulationTime Factory::update(double realDeltaTime) {
         }
     }
 
+    for (auto& line : productionLines_) {
+        line.assignAvailableTask();
+    }
+
     return deltaTime;
 }
 
@@ -162,6 +219,12 @@ std::shared_ptr<Product> Factory::createProductById(ProductId) const {
     return nullptr;
 }
 
+std::optional<ProductionLine> Factory::createLineForMemento(const LineMemento&) const {
+    // Base Factory does not know which concrete stations belong to a line.
+    // Concrete factories can override this hook to rebuild missing topology.
+    return std::nullopt;
+}
+
 // =============================================================================
 // Memento — Originator implementation
 // =============================================================================
@@ -191,6 +254,32 @@ void Factory::restoreFromMemento(const FactoryMemento& m) {
 
     // Inventory — overwrite both raw items and finished products.
     inventory_.replaceContents(m.items, m.products);
+
+    // Keep the current topology aligned with the checkpoint: remove lines
+    // created after the checkpoint and ask subclasses to recreate missing ones.
+    productionLines_.erase(
+        std::remove_if(
+            productionLines_.begin(),
+            productionLines_.end(),
+            [&m](const ProductionLine& line) {
+                return std::none_of(
+                    m.lines.begin(),
+                    m.lines.end(),
+                    [&line](const LineMemento& lm) {
+                        return lm.id == line.id();
+                    });
+            }),
+        productionLines_.end());
+    rebuildMachineCache();
+
+    for (const auto& lm : m.lines) {
+        if (findProductionLine(lm.id) == nullptr) {
+            auto restoredLine = createLineForMemento(lm);
+            if (restoredLine.has_value()) {
+                addProductionLine(std::move(*restoredLine));
+            }
+        }
+    }
 
     // Each line: reset machines (drop in-flight tasks, restore HP/status),
     // clear the queue, re-enqueue saved pending products in order.

@@ -1,11 +1,54 @@
 #include "model/CarbonationFactory.hpp"
 
 #include "model/Machine.hpp"
-#include "model/Product.hpp"
+#include "model/ProductCatalog.hpp"
 
+#include <algorithm>
+#include <array>
 #include <memory>
+#include <optional>
+#include <string>
+#include <utility>
 
 namespace gactorio {
+
+namespace {
+
+constexpr int kInitialRawItemQuantity = 5;
+
+std::string beverageLineName(LineId id) {
+    const std::string letter(1, static_cast<char>('A' + static_cast<int>(id) - 1));
+    return std::string("Beverage Line ") + letter;
+}
+
+ProductionLine makeBeverageLine(LineId id, const std::array<MachineId, 4>& machineIds) {
+    ProductionLine line(id, beverageLineName(id));
+    line.addMachine(std::make_unique<MixingStation>   (machineIds[0], "Mixer"));
+    line.addMachine(std::make_unique<QualityStation>  (machineIds[1], "Quality Check"));
+    line.addMachine(std::make_unique<BottlingStation> (machineIds[2], "Filler"));
+    line.addMachine(std::make_unique<PackagingStation>(machineIds[3], "Packager"));
+    return line;
+}
+
+LineId nextLineIdAfter(const std::vector<ProductionLine>& lines) {
+    LineId next = 1;
+    for (const auto& line : lines) {
+        next = std::max(next, line.id() + 1);
+    }
+    return next;
+}
+
+MachineId nextMachineIdAfter(const std::vector<Machine*>& machines) {
+    MachineId next = 1;
+    for (const auto* machine : machines) {
+        if (machine != nullptr) {
+            next = std::max(next, machine->id() + 1);
+        }
+    }
+    return next;
+}
+
+} // namespace
 
 // CarbonationFactory is the default factory subclass for the energy-drink
 // theme. It seeds the inventory with raw materials, builds a single production
@@ -13,40 +56,27 @@ namespace gactorio {
 // the simulation has something to do as soon as the GUI launches.
 CarbonationFactory::CarbonationFactory() {
     // ---- Recipes (currently unused by the runtime but kept for inspection) --
-    Recipe voltz(1, "Voltz Classic Brew", 40.0);
-    voltz.addInput(ItemType::Ingredient, 2);
-    voltz.addInput(ItemType::Water, 1);
-    voltz.addOutput(static_cast<ProductId>(ProductType::VoltzClassic), 1);
-    recipes_.push_back(voltz);
-
-    Recipe hyper(2, "Hyper Bolt Brew", 48.0);
-    hyper.addInput(ItemType::Ingredient, 3);
-    hyper.addInput(ItemType::Water, 1);
-    hyper.addOutput(static_cast<ProductId>(ProductType::HyperBolt), 1);
-    recipes_.push_back(hyper);
-
-    Recipe aurora(3, "Aurora Zero Brew", 49.0);
-    aurora.addInput(ItemType::Ingredient, 2);
-    aurora.addInput(ItemType::Water, 1);
-    aurora.addOutput(static_cast<ProductId>(ProductType::AuroraZero), 1);
-    recipes_.push_back(aurora);
+    for (const auto& definition : productDefinitions()) {
+        Recipe recipe(definition.id, definition.name + " Brew", definition.totalDurationSeconds);
+        for (const auto& requirement : definition.requirements) {
+            recipe.addInput(requirement.itemType(), requirement.quantity());
+        }
+        recipe.addOutput(definition.id, 1);
+        recipes_.push_back(std::move(recipe));
+    }
 
     // ---- Initial inventory ------------------------------------------------
-    inventory().addItem(ItemType::Ingredient,  100);
-    inventory().addItem(ItemType::Water,       100);
-    inventory().addItem(ItemType::EmptyBottle,  60);
-    inventory().addItem(ItemType::Label,        60);
-    inventory().addItem(ItemType::Package,      60);
+    inventory().addItem(ItemType::Ingredient,  kInitialRawItemQuantity);
+    inventory().addItem(ItemType::Water,       kInitialRawItemQuantity);
+    inventory().addItem(ItemType::EmptyBottle, kInitialRawItemQuantity);
+    inventory().addItem(ItemType::Label,       kInitialRawItemQuantity);
+    inventory().addItem(ItemType::Package,     kInitialRawItemQuantity);
 
     // ---- Production line: 4 stations in factory order ---------------------
-    ProductionLine line(1, "Beverage Line A");
-    line.addMachine(std::make_unique<MixingStation>   (1, "Mixer"));
-    line.addMachine(std::make_unique<QualityStation>  (2, "Quality Check"));
-    line.addMachine(std::make_unique<BottlingStation> (3, "Filler"));
-    line.addMachine(std::make_unique<PackagingStation>(4, "Packager"));
+    ProductionLine line = makeBeverageLine(1, {1, 2, 3, 4});
 
     // Pre-queue one Voltz Classic so the simulation visibly starts.
-    line.enqueueProduct(std::make_shared<VoltzClassic>());
+    line.enqueueProduct(createProduct(ProductType::VoltzClassic));
 
     addProductionLine(std::move(line));
 }
@@ -60,24 +90,45 @@ LineId CarbonationFactory::addDynamicLine() {
     const MachineId baseMid = nextMachineId_;
     nextMachineId_ += 4;
 
-    const std::string letter(1, static_cast<char>('A' + static_cast<int>(id) - 1));
-
-    ProductionLine line(id, std::string("Beverage Line ") + letter);
-    line.addMachine(std::make_unique<MixingStation>   (baseMid + 0, "Mixer"));
-    line.addMachine(std::make_unique<QualityStation>  (baseMid + 1, "Quality Check"));
-    line.addMachine(std::make_unique<BottlingStation> (baseMid + 2, "Filler"));
-    line.addMachine(std::make_unique<PackagingStation>(baseMid + 3, "Packager"));
+    ProductionLine line = makeBeverageLine(id, {baseMid + 0, baseMid + 1, baseMid + 2, baseMid + 3});
     addProductionLine(std::move(line));
     return id;
 }
 
+FactoryMemento CarbonationFactory::createMemento() const {
+    auto memento = Factory::createMemento();
+    memento.nextLineId = nextLineId_;
+    memento.nextMachineId = nextMachineId_;
+    return memento;
+}
+
+void CarbonationFactory::restoreFromMemento(const FactoryMemento& memento) {
+    Factory::restoreFromMemento(memento);
+    nextLineId_ = memento.nextLineId != 0
+        ? memento.nextLineId
+        : nextLineIdAfter(productionLines());
+    nextMachineId_ = memento.nextMachineId != 0
+        ? memento.nextMachineId
+        : nextMachineIdAfter(machines());
+}
+
 std::shared_ptr<Product> CarbonationFactory::createProductById(ProductId id) const {
-    switch (id) {
-    case static_cast<ProductId>(ProductType::VoltzClassic): return std::make_shared<VoltzClassic>();
-    case static_cast<ProductId>(ProductType::HyperBolt):    return std::make_shared<HyperBolt>();
-    case static_cast<ProductId>(ProductType::AuroraZero):   return std::make_shared<AuroraZero>();
-    default: return nullptr;
+    return createProduct(id);
+}
+
+std::optional<ProductionLine> CarbonationFactory::createLineForMemento(const LineMemento& memento) const {
+    if (memento.machines.size() < 4) {
+        return std::nullopt;
     }
+
+    return makeBeverageLine(
+        memento.id,
+        {
+            memento.machines[0].id,
+            memento.machines[1].id,
+            memento.machines[2].id,
+            memento.machines[3].id,
+        });
 }
 
 } // namespace gactorio

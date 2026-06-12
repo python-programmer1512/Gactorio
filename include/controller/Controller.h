@@ -22,12 +22,14 @@ namespace ctrl {
 // uint32 keeps embind happy without -sWASM_BIGINT and is plenty for our IDs.
 using LineId    = std::uint32_t;
 using MachineId = std::uint32_t;
+using ProductId = std::uint32_t;
+using ItemId    = std::uint32_t;
 
-enum class ProductKind {
-    Unknown,
-    VoltzClassic,
-    HyperBolt,
-    AuroraZero
+enum class ProductKind : std::uint32_t {
+    Unknown      = 0,
+    VoltzClassic = 101,
+    HyperBolt    = 102,
+    AuroraZero   = 103
 };
 
 // -----------------------------------------------------------------------------
@@ -59,8 +61,19 @@ struct EventView {
 };
 
 struct InventoryEntry {
-    std::string id;         // already human-readable: "Ingredient", "Voltz Classic"
+    ItemId      id;
+    std::string name;       // "Ingredient", "Voltz Classic", ...
     int         quantity;
+    bool        isProduct;  // false = raw item, true = finished product
+};
+
+struct ProductOption {
+    ProductId   id;
+    std::string key;        // stable UI key, e.g. "VoltzClassic"
+    std::string name;
+    std::string tier;
+    double      durationSeconds;
+    std::string requirements; // "Ingredient x2, Water x1, ..."
 };
 
 struct Statistics {
@@ -97,8 +110,10 @@ public:
     void reset();
     void setSpeed(double multiplier);
     bool enqueue      (LineId line,    ProductKind product);
+    bool enqueueProduct(LineId line, ProductId product);
     // Enqueue to whichever line currently has the smallest queue.
     LineId enqueueAuto(ProductKind product);
+    LineId enqueueAutoProduct(ProductId product);
     // Spawn a new beverage line. Returns its LineId (0 on failure).
     LineId addLine();
     // Remove a line. Returns false if the line is busy or unknown.
@@ -106,6 +121,8 @@ public:
     bool breakMachine (MachineId id);
     // Always-available quick repair: +config::kIncrementalRepairHp HP.
     bool repair       (MachineId id);
+    // Add 5 units of one raw inventory item. Product IDs are rejected.
+    bool restockItem  (ItemId id);
     // Only meaningful when the machine is Broken (HP=0). Triggers a long
     // maintenance routine (config::kRepairAllDelaySeconds) that fully
     // restores HP and resumes the paused task from the start of its step.
@@ -121,6 +138,7 @@ public:
 
     // ---- Query (read Model, returns cached View) ----------------------------
     const FactoryView& snapshot() const;
+    const std::vector<ProductOption>& products() const;
 
 private:
     struct Impl;                              // PImpl hides all gactorio:: types

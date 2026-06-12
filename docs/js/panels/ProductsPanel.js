@@ -1,12 +1,12 @@
 // =============================================================================
 // ProductsPanel — beverage catalog. (Second-from-right column.)
 //
-// The three product buttons are static HTML in index.html, so plain 'click'
-// handlers are safe here (only re-rendered DOM needs pointerdown). Clicking
+// Product buttons are built from the controller's catalog snapshot. Clicking
 // a product asks the controller to enqueue on the shortest-queue line.
 // =============================================================================
 
 import { UIComponent } from '../UIComponent.js';
+import { esc, vecToArray } from '../util.js';
 
 export class ProductsPanel extends UIComponent {
     #ctrl;
@@ -17,18 +17,23 @@ export class ProductsPanel extends UIComponent {
     }
 
     bind() {
-        for (const btn of document.querySelectorAll('#products .product-btn')) {
-            btn.addEventListener('click', () => {
-                const kindName = btn.dataset.kind;
-                const kindEnum = Module.ProductKind[kindName];
-                if (kindEnum === undefined) {
-                    console.error('[gactorio] unknown ProductKind:', kindName);
-                    return;
-                }
-                const lineId = this.#ctrl.enqueueAuto(kindEnum);
-                console.log('[gactorio] enqueueAuto', kindName, '→ line', lineId);
-            });
-        }
+        const list = document.querySelector('#products .product-list');
+        const products = vecToArray(this.#ctrl.products());
+        list.innerHTML = products.map(product => `
+            <button class="product-btn" data-act="enqueueAuto" data-product-id="${product.id}">
+                <b>${esc(product.name)}</b>
+                <span>${product.durationSeconds.toFixed(0)} s</span>
+                <span class="requirements">Uses: ${esc(product.requirements)}</span>
+            </button>`).join('');
+
+        list.addEventListener('click', e => {
+            const btn = e.target.closest('button[data-product-id]');
+            if (!btn) return;
+
+            const productId = parseInt(btn.dataset.productId, 10);
+            const lineId = this.#ctrl.enqueueAutoProduct(productId);
+            console.log('[gactorio] enqueueAutoProduct', productId, '→ line', lineId);
+        });
     }
 
     // Static panel — nothing changes per tick.

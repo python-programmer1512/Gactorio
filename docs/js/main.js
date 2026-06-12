@@ -12,14 +12,14 @@
 // bridge between this View and the C++ Model. No panel ever bypasses it.
 // =============================================================================
 
-import { Application }     from './Application.js';
-import { SimControlPanel } from './panels/SimControlPanel.js';
-import { FactoryPanel }    from './panels/FactoryPanel.js';
-import { ProductsPanel }   from './panels/ProductsPanel.js';
-import { EventLogPanel }   from './panels/EventLogPanel.js';
-import { InventoryPanel }  from './panels/InventoryPanel.js';
+import { Application }     from './Application.js?v=20260612-conveyor2';
+import { SimControlPanel } from './panels/SimControlPanel.js?v=20260612-conveyor2';
+import { FactoryPanel }    from './panels/FactoryPanel.js?v=20260612-conveyor2';
+import { ProductsPanel }   from './panels/ProductsPanel.js?v=20260612-conveyor2';
+import { EventLogPanel }   from './panels/EventLogPanel.js?v=20260612-conveyor2';
+import { InventoryPanel }  from './panels/InventoryPanel.js?v=20260612-conveyor2';
 
-console.log('[gactorio] main.js loaded — build', '2026-06-01-k');
+console.log('[gactorio] main.js loaded - build', '2026-06-12-conveyor2');
 
 function boot() {
     console.log('[gactorio] wasm runtime ready, creating Controller');
@@ -30,7 +30,7 @@ function boot() {
     app.addPanel(new FactoryPanel(controller));
     app.addPanel(new ProductsPanel(controller));
     app.addPanel(new EventLogPanel());
-    app.addPanel(new InventoryPanel());
+    app.addPanel(new InventoryPanel(controller));
     app.run();
 }
 
