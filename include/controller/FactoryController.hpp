@@ -52,6 +52,7 @@ public:
     FactoryCommandResult removeLine(LineId id);
     FactoryCommandResult forceBreak(MachineId id);
     FactoryCommandResult repairMachine(MachineId id);       // full restore w/ delay
+    FactoryCommandResult instantRepairMachine(MachineId id);
     FactoryCommandResult incrementalRepairMachine(MachineId id);  // +5 HP instant
     FactoryCommandResult restockItem(ItemType itemType, int amount);
     FactoryCommandResult restockItemById(const std::string& itemId);
@@ -66,6 +67,7 @@ public:
     StatisticsSnapshot getStatistics() const;
     FactorySnapshot snapshot() const;
     std::vector<ProductDefinition> availableProductDefinitions() const;
+    void clearEventLog();
     bool hasRuntimeContext() const noexcept;
     const config_model::FactoryRuntimeContext* runtimeContext() const noexcept;
     const config_model::FactoryConfig* config() const noexcept;

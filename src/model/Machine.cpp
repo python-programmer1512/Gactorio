@@ -217,6 +217,25 @@ void Machine::incrementalRepair() {
     health_ = std::min(100.0, health_ + config::kIncrementalRepairHp);
 }
 
+void Machine::instantRepair() {
+    const auto previous = status_;
+    health_ = config::kInitialHealth;
+    maintenanceElapsed_ = 0.0;
+    progress_ = 0.0;
+    notify(EventType::MachineRepaired, name_ + " instantly repaired");
+
+    if (task_ != nullptr) {
+        status_ = MachineStatus::Working;
+        setState(std::make_unique<WorkingState>());
+        onStateTransition(previous, status_, "instant repair, resuming task");
+        return;
+    }
+
+    status_ = MachineStatus::Idle;
+    setState(std::make_unique<IdleState>());
+    onStateTransition(previous, status_, "instant repair completed");
+}
+
 MachineId Machine::getId() const {
     return id_;
 }

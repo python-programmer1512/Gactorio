@@ -267,6 +267,13 @@ bool Controller::repair(MachineId id) {
     return m_impl->backend.incrementalRepairMachine(id)
         == gactorio::FactoryCommandResult::Success;
 }
+
+bool Controller::instantRepair(MachineId id) {
+    m_impl->dirty = true;
+    return m_impl->backend.instantRepairMachine(id)
+        == gactorio::FactoryCommandResult::Success;
+}
+
 bool Controller::restockItem(ItemId id) {
     try {
         const auto itemId = gactorio::config_model::toItemId(static_cast<gactorio::ItemType>(id));
@@ -301,6 +308,11 @@ bool Controller::loadFactoryConfigFromString(const std::string& jsonText) {
     } catch (const std::exception&) {
         return false;
     }
+}
+
+void Controller::clearEventLog() {
+    m_impl->backend.clearEventLog();
+    m_impl->dirty = true;
 }
 
 const FactoryView& Controller::snapshot() const {

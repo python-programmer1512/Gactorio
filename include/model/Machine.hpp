@@ -45,6 +45,7 @@ public:
     // Adds a small fixed amount of HP (config::kIncrementalRepairHp).
     // Cannot resurrect a Broken machine — use repair()/repairAll for that.
     void incrementalRepair();
+    void instantRepair();
 
     // ---- Memento support (used by Factory::restoreFromMemento) -----------
     // Drops any in-flight task, zeroes progress, overwrites HP, and forces

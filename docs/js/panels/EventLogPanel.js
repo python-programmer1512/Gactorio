@@ -7,6 +7,19 @@ import { UIComponent } from '../UIComponent.js';
 import { esc } from '../util.js';
 
 export class EventLogPanel extends UIComponent {
+    #ctrl;
+
+    constructor(controller) {
+        super();
+        this.#ctrl = controller;
+    }
+
+    bind() {
+        document.getElementById('btn-clear-log').addEventListener('click', () => {
+            this.#ctrl.clearEventLog();
+        });
+    }
+
     render(snap) {
         const events = snap.events;
         let html = '';

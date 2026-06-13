@@ -11,6 +11,7 @@ import { UIComponent } from '../UIComponent.js';
 export class SimControlPanel extends UIComponent {
     #ctrl;
     #running = true;
+    #lastSnap = null;
 
     constructor(controller) {
         super();
@@ -48,18 +49,35 @@ export class SimControlPanel extends UIComponent {
             this.#ctrl.setSpeed(v);
             document.getElementById('speed-label').textContent = v.toFixed(1) + '×';
         });
+
+        document.getElementById('global-scenario').addEventListener('change', e => {
+            if (!this.#lastSnap) return;
+            for (const line of this.#lastSnap.lines) {
+                this.#ctrl.setLineScenario(line.id, e.target.value);
+            }
+        });
     }
 
     render(snap) {
+        this.#lastSnap = snap;
         document.getElementById('sim-time').textContent = snap.simulationTime.toFixed(2);
+        document.getElementById('tick-count').textContent = snap.tickCount ?? 0;
+        const firstLine = snap.lines[0];
+        if (firstLine) {
+            document.getElementById('global-scenario').value = firstLine.scenarioId || 'normal-flow';
+        }
 
         const s = snap.stats;
+        const wip = snap.lines.reduce((sum, line) => sum + line.queueLength, 0);
+        const lost = snap.lines.reduce((sum, line) => sum + Number(line.droppedTaskCount || 0), 0);
         document.getElementById('stats-grid').innerHTML = `
             <div>Tasks started     <b>${s.tasksStarted}</b></div>
             <div>Steps completed   <b>${s.stepsCompleted}</b></div>
             <div>Products done     <b>${s.productsDone}</b></div>
+            <div>WIP products      <b>${wip}</b></div>
             <div>Machines broken   <b>${s.machinesBroken}</b></div>
             <div>Machines repaired <b>${s.machinesRepaired}</b></div>
+            <div>Lost products     <b>${lost}</b></div>
             <div>State changes     <b>${s.stateChanges}</b></div>`;
 
         // Memento status — queried from the controller, not the snapshot,

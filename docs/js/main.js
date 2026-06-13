@@ -12,19 +12,21 @@
 // bridge between this View and the C++ Model. No panel ever bypasses it.
 // =============================================================================
 
-import { Application }     from './Application.js?v=20260614-scenario13';
-import { SimControlPanel } from './panels/SimControlPanel.js?v=20260614-scenario13';
-import { FactoryPanel }    from './panels/FactoryPanel.js?v=20260614-scenario13';
-import { ProductsPanel }   from './panels/ProductsPanel.js?v=20260614-scenario13';
-import { EventLogPanel }   from './panels/EventLogPanel.js?v=20260614-scenario13';
-import { InventoryPanel }  from './panels/InventoryPanel.js?v=20260614-scenario13';
-import { RuntimeConfigPanel } from './panels/RuntimeConfigPanel.js?v=20260614-scenario13';
+import { Application }     from './Application.js?v=20260614-hotfix-checklist';
+import { SimControlPanel } from './panels/SimControlPanel.js?v=20260614-hotfix-checklist';
+import { FactoryPanel }    from './panels/FactoryPanel.js?v=20260614-hotfix-checklist';
+import { ProductsPanel }   from './panels/ProductsPanel.js?v=20260614-hotfix-checklist';
+import { EventLogPanel }   from './panels/EventLogPanel.js?v=20260614-hotfix-checklist';
+import { InventoryPanel }  from './panels/InventoryPanel.js?v=20260614-hotfix-checklist';
+import { RuntimeConfigPanel } from './panels/RuntimeConfigPanel.js?v=20260614-hotfix-checklist';
+import { InspectorPanel }  from './panels/InspectorPanel.js?v=20260614-hotfix-checklist';
 
-console.log('[gactorio] main.js loaded - build', '2026-06-14-scenario13');
+console.log('[gactorio] main.js loaded - build', '2026-06-14-hotfix-checklist');
 
 function boot() {
     console.log('[gactorio] wasm runtime ready, creating Controller');
     const controller = new Module.Controller();
+    const selection = { machineId: null };
 
     const app = new Application(controller);
     const productsPanel = new ProductsPanel(controller);
@@ -33,9 +35,10 @@ function boot() {
         productsPanel.refresh();
         app.renderNow();
     }));
-    app.addPanel(new FactoryPanel(controller));
+    app.addPanel(new FactoryPanel(controller, selection));
+    app.addPanel(new InspectorPanel(controller, selection));
     app.addPanel(productsPanel);
-    app.addPanel(new EventLogPanel());
+    app.addPanel(new EventLogPanel(controller));
     app.addPanel(new InventoryPanel(controller));
     app.run();
 }

@@ -18,13 +18,15 @@ const SCENARIO_OPTIONS = [
 
 export class FactoryPanel extends UIComponent {
     #ctrl;
+    #selection;
     #isLineInteracting = false;
     #lineInteractionTimer = 0;
     #scrollLeftByLine = new Map();
 
-    constructor(controller) {
+    constructor(controller, selection = { machineId: null }) {
         super();
         this.#ctrl = controller;
+        this.#selection = selection;
     }
 
     bind() {
@@ -136,6 +138,12 @@ export class FactoryPanel extends UIComponent {
                 window.addEventListener('pointerup', onRelease);
                 window.addEventListener('pointercancel', onRelease);
                 window.addEventListener('mouseup', onRelease);
+                return;
+            }
+
+            const card = e.target.closest('.machine-card[data-machine-id]');
+            if (card) {
+                this.#selection.machineId = parseInt(card.dataset.machineId, 10);
                 return;
             }
 
@@ -294,7 +302,8 @@ export class FactoryPanel extends UIComponent {
 
     #machineCard(m, index) {
         const stateCls = `state-${m.state.toLowerCase()}`;
-        const cardCls = `machine-card machine-${m.state.toLowerCase()}`;
+        const selectedCls = this.#selection.machineId === m.id ? ' selected' : '';
+        const cardCls = `machine-card machine-${m.state.toLowerCase()}${selectedCls}`;
         const progress = Math.max(0, Math.min(1, m.progress));
         const progressPct = Math.round(progress * 100);
         const hpPct = Math.max(0, Math.min(100, m.health));
@@ -303,7 +312,7 @@ export class FactoryPanel extends UIComponent {
             : '';
 
         return `
-            <article class="${cardCls}">
+            <article class="${cardCls}" data-machine-id="${m.id}">
                 <div class="machine-card-top">
                     <span class="station-index">${String(index + 1).padStart(2, '0')}</span>
                     <b class="${stateCls}">${esc(m.state)}</b>

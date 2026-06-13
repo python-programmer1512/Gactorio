@@ -221,6 +221,10 @@ std::optional<ScenarioType> Factory::getLineScenario(LineId lineId) const {
     return line->scenario();
 }
 
+void Factory::clearEventLog() {
+    eventLog_.clear();
+}
+
 SimulationTime Factory::update(double realDeltaTime) {
     const auto deltaTime = clock_.update(realDeltaTime);
 

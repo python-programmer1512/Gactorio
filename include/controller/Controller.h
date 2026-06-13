@@ -136,6 +136,7 @@ public:
     bool breakMachine (MachineId id);
     // Always-available quick repair: +config::kIncrementalRepairHp HP.
     bool repair       (MachineId id);
+    bool instantRepair(MachineId id);
     // Add 5 units of one raw inventory item. Product IDs are rejected.
     bool restockItem  (ItemId id);
     bool restockItemById(const std::string& itemId);
@@ -145,6 +146,7 @@ public:
     bool repairAll    (MachineId id);
     bool setLineScenario(LineId line, const std::string& scenarioId);
     bool loadFactoryConfigFromString(const std::string& jsonText);
+    void clearEventLog();
 
     // ---- Memento (snapshot history) ----------------------------------------
     // Capture current Factory state and push onto an internal stack.

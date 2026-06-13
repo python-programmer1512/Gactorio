@@ -11,6 +11,7 @@ class EventLogObserver : public Observer {
 public:
     void onEvent(const Event& event) override;
     const std::vector<Event>& events() const;
+    void clear();
 
 private:
     std::vector<Event> events_;

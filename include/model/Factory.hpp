@@ -41,6 +41,7 @@ public:
     Machine* findMachine(MachineId id);
     bool setLineScenario(LineId lineId, ScenarioType scenario);
     std::optional<ScenarioType> getLineScenario(LineId lineId) const;
+    void clearEventLog();
     SimulationTime update(double realDeltaTime);
     void pauseClock();
     void resumeClock();
