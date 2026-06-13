@@ -9,6 +9,10 @@ set -e
 #    hyperparameter edits in the JSON propagate to the C++ build.
 python tools/gen_config.py
 
+mkdir -p docs/config
+cp data/factory_config.runtime.json docs/config/factory_config.runtime.json
+cp data/factory_config.custom_runtime.json docs/config/factory_config.custom_runtime.json
+
 SOURCES=(
     src/common/Types.cpp
     src/common/SimClock.cpp

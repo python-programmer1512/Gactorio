@@ -12,6 +12,7 @@ int main() {
     assert(task.currentStepIndex() == 0);
     assert(task.currentStep() != nullptr);
     assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Mixing);
+    assert(task.currentStepKind() == "mixing");
     assert(task.getProgressInRoute() == 0.0);
     assert(task.getProductName() == std::string("Aurora Zero"));
     assert(task.productId() == "aurora_zero");
@@ -21,16 +22,19 @@ int main() {
     assert(!task.isCompleted());
     assert(task.currentStepIndex() == 1);
     assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Quality);
+    assert(task.currentStepKind() == "quality");
     assert(task.getProgressInRoute() > 0.24);
     assert(task.getProgressInRoute() < 0.26);
 
     task.advanceStep();
     assert(!task.isCompleted());
     assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Bottling);
+    assert(task.currentStepKind() == "bottling");
 
     task.advanceStep();
     assert(!task.isCompleted());
     assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Packaging);
+    assert(task.currentStepKind() == "packaging");
 
     task.advanceStep();
     assert(task.isCompleted());

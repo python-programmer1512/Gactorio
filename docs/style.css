@@ -164,6 +164,42 @@ button:disabled:hover         { background: #3a3a3e; color: #666; cursor: not-al
 .speed { margin-left: 4px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; flex-wrap: wrap; }
 .speed input[type=range] { width: 90px; }
 
+.config-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+.file-load {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #3a3a3e;
+    color: #e8e8e8;
+    cursor: pointer;
+    font-size: 12px;
+}
+.file-load:hover { background: #4a4a50; }
+.file-load input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.config-status {
+    min-height: 18px;
+    margin-top: 6px;
+    color: #888;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+.config-status[data-state="success"] { color: #25b39b; }
+.config-status[data-state="error"] { color: #ff6b6b; }
+.config-status[data-state="pending"] { color: #f4c430; }
+
 /* ---------- Stats grid ---------- */
 #stats-grid {
     display: grid;

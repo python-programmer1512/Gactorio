@@ -3,6 +3,7 @@
 #include "model/ProductCatalog.hpp"
 #include "model/config/ConfigIdAdapters.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 #include <utility>
 
@@ -16,6 +17,14 @@ const ProductDefinition& definitionFor(ProductType type) {
         throw std::logic_error("missing product definition");
     }
     return *definition;
+}
+
+std::string stepKindFor(MachineRole role) {
+    try {
+        return config_model::toStepKind(role);
+    } catch (const std::invalid_argument&) {
+        return {};
+    }
 }
 
 } // namespace
@@ -38,14 +47,65 @@ ItemType ItemRequirement::itemType() const {
 int ItemRequirement::quantity() const { return quantity_; }
 
 // -----------------------------------------------------------------------------
+// StepOutput
+// -----------------------------------------------------------------------------
+bool StepOutput::isItem() const noexcept {
+    return itemId.has_value();
+}
+
+bool StepOutput::isProduct() const noexcept {
+    return productId.has_value();
+}
+
+// -----------------------------------------------------------------------------
 // ProcessStep
 // -----------------------------------------------------------------------------
 ProcessStep::ProcessStep(MachineRole requiredRole, SimulationTime baseDurationSeconds)
-    : requiredRole_(requiredRole), baseDurationSeconds_(baseDurationSeconds) {}
+    : stepKind_(stepKindFor(requiredRole)),
+      requiredRole_(requiredRole),
+      baseDurationSeconds_(baseDurationSeconds) {}
 
-MachineRole    ProcessStep::requiredRole() const        { return requiredRole_; }
-SimulationTime ProcessStep::baseDurationSeconds() const { return baseDurationSeconds_; }
-SimulationTime ProcessStep::durationSeconds() const     { return baseDurationSeconds_; }
+ProcessStep::ProcessStep(std::string stepKind, SimulationTime baseDurationSeconds)
+    : stepKind_(std::move(stepKind)),
+      requiredRole_(config_model::machineRoleFromKind(stepKind_).value_or(MachineRole::Unknown)),
+      baseDurationSeconds_(baseDurationSeconds) {}
+
+ProcessStep::ProcessStep(
+    std::string stepKind,
+    MachineRole legacyRequiredRole,
+    SimulationTime baseDurationSeconds)
+    : stepKind_(std::move(stepKind)),
+      requiredRole_(legacyRequiredRole),
+      baseDurationSeconds_(baseDurationSeconds) {}
+
+ProcessStep::ProcessStep(
+    std::string id,
+    std::string stepKind,
+    MachineRole legacyRequiredRole,
+    SimulationTime baseDurationSeconds,
+    std::vector<ItemRequirement> inputs,
+    std::vector<StepOutput> outputs)
+    : id_(std::move(id)),
+      stepKind_(std::move(stepKind)),
+      requiredRole_(legacyRequiredRole),
+      baseDurationSeconds_(baseDurationSeconds),
+      inputs_(std::move(inputs)),
+      outputs_(std::move(outputs)) {}
+
+const std::string& ProcessStep::id() const noexcept { return id_; }
+const std::string& ProcessStep::stepKind() const noexcept { return stepKind_; }
+MachineRole ProcessStep::requiredRole() const noexcept { return requiredRole_; }
+bool ProcessStep::hasLegacyRequiredRole() const noexcept { return requiredRole_ != MachineRole::Unknown; }
+std::optional<MachineRole> ProcessStep::legacyRequiredRole() const noexcept {
+    if (!hasLegacyRequiredRole()) {
+        return std::nullopt;
+    }
+    return requiredRole_;
+}
+SimulationTime ProcessStep::baseDurationSeconds() const noexcept { return baseDurationSeconds_; }
+SimulationTime ProcessStep::durationSeconds() const noexcept { return baseDurationSeconds_; }
+const std::vector<ItemRequirement>& ProcessStep::inputs() const noexcept { return inputs_; }
+const std::vector<StepOutput>& ProcessStep::outputs() const noexcept { return outputs_; }
 
 // -----------------------------------------------------------------------------
 // Product (abstract)
@@ -70,6 +130,29 @@ Product::Product(const ProductDefinition& definition)
           definition.route) {}
 
 Product::~Product() = default;
+
+bool Product::usesStepLevelIO() const {
+    return std::any_of(
+        route_.begin(),
+        route_.end(),
+        [](const ProcessStep& step) {
+            return !step.id().empty() || !step.inputs().empty() || !step.outputs().empty();
+        });
+}
+
+bool Product::hasStepProductOutput() const {
+    return std::any_of(
+        route_.begin(),
+        route_.end(),
+        [](const ProcessStep& step) {
+            return std::any_of(
+                step.outputs().begin(),
+                step.outputs().end(),
+                [](const StepOutput& output) {
+                    return output.isProduct();
+                });
+        });
+}
 
 ProductId          Product::storedProductId()    const { return id_; }
 const ProductId&   Product::storedProductIdRef() const { return id_; }

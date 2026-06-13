@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace gactorio {
@@ -49,11 +50,17 @@ public:
     // Drops any in-flight task, zeroes progress, overwrites HP, and forces
     // the machine into the given status.
     void resetForRestore(double newHealth, MachineStatus newStatus);
+    void restoreForMemento(
+        double newHealth,
+        MachineStatus newStatus,
+        double rawProgress,
+        std::shared_ptr<ProductionTask> assignedTask);
 
     MachineId getId() const;
     const std::string& getName() const;
     MachineStatus getStatus() const;
     double getProgress() const;
+    double rawProgressForMemento() const;
     double getHealth() const;
     double getProcessingSpeed() const;
     double getBreakdownProbability() const;
@@ -66,6 +73,9 @@ public:
     void resume();
 
     virtual std::string typeName() const = 0;
+    virtual const std::string& stationDefinitionId() const;
+    virtual std::string stationKind() const;
+    virtual bool acceptsStep(std::string_view stepKind) const;
     virtual ProcessType processType() const = 0;
     virtual MachineRole role() const = 0;
     virtual bool canAcceptRecipe(const Recipe& recipe) const = 0;
@@ -133,6 +143,7 @@ public:
         double breakdownProbability = 0.02);
 
     std::string typeName() const override;
+    std::string stationKind() const override;
     ProcessType processType() const override;
     MachineRole role() const override;
     bool canAcceptRecipe(const Recipe& recipe) const override;
@@ -148,6 +159,7 @@ public:
         double breakdownProbability = 0.03);
 
     std::string typeName() const override;
+    std::string stationKind() const override;
     ProcessType processType() const override;
     MachineRole role() const override;
     bool canAcceptRecipe(const Recipe& recipe) const override;
@@ -163,6 +175,7 @@ public:
         double breakdownProbability = 0.02);
 
     std::string typeName() const override;
+    std::string stationKind() const override;
     ProcessType processType() const override;
     MachineRole role() const override;
     bool canAcceptRecipe(const Recipe& recipe) const override;
@@ -178,6 +191,7 @@ public:
         double breakdownProbability = 0.015);
 
     std::string typeName() const override;
+    std::string stationKind() const override;
     ProcessType processType() const override;
     MachineRole role() const override;
     bool canAcceptRecipe(const Recipe& recipe) const override;

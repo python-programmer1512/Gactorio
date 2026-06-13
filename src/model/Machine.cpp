@@ -2,8 +2,10 @@
 
 #include "common/Config.h"
 #include "model/MachineStates.hpp"
+#include "model/config/ConfigIdAdapters.hpp"
 
 #include <algorithm>
+#include <exception>
 #include <random>
 #include <utility>
 
@@ -78,7 +80,8 @@ bool Machine::assignTask(std::shared_ptr<ProductionTask> task) {
     if (!canAcceptTask() || task == nullptr || task->currentStep() == nullptr) {
         return false;
     }
-    if (!canProcess(task->currentStep()->requiredRole())) {
+    const auto& stepKind = task->currentStepKind();
+    if (stepKind.empty() || !acceptsStep(stepKind)) {
         return false;
     }
 
@@ -121,8 +124,29 @@ bool Machine::canAcceptTask() const {
     return task_ == nullptr && status_ == MachineStatus::Idle && health_ > 0.0;
 }
 
+const std::string& Machine::stationDefinitionId() const {
+    static const std::string empty;
+    return empty;
+}
+
+std::string Machine::stationKind() const {
+    try {
+        return config_model::toStationKind(role());
+    } catch (const std::exception&) {
+        return {};
+    }
+}
+
+bool Machine::acceptsStep(std::string_view stepKind) const {
+    return !stepKind.empty() && stationKind() == stepKind;
+}
+
 bool Machine::canProcess(MachineRole role) const {
-    return this->role() == role;
+    try {
+        return acceptsStep(config_model::toStepKind(role));
+    } catch (const std::exception&) {
+        return false;
+    }
 }
 
 void Machine::forceBreak() {
@@ -139,10 +163,21 @@ void Machine::repair() {
 }
 
 void Machine::resetForRestore(double newHealth, MachineStatus newStatus) {
+    restoreForMemento(newHealth, newStatus, 0.0, nullptr);
+}
+
+void Machine::restoreForMemento(
+    double newHealth,
+    MachineStatus newStatus,
+    double rawProgress,
+    std::shared_ptr<ProductionTask> assignedTask) {
     task_.reset();
-    progress_           = 0.0;
+    progress_           = std::max(0.0, rawProgress);
     maintenanceElapsed_ = 0.0;
     health_             = std::clamp(newHealth, 0.0, config::kInitialHealth);
+    if (assignedTask != nullptr && !assignedTask->isCompleted()) {
+        task_ = std::move(assignedTask);
+    }
 
     switch (newStatus) {
     case MachineStatus::Broken:
@@ -154,8 +189,19 @@ void Machine::resetForRestore(double newHealth, MachineStatus newStatus) {
         setState(std::make_unique<MaintenanceState>());
         break;
     case MachineStatus::Working:
+        if (task_ != nullptr && health_ > 0.0) {
+            status_ = MachineStatus::Working;
+            setState(std::make_unique<WorkingState>());
+            break;
+        }
+        progress_ = 0.0;
+        status_ = MachineStatus::Idle;
+        setState(std::make_unique<IdleState>());
+        break;
     case MachineStatus::Idle:
     default:
+        task_.reset();
+        progress_ = 0.0;
         status_ = MachineStatus::Idle;
         setState(std::make_unique<IdleState>());
         break;
@@ -195,6 +241,10 @@ double Machine::getProgress() const {
 
     const auto currentStepProgress = progress_ / task_->currentStep()->baseDurationSeconds();
     return task_->getProgressInRoute() + (currentStepProgress / static_cast<double>(totalSteps));
+}
+
+double Machine::rawProgressForMemento() const {
+    return progress_;
 }
 
 double Machine::getHealth() const {
@@ -395,6 +445,7 @@ MixingStation::MixingStation(
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
 std::string MixingStation::typeName() const                      { return "Mixing Station"; }
+std::string MixingStation::stationKind() const                   { return "mixing"; }
 ProcessType MixingStation::processType() const                   { return ProcessType::Mixing; }
 MachineRole MixingStation::role() const                          { return MachineRole::Mixing; }
 bool MixingStation::canAcceptRecipe(const Recipe& recipe) const  { (void)recipe; return true; }
@@ -408,6 +459,7 @@ QualityStation::QualityStation(
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
 std::string QualityStation::typeName() const                     { return "Quality Station"; }
+std::string QualityStation::stationKind() const                  { return "quality"; }
 ProcessType QualityStation::processType() const                  { return ProcessType::Quality; }
 MachineRole QualityStation::role() const                         { return MachineRole::Quality; }
 bool QualityStation::canAcceptRecipe(const Recipe& recipe) const { (void)recipe; return true; }
@@ -421,6 +473,7 @@ BottlingStation::BottlingStation(
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
 std::string BottlingStation::typeName() const                     { return "Bottling Station"; }
+std::string BottlingStation::stationKind() const                  { return "bottling"; }
 ProcessType BottlingStation::processType() const                  { return ProcessType::Bottling; }
 MachineRole BottlingStation::role() const                         { return MachineRole::Bottling; }
 bool BottlingStation::canAcceptRecipe(const Recipe& recipe) const { (void)recipe; return true; }
@@ -434,6 +487,7 @@ PackagingStation::PackagingStation(
     : Machine(id, std::move(name), processingSpeed, initialHealth, breakdownProbability) {}
 
 std::string PackagingStation::typeName() const                     { return "Packaging Station"; }
+std::string PackagingStation::stationKind() const                  { return "packaging"; }
 ProcessType PackagingStation::processType() const                  { return ProcessType::Packaging; }
 MachineRole PackagingStation::role() const                         { return MachineRole::Packaging; }
 bool PackagingStation::canAcceptRecipe(const Recipe& recipe) const { (void)recipe; return true; }

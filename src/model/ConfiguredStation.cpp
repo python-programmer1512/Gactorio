@@ -3,7 +3,6 @@
 #include "model/config/ConfigIdAdapters.hpp"
 
 #include <algorithm>
-#include <stdexcept>
 #include <utility>
 
 namespace gactorio {
@@ -29,22 +28,6 @@ std::string typeNameFor(const config_model::StationDefinition& definition) {
     return definition.kind;
 }
 
-MachineRole requireMachineRole(const config_model::StationDefinition& definition) {
-    const auto role = config_model::machineRoleFromKind(definition.kind);
-    if (!role.has_value()) {
-        throw std::invalid_argument("Unsupported station kind for runtime MachineRole: " + definition.kind);
-    }
-    return *role;
-}
-
-ProcessType requireProcessType(const config_model::StationDefinition& definition) {
-    const auto processType = config_model::processTypeFromKind(definition.kind);
-    if (!processType.has_value()) {
-        throw std::invalid_argument("Unsupported station kind for runtime ProcessType: " + definition.kind);
-    }
-    return *processType;
-}
-
 } // namespace
 
 ConfiguredStation::ConfiguredStation(
@@ -60,14 +43,14 @@ ConfiguredStation::ConfiguredStation(
       stationKind_(definition.kind),
       typeName_(typeNameFor(definition)),
       acceptedStepKinds_(definition.acceptedStepKinds),
-      processType_(requireProcessType(definition)),
-      role_(requireMachineRole(definition)) {}
+      processType_(config_model::processTypeFromKind(definition.kind).value_or(ProcessType::Unknown)),
+      role_(config_model::machineRoleFromKind(definition.kind).value_or(MachineRole::Unknown)) {}
 
-const std::string& ConfiguredStation::stationDefinitionId() const noexcept {
+const std::string& ConfiguredStation::stationDefinitionId() const {
     return stationDefinitionId_;
 }
 
-const std::string& ConfiguredStation::stationKind() const noexcept {
+std::string ConfiguredStation::stationKind() const {
     return stationKind_;
 }
 

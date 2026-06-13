@@ -65,13 +65,27 @@ int main() {
     unsupportedDefinition.typeName = "Flavor Station";
     unsupportedDefinition.acceptedStepKinds = {"flavoring"};
 
-    bool sawUnsupportedKind = false;
-    try {
-        (void)gactorio::StationFactory::create(44, unsupportedDefinition);
-    } catch (const std::invalid_argument&) {
-        sawUnsupportedKind = true;
-    }
-    assert(sawUnsupportedKind);
+    auto customMachine = gactorio::StationFactory::create(44, unsupportedDefinition);
+    assert(customMachine != nullptr);
+    assert(customMachine->role() == gactorio::MachineRole::Unknown);
+    assert(customMachine->processType() == gactorio::ProcessType::Unknown);
+    assert(customMachine->stationKind() == "flavoring");
+    assert(customMachine->acceptsStep("flavoring"));
+    assert(!customMachine->acceptsStep("mixing"));
+
+    gactorio::config_model::StationDefinition fallbackCustomDefinition;
+    fallbackCustomDefinition.id = "cooling_station";
+    fallbackCustomDefinition.kind = "cooling";
+    fallbackCustomDefinition.displayName = "Cooling Station";
+    fallbackCustomDefinition.typeName = "Cooling Station";
+
+    auto fallbackCustomMachine = gactorio::StationFactory::create(45, fallbackCustomDefinition);
+    assert(fallbackCustomMachine != nullptr);
+    assert(fallbackCustomMachine->role() == gactorio::MachineRole::Unknown);
+    assert(fallbackCustomMachine->processType() == gactorio::ProcessType::Unknown);
+    assert(fallbackCustomMachine->stationKind() == "cooling");
+    assert(fallbackCustomMachine->acceptsStep("cooling"));
+    assert(!fallbackCustomMachine->acceptsStep("flavoring"));
 
     return 0;
 }

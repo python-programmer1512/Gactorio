@@ -33,6 +33,16 @@
                 </label>
             </div>
 
+            <h3>Runtime Config</h3>
+            <div class="config-actions">
+                <button id="btn-load-runtime-config" class="small">Load Runtime Config</button>
+                <label class="file-load">
+                    <span>Load JSON</span>
+                    <input id="config-file-input" type="file" accept=".json,application/json">
+                </label>
+            </div>
+            <div id="config-status" class="config-status" role="status"></div>
+
             <h3>Memento (Undo / Redo)</h3>
             <div class="row">
                 <button id="btn-save">Save Checkpoint</button>

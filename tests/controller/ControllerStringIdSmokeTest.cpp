@@ -75,6 +75,7 @@ int main() {
     const auto configText = readTextFile(
         std::filesystem::path("..") / "data" / "factory_config.runtime.json");
     assert(controller.loadFactoryConfigFromString(configText));
+    assert(!controller.loadFactoryConfigFromString("{ not valid json }"));
 
     const auto& configProducts = controller.products();
     voltz = findProduct(configProducts, "voltz_classic");

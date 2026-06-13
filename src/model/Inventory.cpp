@@ -17,6 +17,9 @@ void Inventory::addItem(ItemType itemType, int amount) {
 }
 
 void Inventory::addProduct(ProductId productId, int quantity) {
+    if (quantity <= 0) {
+        return;
+    }
     products_[productId] += quantity;
 }
 

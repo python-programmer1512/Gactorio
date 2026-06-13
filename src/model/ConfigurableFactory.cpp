@@ -1,5 +1,7 @@
 #include "model/ConfigurableFactory.hpp"
 
+#include "model/StationFactory.hpp"
+
 #include <memory>
 #include <utility>
 
@@ -22,6 +24,11 @@ public:
 } // namespace
 
 ConfigurableFactory::ConfigurableFactory() = default;
+
+void ConfigurableFactory::setRuntimeContext(
+    const config_model::FactoryRuntimeContext* context) noexcept {
+    runtimeContext_ = context;
+}
 
 void ConfigurableFactory::setProductDefinitions(std::vector<ProductDefinition> definitions) {
     productDefinitions_ = std::move(definitions);
@@ -49,6 +56,49 @@ std::shared_ptr<Product> ConfigurableFactory::createProductById(ProductId id) co
         return nullptr;
     }
     return std::make_shared<ConfigProduct>(productDefinitions_[found->second]);
+}
+
+std::optional<ProductionLine> ConfigurableFactory::createLineForMemento(
+    const LineMemento& memento) const {
+    if (runtimeContext_ == nullptr || memento.definitionId().empty()) {
+        return std::nullopt;
+    }
+
+    const auto* lineDefinition = runtimeContext_->registry().findLine(memento.definitionId());
+    if (lineDefinition == nullptr) {
+        return std::nullopt;
+    }
+
+    const auto displayName = memento.displayName().empty()
+        ? (lineDefinition->displayName.empty() ? lineDefinition->id : lineDefinition->displayName)
+        : memento.displayName();
+    ProductionLine line(memento.id(), displayName);
+    line.setDefinitionId(lineDefinition->id);
+
+    for (std::size_t i = 0; i < memento.machines().size(); ++i) {
+        const auto& machineMemento = memento.machines()[i];
+
+        const config_model::StationDefinition* stationDefinition = nullptr;
+        if (!machineMemento.stationDefinitionId().empty()) {
+            stationDefinition = runtimeContext_->registry().findStation(
+                machineMemento.stationDefinitionId());
+        }
+        if (stationDefinition == nullptr && i < lineDefinition->stationIds.size()) {
+            stationDefinition = runtimeContext_->registry().findStation(lineDefinition->stationIds[i]);
+        }
+        if (stationDefinition == nullptr) {
+            return std::nullopt;
+        }
+
+        line.addMachine(StationFactory::create(machineMemento.id(), *stationDefinition));
+    }
+
+    if (memento.queueCapacity().has_value()) {
+        line.setQueueCapacity(*memento.queueCapacity());
+    } else if (lineDefinition->queueCapacity.has_value()) {
+        line.setQueueCapacity(*lineDefinition->queueCapacity);
+    }
+    return line;
 }
 
 } // namespace gactorio

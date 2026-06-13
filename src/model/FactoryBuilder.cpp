@@ -47,14 +47,16 @@ std::string lineName(const config_model::ProductionLineDefinition& lineDefinitio
     return lineDefinition.displayName.empty() ? lineDefinition.id : lineDefinition.displayName;
 }
 
-} // namespace
-
-std::unique_ptr<Factory> FactoryBuilder::createFactory(
-    const config_model::FactoryRuntimeContext& context) {
+std::unique_ptr<Factory> buildFactory(
+    const config_model::FactoryRuntimeContext& context,
+    bool attachRuntimeContext) {
     const auto& config = context.config();
     const auto& registry = context.registry();
 
     auto factory = std::make_unique<ConfigurableFactory>();
+    if (attachRuntimeContext) {
+        factory->setRuntimeContext(&context);
+    }
     factory->setProductDefinitions(productDefinitionsFromRegistry(registry));
 
     for (const auto& seed : config.initialInventory) {
@@ -73,6 +75,7 @@ std::unique_ptr<Factory> FactoryBuilder::createFactory(
         lineIds[lineDefinition.id] = runtimeLineId;
 
         ProductionLine line(runtimeLineId, lineName(lineDefinition));
+        line.setDefinitionId(lineDefinition.id);
         for (const auto& stationId : lineDefinition.stationIds) {
             const auto& stationDefinition = registry.requireStation(stationId);
             line.addMachine(StationFactory::create(nextMachineId++, stationDefinition));
@@ -109,16 +112,23 @@ std::unique_ptr<Factory> FactoryBuilder::createFactory(
     return factory;
 }
 
+} // namespace
+
+std::unique_ptr<Factory> FactoryBuilder::createFactory(
+    const config_model::FactoryRuntimeContext& context) {
+    return buildFactory(context, true);
+}
+
 std::unique_ptr<Factory> FactoryBuilder::createFactoryFromConfigFile(
     const std::filesystem::path& path) {
     auto context = config_model::FactoryRuntimeContext::loadFromFile(path);
-    return createFactory(context);
+    return buildFactory(context, false);
 }
 
 std::unique_ptr<Factory> FactoryBuilder::createFactoryFromConfigString(
     std::string_view jsonText) {
     auto context = config_model::FactoryRuntimeContext::loadFromString(jsonText);
-    return createFactory(context);
+    return buildFactory(context, false);
 }
 
 } // namespace gactorio

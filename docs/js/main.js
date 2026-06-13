@@ -18,6 +18,7 @@ import { FactoryPanel }    from './panels/FactoryPanel.js?v=20260614-scenario13'
 import { ProductsPanel }   from './panels/ProductsPanel.js?v=20260614-scenario13';
 import { EventLogPanel }   from './panels/EventLogPanel.js?v=20260614-scenario13';
 import { InventoryPanel }  from './panels/InventoryPanel.js?v=20260614-scenario13';
+import { RuntimeConfigPanel } from './panels/RuntimeConfigPanel.js?v=20260614-scenario13';
 
 console.log('[gactorio] main.js loaded - build', '2026-06-14-scenario13');
 
@@ -26,9 +27,14 @@ function boot() {
     const controller = new Module.Controller();
 
     const app = new Application(controller);
+    const productsPanel = new ProductsPanel(controller);
     app.addPanel(new SimControlPanel(controller));
+    app.addPanel(new RuntimeConfigPanel(controller, () => {
+        productsPanel.refresh();
+        app.renderNow();
+    }));
     app.addPanel(new FactoryPanel(controller));
-    app.addPanel(new ProductsPanel(controller));
+    app.addPanel(productsPanel);
     app.addPanel(new EventLogPanel());
     app.addPanel(new InventoryPanel(controller));
     app.run();

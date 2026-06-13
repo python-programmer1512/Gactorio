@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "1.0.0",
+  "settings": {
+    "initialHealth": 100.0,
+    "damageChancePerSecond": 0.5,
+    "damageMinHp": 1.0,
+    "damageMaxHp": 5.0,
+    "incrementalRepairHp": 5.0,
+    "repairAllDelaySeconds": 3.0,
+    "defaultLineScenarioId": "normal-flow",
+    "defaultSpeedMultiplier": 1.0
+  },
+  "items": [
+    { "id": "ingredient", "displayName": "Ingredient", "category": "raw", "restockable": true, "restockAmount": 5 },
+    { "id": "water", "displayName": "Water", "category": "raw", "restockable": true, "restockAmount": 5 },
+    { "id": "empty_bottle", "displayName": "Empty Bottle", "category": "raw", "restockable": true, "restockAmount": 5 },
+    { "id": "label", "displayName": "Label", "category": "raw", "restockable": true, "restockAmount": 5 },
+    { "id": "package", "displayName": "Package", "category": "raw", "restockable": true, "restockAmount": 5 }
+  ],
+  "products": [
+    {
+      "id": "voltz_classic",
+      "displayName": "Voltz Classic",
+      "description": "Standard energy drink",
+      "tier": "standard",
+      "color": "#F4C430",
+      "sortOrder": 10,
+      "defaultRecipeId": "voltz_classic_recipe"
+    },
+    {
+      "id": "hyper_bolt",
+      "displayName": "Hyper Bolt",
+      "description": "Premium high-caffeine energy drink",
+      "tier": "premium",
+      "color": "#E63946",
+      "sortOrder": 20,
+      "defaultRecipeId": "hyper_bolt_recipe"
+    },
+    {
+      "id": "aurora_zero",
+      "displayName": "Aurora Zero",
+      "description": "Zero-sugar specialty energy drink",
+      "tier": "specialty",
+      "color": "#3A86FF",
+      "sortOrder": 30,
+      "defaultRecipeId": "aurora_zero_recipe"
+    }
+  ],
+  "stations": [
+    { "id": "mixing_station", "kind": "mixing", "displayName": "Mixer", "typeName": "Mixing Station", "acceptedStepKinds": ["mixing"], "processingSpeed": 1.0, "maxHealth": 100.0, "breakdownProbability": 0.0 },
+    { "id": "quality_station", "kind": "quality", "displayName": "Quality Check", "typeName": "Quality Station", "acceptedStepKinds": ["quality"], "processingSpeed": 1.0, "maxHealth": 100.0, "breakdownProbability": 0.0 },
+    { "id": "bottling_station", "kind": "bottling", "displayName": "Filler", "typeName": "Bottling Station", "acceptedStepKinds": ["bottling"], "processingSpeed": 1.0, "maxHealth": 100.0, "breakdownProbability": 0.0 },
+    { "id": "packaging_station", "kind": "packaging", "displayName": "Packager", "typeName": "Packaging Station", "acceptedStepKinds": ["packaging"], "processingSpeed": 1.0, "maxHealth": 100.0, "breakdownProbability": 0.0 }
+  ],
+  "recipes": [
+    {
+      "id": "voltz_classic_recipe",
+      "productId": "voltz_classic",
+      "displayName": "Voltz Classic Recipe",
+      "steps": [
+        { "id": "mixing", "stepKind": "mixing", "duration": 13.0, "inputs": [{ "itemId": "ingredient", "quantity": 2 }, { "itemId": "water", "quantity": 1 }] },
+        { "id": "quality", "stepKind": "quality", "duration": 9.0 },
+        { "id": "bottling", "stepKind": "bottling", "duration": 9.0, "inputs": [{ "itemId": "empty_bottle", "quantity": 1 }] },
+        { "id": "packaging", "stepKind": "packaging", "duration": 9.0, "inputs": [{ "itemId": "label", "quantity": 1 }, { "itemId": "package", "quantity": 1 }], "outputs": [{ "productId": "voltz_classic", "quantity": 1 }] }
+      ]
+    },
+    {
+      "id": "hyper_bolt_recipe",
+      "productId": "hyper_bolt",
+      "displayName": "Hyper Bolt Recipe",
+      "steps": [
+        { "id": "mixing", "stepKind": "mixing", "duration": 18.0, "inputs": [{ "itemId": "ingredient", "quantity": 3 }, { "itemId": "water", "quantity": 1 }] },
+        { "id": "quality", "stepKind": "quality", "duration": 12.0 },
+        { "id": "bottling", "stepKind": "bottling", "duration": 9.0, "inputs": [{ "itemId": "empty_bottle", "quantity": 1 }] },
+        { "id": "packaging", "stepKind": "packaging", "duration": 9.0, "inputs": [{ "itemId": "label", "quantity": 1 }, { "itemId": "package", "quantity": 1 }], "outputs": [{ "productId": "hyper_bolt", "quantity": 1 }] }
+      ]
+    },
+    {
+      "id": "aurora_zero_recipe",
+      "productId": "aurora_zero",
+      "displayName": "Aurora Zero Recipe",
+      "steps": [
+        { "id": "mixing", "stepKind": "mixing", "duration": 17.0, "inputs": [{ "itemId": "ingredient", "quantity": 2 }, { "itemId": "water", "quantity": 1 }] },
+        { "id": "quality", "stepKind": "quality", "duration": 12.0 },
+        { "id": "bottling", "stepKind": "bottling", "duration": 9.0, "inputs": [{ "itemId": "empty_bottle", "quantity": 1 }] },
+        { "id": "packaging", "stepKind": "packaging", "duration": 11.0, "inputs": [{ "itemId": "label", "quantity": 1 }, { "itemId": "package", "quantity": 1 }], "outputs": [{ "productId": "aurora_zero", "quantity": 1 }] }
+      ]
+    }
+  ],
+  "lines": [
+    {
+      "id": "line_a",
+      "displayName": "Beverage Line A",
+      "stationIds": ["mixing_station", "quality_station", "bottling_station", "packaging_station"],
+      "recipeIds": ["voltz_classic_recipe", "hyper_bolt_recipe", "aurora_zero_recipe"]
+    }
+  ],
+  "initialInventory": [
+    { "itemId": "ingredient", "quantity": 5 },
+    { "itemId": "water", "quantity": 5 },
+    { "itemId": "empty_bottle", "quantity": 5 },
+    { "itemId": "label", "quantity": 5 },
+    { "itemId": "package", "quantity": 5 }
+  ],
+  "startupTasks": [
+    { "lineId": "line_a", "recipeId": "voltz_classic_recipe", "quantity": 1 }
+  ],
+  "scenarios": [
+    { "id": "normal-flow", "displayName": "Normal Flow", "description": "Default line behavior" },
+    { "id": "bottleneck", "displayName": "Bottleneck", "description": "Slow bottling station", "targetStationKinds": ["bottling"], "speedMultiplier": 0.5 },
+    { "id": "overflow", "displayName": "Overflow", "description": "Small queue capacity", "queueCapacity": 2 }
+  ]
+}

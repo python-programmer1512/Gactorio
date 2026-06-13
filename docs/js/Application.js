@@ -30,8 +30,14 @@ export class Application {
         this.#ui.addPanel(panel);
     }
 
+    renderNow() {
+        this.#ui.renderAll(toPlainSnapshot(this.#ctrl.snapshot()));
+        this.#lastRenderMs = performance.now();
+    }
+
     run() {
         this.#lastTime = performance.now();
+        this.renderNow();
         requestAnimationFrame(this.#frame);
     }
 

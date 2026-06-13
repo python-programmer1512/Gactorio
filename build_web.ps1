@@ -21,6 +21,10 @@ $ErrorActionPreference = 'Stop'
 #    hyperparameter edits in the JSON propagate to the C++ build.
 python tools/gen_config.py
 
+New-Item -ItemType Directory -Force docs/config | Out-Null
+Copy-Item data/factory_config.runtime.json docs/config/factory_config.runtime.json -Force
+Copy-Item data/factory_config.custom_runtime.json docs/config/factory_config.custom_runtime.json -Force
+
 $sources = @(
     'src/common/Types.cpp',
     'src/common/SimClock.cpp',

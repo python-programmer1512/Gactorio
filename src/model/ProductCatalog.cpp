@@ -59,17 +59,39 @@ std::vector<ItemRequirement> requirementsFromRecipe(
     return requirements;
 }
 
+std::vector<ItemRequirement> stepInputsFromRecipe(
+    const config_model::RecipeStepDefinition& step) {
+    std::vector<ItemRequirement> inputs;
+    inputs.reserve(step.inputs.size());
+    for (const auto& input : step.inputs) {
+        inputs.emplace_back(input.itemId, input.quantity);
+    }
+    return inputs;
+}
+
+std::vector<StepOutput> stepOutputsFromRecipe(
+    const config_model::RecipeStepDefinition& step) {
+    std::vector<StepOutput> outputs;
+    outputs.reserve(step.outputs.size());
+    for (const auto& output : step.outputs) {
+        outputs.push_back(StepOutput{output.itemId, output.productId, output.quantity});
+    }
+    return outputs;
+}
+
 std::vector<ProcessStep> routeFromRecipe(
     const config_model::RecipeDefinition& recipe) {
     std::vector<ProcessStep> route;
     route.reserve(recipe.steps.size());
     for (const auto& step : recipe.steps) {
         const auto role = config_model::machineRoleFromKind(step.stepKind);
-        if (!role.has_value()) {
-            throw std::invalid_argument(
-                "Unsupported recipe step kind for runtime Product route: " + step.stepKind);
-        }
-        route.emplace_back(*role, step.duration);
+        route.emplace_back(
+            step.id,
+            step.stepKind,
+            role.value_or(MachineRole::Unknown),
+            step.duration,
+            stepInputsFromRecipe(step),
+            stepOutputsFromRecipe(step));
     }
     return route;
 }

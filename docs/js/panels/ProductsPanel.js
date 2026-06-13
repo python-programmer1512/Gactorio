@@ -17,15 +17,9 @@ export class ProductsPanel extends UIComponent {
     }
 
     bind() {
-        const list = document.querySelector('#products .product-list');
-        const products = vecToArray(this.#ctrl.products());
-        list.innerHTML = products.map(product => `
-            <button class="product-btn" data-act="enqueueAuto" data-product-id="${product.id}">
-                <b>${esc(product.displayName || product.name || product.id)}</b>
-                <span>${product.durationSeconds.toFixed(0)} s</span>
-                <span class="requirements">Uses: ${esc(product.requirements)}</span>
-            </button>`).join('');
+        this.refresh();
 
+        const list = document.querySelector('#products .product-list');
         list.addEventListener('click', e => {
             const btn = e.target.closest('button[data-product-id]');
             if (!btn) return;
@@ -34,6 +28,17 @@ export class ProductsPanel extends UIComponent {
             const lineId = this.#ctrl.enqueueAutoProductById(productId);
             console.log('[gactorio] enqueueAutoProductById', productId, '→ line', lineId);
         });
+    }
+
+    refresh() {
+        const list = document.querySelector('#products .product-list');
+        const products = vecToArray(this.#ctrl.products());
+        list.innerHTML = products.map(product => `
+            <button class="product-btn" data-act="enqueueAuto" data-product-id="${product.id}">
+                <b>${esc(product.displayName || product.name || product.id)}</b>
+                <span>${product.durationSeconds.toFixed(0)} s</span>
+                <span class="requirements">Uses: ${esc(product.requirements)}</span>
+            </button>`).join('');
     }
 
     // Static panel — nothing changes per tick.

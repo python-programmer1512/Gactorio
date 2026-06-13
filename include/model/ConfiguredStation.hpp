@@ -15,9 +15,9 @@ public:
         MachineId runtimeId,
         const config_model::StationDefinition& definition);
 
-    const std::string& stationDefinitionId() const noexcept;
-    const std::string& stationKind() const noexcept;
-    bool acceptsStep(std::string_view stepKind) const;
+    const std::string& stationDefinitionId() const override;
+    std::string stationKind() const override;
+    bool acceptsStep(std::string_view stepKind) const override;
 
     std::string typeName() const override;
     ProcessType processType() const override;

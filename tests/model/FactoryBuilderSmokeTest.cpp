@@ -112,13 +112,24 @@ int main() {
 }
 )json";
 
-    bool sawUnsupportedKind = false;
-    try {
-        (void)gactorio::FactoryBuilder::createFactoryFromConfigString(unsupportedStationKindJson);
-    } catch (const std::invalid_argument&) {
-        sawUnsupportedKind = true;
-    }
-    assert(sawUnsupportedKind);
+    auto customFactory =
+        gactorio::FactoryBuilder::createFactoryFromConfigString(unsupportedStationKindJson);
+    assert(customFactory != nullptr);
+    assert(customFactory->productionLines().size() == 1);
+    auto& customLine = customFactory->productionLines().front();
+    assert(customLine.machines().size() == 1);
+    assert(customLine.queueLength() == 1);
+    const auto* flavorStation =
+        dynamic_cast<const gactorio::ConfiguredStation*>(customLine.machines().front().get());
+    assert(flavorStation != nullptr);
+    assert(flavorStation->stationKind() == "flavoring");
+    assert(flavorStation->acceptsStep("flavoring"));
+    assert(flavorStation->role() == gactorio::MachineRole::Unknown);
+    assert(flavorStation->processType() == gactorio::ProcessType::Unknown);
+
+    customFactory->update(0.0);
+    assert(customLine.machines().front()->currentTask() != nullptr);
+    assert(customLine.machines().front()->currentTask()->currentStepKind() == "flavoring");
 
     return 0;
 }

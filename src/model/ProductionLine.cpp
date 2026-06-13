@@ -1,6 +1,9 @@
 #include "model/ProductionLine.hpp"
 
+#include "model/Inventory.hpp"
+
 #include <algorithm>
+#include <iterator>
 #include <string>
 #include <utility>
 
@@ -33,6 +36,12 @@ bool isAssignedToMachine(
         });
 }
 
+void rollbackInputs(Inventory& inventory, const std::vector<ItemRequirement>& inputs) {
+    for (const auto& input : inputs) {
+        inventory.addItem(input.itemId(), input.quantity());
+    }
+}
+
 } // namespace
 
 ProductionLine::ProductionLine(ProductionLineId id, std::string name)
@@ -44,6 +53,10 @@ ProductionLineId ProductionLine::id() const {
 
 const std::string& ProductionLine::name() const {
     return name_;
+}
+
+const std::string& ProductionLine::definitionId() const noexcept {
+    return definitionId_;
 }
 
 const std::vector<std::unique_ptr<Machine>>& ProductionLine::machines() const {
@@ -84,6 +97,10 @@ void ProductionLine::setScenario(ScenarioType scenario) {
     if (config.queueCapacity.has_value()) {
         setQueueCapacity(*config.queueCapacity);
     }
+}
+
+void ProductionLine::setDefinitionId(std::string definitionId) {
+    definitionId_ = std::move(definitionId);
 }
 
 void ProductionLine::setEventBus(EventBus* eventBus) {
@@ -162,6 +179,10 @@ void ProductionLine::addMachine(std::unique_ptr<Machine> machine) {
 }
 
 void ProductionLine::assignAvailableTask() {
+    assignAvailableTask(nullptr);
+}
+
+void ProductionLine::assignAvailableTask(Inventory* inventory) {
     if (taskQueue_.empty()) {
         return;
     }
@@ -179,19 +200,59 @@ void ProductionLine::assignAvailableTask() {
                 continue;
             }
 
-            const auto* step = task->currentStep();
-            if (step != nullptr && machine->canProcess(step->requiredRole())) {
-                machine->assignTask(task);
+            const auto& stepKind = task->currentStepKind();
+            if (stepKind.empty() || !machine->acceptsStep(stepKind)) {
+                continue;
+            }
+
+            bool consumedInputs = false;
+            if (task->usesStepLevelIO() && !task->currentStepInputsConsumed()) {
+                const auto& inputs = task->currentStepInputs();
+                if (inventory == nullptr) {
+                    if (!inputs.empty()) {
+                        continue;
+                    }
+                } else if (!inventory->consume(inputs)) {
+                    continue;
+                }
+                consumedInputs = inventory != nullptr && !inputs.empty();
+            }
+
+            if (machine->assignTask(task)) {
+                if (task->usesStepLevelIO()) {
+                    task->markCurrentStepInputsConsumed();
+                }
                 break;
+            }
+
+            if (consumedInputs && inventory != nullptr) {
+                rollbackInputs(*inventory, task->currentStepInputs());
             }
         }
     }
 }
 
+std::vector<StepOutput> ProductionLine::collectPendingStepOutputs() {
+    std::vector<StepOutput> outputs;
+    for (const auto& task : taskQueue_) {
+        if (task == nullptr) {
+            continue;
+        }
+        auto taskOutputs = task->collectPendingStepOutputs();
+        outputs.insert(
+            outputs.end(),
+            std::make_move_iterator(taskOutputs.begin()),
+            std::make_move_iterator(taskOutputs.end()));
+    }
+    return outputs;
+}
+
 std::vector<ProductId> ProductionLine::collectCompletedProducts() {
     for (auto it = taskQueue_.begin(); it != taskQueue_.end();) {
         if (*it != nullptr && (*it)->isCompleted()) {
-            completedProducts_.push_back((*it)->getProductId());
+            if (!(*it)->usesStepLevelIO() || !(*it)->hasStepProductOutput()) {
+                completedProducts_.push_back((*it)->getProductId());
+            }
             it = taskQueue_.erase(it);
         } else {
             ++it;
@@ -238,6 +299,39 @@ std::vector<ProductId> ProductionLine::pendingProductIds() const {
         if (task != nullptr) out.push_back(task->getProductId());
     }
     return out;
+}
+
+std::vector<ProductionTaskMemento> ProductionLine::pendingTaskMementos() const {
+    std::vector<ProductionTaskMemento> out;
+    out.reserve(taskQueue_.size());
+    for (const auto& task : taskQueue_) {
+        if (task != nullptr) {
+            out.push_back(task->createMemento());
+        }
+    }
+    return out;
+}
+
+std::optional<std::size_t> ProductionLine::taskIndexFor(const ProductionTask* task) const {
+    if (task == nullptr) {
+        return std::nullopt;
+    }
+
+    for (std::size_t i = 0; i < taskQueue_.size(); ++i) {
+        if (taskQueue_[i].get() == task) {
+            return i;
+        }
+    }
+    return std::nullopt;
+}
+
+EnqueueResult ProductionLine::enqueueTask(std::shared_ptr<ProductionTask> task) {
+    if (task == nullptr) {
+        return EnqueueResult::RejectedFull;
+    }
+
+    taskQueue_.push_back(std::move(task));
+    return EnqueueResult::Accepted;
 }
 
 void ProductionLine::clearQueue() {

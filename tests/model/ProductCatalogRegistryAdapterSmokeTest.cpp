@@ -218,6 +218,8 @@ int main() {
     assert(voltz->tier == "standard");
     assert(voltz->totalDurationSeconds == 40.0);
     assert(voltz->route.size() == 4);
+    assert(voltz->route[0].stepKind() == "mixing");
+    assert(voltz->route[3].stepKind() == "packaging");
     assert(voltz->route[0].requiredRole() == gactorio::MachineRole::Mixing);
     assert(voltz->route[3].requiredRole() == gactorio::MachineRole::Packaging);
     assert(voltz->route[0].baseDurationSeconds() == 13.0);
@@ -299,13 +301,13 @@ int main() {
     const auto unsupportedConfig =
         gactorio::config_model::FactoryConfigLoader::loadFromString(unsupportedStepJson);
     const gactorio::config_model::DefinitionRegistry unsupportedRegistry(unsupportedConfig);
-    bool sawUnsupportedStep = false;
-    try {
-        (void)gactorio::makeProductDefinitionFromRegistry(unsupportedRegistry, "experimental");
-    } catch (const std::invalid_argument&) {
-        sawUnsupportedStep = true;
-    }
-    assert(sawUnsupportedStep);
+    const auto unsupportedStepDefinition =
+        gactorio::makeProductDefinitionFromRegistry(unsupportedRegistry, "experimental");
+    assert(unsupportedStepDefinition.has_value());
+    assert(unsupportedStepDefinition->route.size() == 1);
+    assert(unsupportedStepDefinition->route[0].stepKind() == "cooling");
+    assert(unsupportedStepDefinition->route[0].requiredRole() == gactorio::MachineRole::Unknown);
+    assert(!unsupportedStepDefinition->route[0].legacyRequiredRole().has_value());
 
     return 0;
 }

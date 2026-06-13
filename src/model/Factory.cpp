@@ -3,10 +3,33 @@
 #include "common/ScenarioType.hpp"
 
 #include <algorithm>
+#include <memory>
 #include <string>
 #include <utility>
 
 namespace gactorio {
+namespace {
+
+void rollbackRequirements(Inventory& inventory, const std::vector<ItemRequirement>& requirements) {
+    for (const auto& requirement : requirements) {
+        inventory.addItem(requirement.itemId(), requirement.quantity());
+    }
+}
+
+void applyStepOutputs(Inventory& inventory, const std::vector<StepOutput>& outputs) {
+    for (const auto& output : outputs) {
+        if (output.quantity <= 0) {
+            continue;
+        }
+        if (output.isItem()) {
+            inventory.addItem(*output.itemId, output.quantity);
+        } else if (output.isProduct()) {
+            inventory.addProduct(*output.productId, output.quantity);
+        }
+    }
+}
+
+} // namespace
 
 Factory::Factory() {
     eventBus_.subscribe(&eventLog_);
@@ -111,11 +134,19 @@ EnqueueResult Factory::enqueueProduct(LineId lineId, std::shared_ptr<Product> pr
         return EnqueueResult::RejectedFull;
     }
 
-    if (!inventory_.consume(product->getRequirements())) {
+    const bool consumeAtEnqueue = !product->usesStepLevelIO();
+    if (consumeAtEnqueue && !inventory_.consume(product->getRequirements())) {
         return EnqueueResult::RejectedFull;
     }
 
-    return line->enqueueProduct(std::move(product));
+    const auto requirements = consumeAtEnqueue
+        ? product->getRequirements()
+        : std::vector<ItemRequirement>{};
+    const auto result = line->enqueueProduct(std::move(product));
+    if (consumeAtEnqueue && result != EnqueueResult::Accepted) {
+        rollbackRequirements(inventory_, requirements);
+    }
+    return result;
 }
 
 bool Factory::restockItem(ItemType itemType, int amount) {
@@ -194,7 +225,7 @@ SimulationTime Factory::update(double realDeltaTime) {
     const auto deltaTime = clock_.update(realDeltaTime);
 
     for (auto& line : productionLines_) {
-        line.assignAvailableTask();
+        line.assignAvailableTask(&inventory_);
     }
 
     for (auto* machine : machines_) {
@@ -202,13 +233,14 @@ SimulationTime Factory::update(double realDeltaTime) {
     }
 
     for (auto& line : productionLines_) {
+        applyStepOutputs(inventory_, line.collectPendingStepOutputs());
         for (const auto productId : line.collectCompletedProducts()) {
             inventory_.addProduct(productId, 1);
         }
     }
 
     for (auto& line : productionLines_) {
-        line.assignAvailableTask();
+        line.assignAvailableTask(&inventory_);
     }
 
     return deltaTime;
@@ -264,8 +296,17 @@ FactoryMemento Factory::createMemento() const {
         std::vector<MachineMemento> machineMementos;
         for (const auto& machine : line.machines()) {
             machineMementos.emplace_back(
-                machine->id(), machine->getHealth(), machine->getStatus()
-            );
+                machine->id(),
+                machine->getHealth(),
+                machine->getStatus(),
+                machine->rawProgressForMemento(),
+                machine->stationDefinitionId(),
+                machine->stationKind(),
+                machine->getName(),
+                machine->typeName(),
+                machine->getProcessingSpeed(),
+                machine->getBreakdownProbability(),
+                line.taskIndexFor(machine->currentTask()));
         }
         m.addLine(LineMemento(
             line.id(),
@@ -273,7 +314,10 @@ FactoryMemento Factory::createMemento() const {
             std::move(machineMementos),
             line.scenario(),
             line.queueCapacity(),
-            line.droppedTaskCount()));
+            line.droppedTaskCount(),
+            line.pendingTaskMementos(),
+            line.definitionId(),
+            line.name()));
     }
     return m;
 }
@@ -312,35 +356,51 @@ void Factory::restoreFromMemento(const FactoryMemento& m) {
         }
     }
 
-    // Each line: reset machines (drop in-flight tasks, restore HP/status),
-    // clear the queue, re-enqueue saved pending products in order.
+    // Each line: reset machines (drop in-flight work), clear the queue, and
+    // restore queued task snapshots in order. A task that had already consumed
+    // step-level inputs keeps that flag so restore does not consume them twice.
     for (const auto& lm : savedLines) {
         auto* line = findProductionLine(lm.id());
         if (line == nullptr) continue;
 
         line->clearQueue();
         line->clearCompleted();
-
-        for (const auto& machineSnap : lm.machines()) {
-            auto* machine = line->findMachine(machineSnap.id());
-            if (machine != nullptr) {
-                machine->resetForRestore(machineSnap.health(), machineSnap.status());
-            }
-        }
-
-        for (const auto productId : lm.queueProductIds()) {
-            auto product = createProductById(productId);
-            if (product != nullptr) {
-                line->enqueueProduct(std::move(product));
-            }
-        }
-
         line->setScenario(lm.scenario());
         if (lm.queueCapacity().has_value()) {
             line->setQueueCapacity(*lm.queueCapacity());
         } else {
             line->resetQueueCapacity();
         }
+
+        std::vector<std::shared_ptr<ProductionTask>> restoredTasks;
+        restoredTasks.reserve(lm.tasks().size());
+        for (const auto& taskSnap : lm.tasks()) {
+            auto product = createProductById(taskSnap.productId());
+            if (product != nullptr) {
+                auto task = std::make_shared<ProductionTask>(std::move(product));
+                task->restoreFromMemento(taskSnap);
+                restoredTasks.push_back(std::move(task));
+                (void)line->enqueueTask(restoredTasks.back());
+            }
+        }
+
+        for (const auto& machineSnap : lm.machines()) {
+            auto* machine = line->findMachine(machineSnap.id());
+            if (machine == nullptr) {
+                continue;
+            }
+            std::shared_ptr<ProductionTask> assignedTask;
+            if (machineSnap.assignedTaskIndex().has_value() &&
+                *machineSnap.assignedTaskIndex() < restoredTasks.size()) {
+                assignedTask = restoredTasks[*machineSnap.assignedTaskIndex()];
+            }
+            machine->restoreForMemento(
+                machineSnap.health(),
+                machineSnap.status(),
+                machineSnap.progress(),
+                std::move(assignedTask));
+        }
+
         line->setDroppedTaskCount(lm.droppedTaskCount());
     }
 }

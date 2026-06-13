@@ -93,6 +93,10 @@ if (GACTORIO_BUILD_TESTS AND NOT EMSCRIPTEN)
         inventory_string_id_smoke_test:tests/model/InventoryStringIdSmokeTest.cpp
         recipe_string_item_id_smoke_test:tests/model/RecipeStringItemIdSmokeTest.cpp
         production_task_smoke_test:tests/model/ProductionTaskSmokeTest.cpp
+        process_step_string_kind_smoke_test:tests/model/ProcessStepStringKindSmokeTest.cpp
+        process_step_metadata_smoke_test:tests/model/ProcessStepMetadataSmokeTest.cpp
+        step_level_io_smoke_test:tests/model/StepLevelIOSmokeTest.cpp
+        step_level_io_memento_smoke_test:tests/model/StepLevelIOMementoSmokeTest.cpp
         sim_clock_smoke_test:tests/model/SimClockSmokeTest.cpp
         scenario_type_smoke_test:tests/model/ScenarioTypeSmokeTest.cpp
         config_id_adapters_smoke_test:tests/model/ConfigIdAdaptersSmokeTest.cpp
@@ -100,16 +104,20 @@ if (GACTORIO_BUILD_TESTS AND NOT EMSCRIPTEN)
         factory_config_loader_smoke_test:tests/model/FactoryConfigLoaderSmokeTest.cpp
         factory_runtime_context_smoke_test:tests/model/FactoryRuntimeContextSmokeTest.cpp
         factory_builder_smoke_test:tests/model/FactoryBuilderSmokeTest.cpp
+        config_topology_memento_smoke_test:tests/model/ConfigTopologyMementoSmokeTest.cpp
         configured_station_smoke_test:tests/model/ConfiguredStationSmokeTest.cpp
         machine_smoke_test:tests/model/MachineSmokeTest.cpp
+        machine_string_kind_smoke_test:tests/model/MachineStringKindSmokeTest.cpp
         concrete_machine_smoke_test:tests/model/ConcreteMachineSmokeTest.cpp
         machine_state_smoke_test:tests/model/MachineStateSmokeTest.cpp
         observer_smoke_test:tests/model/ObserverSmokeTest.cpp
         production_line_smoke_test:tests/model/ProductionLineSmokeTest.cpp
+        production_line_string_matching_smoke_test:tests/model/ProductionLineStringMatchingSmokeTest.cpp
         factory_flow_smoke_test:tests/model/FactoryFlowSmokeTest.cpp
         factory_controller_smoke_test:tests/controller/FactoryControllerSmokeTest.cpp
         factory_controller_config_smoke_test:tests/controller/FactoryControllerConfigSmokeTest.cpp
         controller_string_id_smoke_test:tests/controller/ControllerStringIdSmokeTest.cpp
+        json_only_extension_smoke_test:tests/controller/JsonOnlyExtensionSmokeTest.cpp
         memento_smoke_test:tests/controller/MementoSmokeTest.cpp
     )
     foreach(entry IN LISTS SMOKE_TESTS)

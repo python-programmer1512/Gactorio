@@ -2,6 +2,7 @@
 
 #include "common/Types.hpp"
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -23,18 +24,47 @@ private:
     int quantity_;
 };
 
+struct StepOutput {
+    std::optional<std::string> itemId;
+    std::optional<ProductId> productId;
+    int quantity = 0;
+
+    bool isItem() const noexcept;
+    bool isProduct() const noexcept;
+};
+
 // One stage on a product's route: which kind of station handles it and how
 // many seconds it takes at base speed.
 class ProcessStep {
 public:
     ProcessStep(MachineRole requiredRole, SimulationTime baseDurationSeconds);
-    MachineRole requiredRole() const;
-    SimulationTime baseDurationSeconds() const;
-    SimulationTime durationSeconds() const;
+    ProcessStep(std::string stepKind, SimulationTime baseDurationSeconds);
+    ProcessStep(std::string stepKind, MachineRole legacyRequiredRole, SimulationTime baseDurationSeconds);
+    ProcessStep(
+        std::string id,
+        std::string stepKind,
+        MachineRole legacyRequiredRole,
+        SimulationTime baseDurationSeconds,
+        std::vector<ItemRequirement> inputs,
+        std::vector<StepOutput> outputs);
+
+    const std::string& id() const noexcept;
+    const std::string& stepKind() const noexcept;
+    MachineRole requiredRole() const noexcept;
+    bool hasLegacyRequiredRole() const noexcept;
+    std::optional<MachineRole> legacyRequiredRole() const noexcept;
+    SimulationTime baseDurationSeconds() const noexcept;
+    SimulationTime durationSeconds() const noexcept;
+    const std::vector<ItemRequirement>& inputs() const noexcept;
+    const std::vector<StepOutput>& outputs() const noexcept;
 
 private:
+    std::string id_;
+    std::string stepKind_;
     MachineRole requiredRole_;
     SimulationTime baseDurationSeconds_;
+    std::vector<ItemRequirement> inputs_;
+    std::vector<StepOutput> outputs_;
 };
 
 // Product is the abstract base for every finished good. Each concrete product
@@ -52,6 +82,8 @@ public:
     virtual const std::string& getName() const = 0;
     virtual const std::vector<ItemRequirement>& getRequirements() const = 0;
     virtual const std::vector<ProcessStep>& getRoute() const = 0;
+    bool usesStepLevelIO() const;
+    bool hasStepProductOutput() const;
 
 protected:
     explicit Product(const ProductDefinition& definition);
