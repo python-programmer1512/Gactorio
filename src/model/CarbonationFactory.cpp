@@ -97,18 +97,17 @@ LineId CarbonationFactory::addDynamicLine() {
 
 FactoryMemento CarbonationFactory::createMemento() const {
     auto memento = Factory::createMemento();
-    memento.nextLineId = nextLineId_;
-    memento.nextMachineId = nextMachineId_;
+    memento.setNextIds(nextLineId_, nextMachineId_);
     return memento;
 }
 
 void CarbonationFactory::restoreFromMemento(const FactoryMemento& memento) {
     Factory::restoreFromMemento(memento);
-    nextLineId_ = memento.nextLineId != 0
-        ? memento.nextLineId
+    nextLineId_ = memento.nextLineId() != 0
+        ? memento.nextLineId()
         : nextLineIdAfter(productionLines());
-    nextMachineId_ = memento.nextMachineId != 0
-        ? memento.nextMachineId
+    nextMachineId_ = memento.nextMachineId() != 0
+        ? memento.nextMachineId()
         : nextMachineIdAfter(machines());
 }
 
@@ -117,17 +116,18 @@ std::shared_ptr<Product> CarbonationFactory::createProductById(ProductId id) con
 }
 
 std::optional<ProductionLine> CarbonationFactory::createLineForMemento(const LineMemento& memento) const {
-    if (memento.machines.size() < 4) {
+    const auto& machineMementos = memento.machines();
+    if (machineMementos.size() < 4) {
         return std::nullopt;
     }
 
     return makeBeverageLine(
-        memento.id,
+        memento.id(),
         {
-            memento.machines[0].id,
-            memento.machines[1].id,
-            memento.machines[2].id,
-            memento.machines[3].id,
+            machineMementos[0].id(),
+            machineMementos[1].id(),
+            machineMementos[2].id(),
+            machineMementos[3].id(),
         });
 }
 

@@ -229,51 +229,47 @@ std::optional<ProductionLine> Factory::createLineForMemento(const LineMemento&) 
 // Memento — Originator implementation
 // =============================================================================
 FactoryMemento Factory::createMemento() const {
-    FactoryMemento m;
-    m.simulationTime = clock_.now();
-    m.items          = inventory_.items();
-    m.products       = inventory_.products();
+    FactoryMemento m(clock_.now(), inventory_.items(), inventory_.products());
 
     for (const auto& line : productionLines_) {
-        LineMemento lm;
-        lm.id              = line.id();
-        lm.queueProductIds = line.pendingProductIds();
+        std::vector<MachineMemento> machineMementos;
         for (const auto& machine : line.machines()) {
-            lm.machines.push_back({
+            machineMementos.emplace_back(
                 machine->id(), machine->getHealth(), machine->getStatus()
-            });
+            );
         }
-        m.lines.push_back(std::move(lm));
+        m.addLine(LineMemento(line.id(), line.pendingProductIds(), std::move(machineMementos)));
     }
     return m;
 }
 
 void Factory::restoreFromMemento(const FactoryMemento& m) {
     // Clock — jump straight to the captured simulation time.
-    clock_.setNow(m.simulationTime);
+    clock_.setNow(m.simulationTime());
 
     // Inventory — overwrite both raw items and finished products.
-    inventory_.replaceContents(m.items, m.products);
+    inventory_.replaceContents(m.items(), m.products());
 
     // Keep the current topology aligned with the checkpoint: remove lines
     // created after the checkpoint and ask subclasses to recreate missing ones.
+    const auto& savedLines = m.lines();
     productionLines_.erase(
         std::remove_if(
             productionLines_.begin(),
             productionLines_.end(),
-            [&m](const ProductionLine& line) {
+            [&savedLines](const ProductionLine& line) {
                 return std::none_of(
-                    m.lines.begin(),
-                    m.lines.end(),
+                    savedLines.begin(),
+                    savedLines.end(),
                     [&line](const LineMemento& lm) {
-                        return lm.id == line.id();
+                        return lm.id() == line.id();
                     });
             }),
         productionLines_.end());
     rebuildMachineCache();
 
-    for (const auto& lm : m.lines) {
-        if (findProductionLine(lm.id) == nullptr) {
+    for (const auto& lm : savedLines) {
+        if (findProductionLine(lm.id()) == nullptr) {
             auto restoredLine = createLineForMemento(lm);
             if (restoredLine.has_value()) {
                 addProductionLine(std::move(*restoredLine));
@@ -283,21 +279,21 @@ void Factory::restoreFromMemento(const FactoryMemento& m) {
 
     // Each line: reset machines (drop in-flight tasks, restore HP/status),
     // clear the queue, re-enqueue saved pending products in order.
-    for (const auto& lm : m.lines) {
-        auto* line = findProductionLine(lm.id);
+    for (const auto& lm : savedLines) {
+        auto* line = findProductionLine(lm.id());
         if (line == nullptr) continue;
 
         line->clearQueue();
         line->clearCompleted();
 
-        for (const auto& machineSnap : lm.machines) {
-            auto* machine = line->findMachine(machineSnap.id);
+        for (const auto& machineSnap : lm.machines()) {
+            auto* machine = line->findMachine(machineSnap.id());
             if (machine != nullptr) {
-                machine->resetForRestore(machineSnap.health, machineSnap.status);
+                machine->resetForRestore(machineSnap.health(), machineSnap.status());
             }
         }
 
-        for (const auto productId : lm.queueProductIds) {
+        for (const auto productId : lm.queueProductIds()) {
             auto product = createProductById(productId);
             if (product != nullptr) {
                 line->enqueueProduct(std::move(product));
