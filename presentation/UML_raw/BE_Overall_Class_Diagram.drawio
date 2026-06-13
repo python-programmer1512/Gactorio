@@ -140,20 +140,8 @@
         <mxCell id="e-product-catalog-def" edge="1" parent="pkg-model" source="ProductCatalog" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="ProductDefinition" value="definitions">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="WzirCm4KdUMkaXm0kx3n-1" edge="1" parent="pkg-model" source="Machine" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" target="ProductCatalog" value="">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1814" y="670" as="sourcePoint" />
-            <mxPoint x="2118" y="1060" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="e-inherit-stations-machine" edge="1" parent="pkg-model" source="MachineStations" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#000000;" target="Machine" value="">
           <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="WzirCm4KdUMkaXm0kx3n-2" edge="1" parent="pkg-model" source="ProductCatalog" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="EventBus" value="">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="609" y="295" as="sourcePoint" />
-            <mxPoint x="2052" y="1060" as="targetPoint" />
-          </mxGeometry>
         </mxCell>
         <mxCell id="e-machine-eventbus" edge="1" parent="pkg-model" source="Machine" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;entryX=0.325;entryY=0.019;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" target="EventBus" value="eventBus_*">
           <mxGeometry relative="1" as="geometry" />
@@ -161,7 +149,7 @@
         <mxCell id="e-factory-eventbus" edge="1" parent="pkg-model" source="Factory" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;entryX=0.655;entryY=-0.001;entryDx=0;entryDy=0;entryPerimeter=0;" target="EventBus" value="eventBus_">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-machine-state" edge="1" parent="pkg-model" source="EventBus" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="MachineState" value="state_">
+        <mxCell id="e-machine-state" edge="1" parent="pkg-model" source="Machine" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="MachineState" value="state_">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e-inherit-states" edge="1" parent="pkg-model" source="MachineStateConcrete" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#000000;" target="MachineState" value="">
@@ -214,16 +202,16 @@
         <mxCell id="e-eventlog-event" edge="1" parent="pkg-model" source="ObserversConcrete" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="Event" value="events_">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="LineMemento" parent="pkg-model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;LineMemento&lt;/b&gt;&lt;hr&gt;id: LineId&lt;br&gt;queueProductIds: vector&amp;lt;ProductId&amp;gt;&lt;br&gt;machines: vector&amp;lt;MachineMemento&amp;gt;" vertex="1">
+        <mxCell id="LineMemento" parent="pkg-model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;LineMemento&lt;/b&gt;&lt;hr&gt;- id_: LineId&lt;br&gt;- queueProductIds_: vector&amp;lt;ProductId&amp;gt;&lt;br&gt;- machines_: vector&amp;lt;MachineMemento&amp;gt;&lt;hr&gt;+ id() const&lt;br&gt;+ queueProductIds() const&lt;br&gt;+ machines() const" vertex="1">
           <mxGeometry height="95" width="240" x="1160" y="280" as="geometry" />
         </mxCell>
-        <mxCell id="MachineMemento" parent="pkg-model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;MachineMemento&lt;/b&gt;&lt;hr&gt;id: MachineId&lt;br&gt;health: double&lt;br&gt;status: MachineStatus" vertex="1">
+        <mxCell id="MachineMemento" parent="pkg-model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;MachineMemento&lt;/b&gt;&lt;hr&gt;- id_: MachineId&lt;br&gt;- health_: double&lt;br&gt;- status_: MachineStatus&lt;hr&gt;+ id() const&lt;br&gt;+ health() const&lt;br&gt;+ status() const" vertex="1">
           <mxGeometry height="80" width="210" x="1175" y="402.5" as="geometry" />
         </mxCell>
         <mxCell id="e-line-memento-machine" edge="1" parent="pkg-model" source="LineMemento" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="MachineMemento" value="machines">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FactoryMemento" parent="pkg-model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;FactoryMemento&lt;/b&gt;&lt;hr&gt;simulationTime: SimulationTime&lt;br&gt;items: map&amp;lt;ItemType,int&amp;gt;&lt;br&gt;products: map&amp;lt;ProductId,int&amp;gt;&lt;br&gt;lines: vector&amp;lt;LineMemento&amp;gt;&lt;br&gt;nextLineId / nextMachineId" vertex="1">
+        <mxCell id="FactoryMemento" parent="pkg-model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;FactoryMemento&lt;/b&gt;&lt;hr&gt;- simulationTime_: SimulationTime&lt;br&gt;- items_: map&amp;lt;ItemType,int&amp;gt;&lt;br&gt;- products_: map&amp;lt;ProductId,int&amp;gt;&lt;br&gt;- lines_: vector&amp;lt;LineMemento&amp;gt;&lt;br&gt;- nextLineId_: LineId = 0&lt;br&gt;- nextMachineId_: MachineId = 0&lt;hr&gt;+ simulationTime() const&lt;br&gt;+ items() const&lt;br&gt;+ products() const&lt;br&gt;+ lines() const&lt;br&gt;+ nextLineId() const&lt;br&gt;+ nextMachineId() const&lt;br&gt;+ addLine(line)&lt;br&gt;+ setNextIds(lineId, machineId)" vertex="1">
           <mxGeometry height="120" width="290" x="1135" y="130" as="geometry" />
         </mxCell>
         <mxCell id="e-factory-memento" edge="1" parent="pkg-model" source="Factory" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" target="FactoryMemento" value="create / restore">

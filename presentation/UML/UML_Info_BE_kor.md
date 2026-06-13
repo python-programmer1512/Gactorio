@@ -257,18 +257,18 @@
 | StatisticsObserver     | brokenMachineEvents_    | int                                           | private | 값 소유                  | 표시        | 통계 카운터                                |
 | StatisticsObserver     | repairedMachineEvents_  | int                                           | private | 값 소유                  | 표시        | 통계 카운터                                |
 | StatisticsObserver     | stateChangedEvents_     | int                                           | private | 값 소유                  | 표시        | 통계 카운터                                |
-| MachineMemento         | id                      | MachineId                                     | public  | 값 소유                  | 표시        | Memento public field                  |
-| MachineMemento         | health                  | double                                        | public  | 값 소유                  | 표시        | Memento public field                  |
-| MachineMemento         | status                  | MachineStatus                                 | public  | 값 소유                  | 표시        | Memento public field                  |
-| LineMemento            | id                      | LineId                                        | public  | 값 소유                  | 표시        | Memento public field                  |
-| LineMemento            | queueProductIds         | std::vector\<ProductId>                       | public  | 값 목록 소유               | 표시        | Memento public field                  |
-| LineMemento            | machines                | std::vector\<MachineMemento>                  | public  | Memento 목록 소유         | 표시        | Memento composition                   |
-| FactoryMemento         | simulationTime          | SimulationTime                                | public  | 값 소유                  | 표시        | Memento public field                  |
-| FactoryMemento         | items                   | std::map\<ItemType, int>                      | public  | 값 소유                  | 표시        | Memento public field                  |
-| FactoryMemento         | products                | std::map\<ProductId, int>                     | public  | 값 소유                  | 표시        | Memento public field                  |
-| FactoryMemento         | lines                   | std::vector\<LineMemento>                     | public  | Memento 목록 소유         | 표시        | Memento composition                   |
-| FactoryMemento         | nextLineId              | LineId                                        | public  | 값 소유                  | 표시        | 동적 라인 ID 복원                           |
-| FactoryMemento         | nextMachineId           | MachineId                                     | public  | 값 소유                  | 표시        | 동적 기계 ID 복원                           |
+| MachineMemento         | id_                     | MachineId                                     | private | 값 소유                  | 표시        | accessor `id()` 로만 노출 (public data member 금지 준수) |
+| MachineMemento         | health_                 | double                                        | private | 값 소유                  | 표시        | accessor `health()` 로만 노출            |
+| MachineMemento         | status_                 | MachineStatus                                 | private | 값 소유                  | 표시        | accessor `status()` 로만 노출           |
+| LineMemento            | id_                     | LineId                                        | private | 값 소유                  | 표시        | accessor `id()` 로만 노출               |
+| LineMemento            | queueProductIds_        | std::vector\<ProductId>                       | private | 값 목록 소유               | 표시        | accessor `queueProductIds()` 로만 노출  |
+| LineMemento            | machines_               | std::vector\<MachineMemento>                  | private | Memento 목록 소유         | 표시        | composition, accessor `machines()`    |
+| FactoryMemento         | simulationTime_         | SimulationTime                                | private | 값 소유                  | 표시        | accessor `simulationTime()` 로만 노출   |
+| FactoryMemento         | items_                  | std::map\<ItemType, int>                      | private | 값 소유                  | 표시        | accessor `items()` 로만 노출            |
+| FactoryMemento         | products_               | std::map\<ProductId, int>                     | private | 값 소유                  | 표시        | accessor `products()` 로만 노출         |
+| FactoryMemento         | lines_                  | std::vector\<LineMemento>                     | private | Memento 목록 소유         | 표시        | composition, accessor `lines()` + `addLine()` |
+| FactoryMemento         | nextLineId_             | LineId                                        | private | 값 소유                  | 표시        | 동적 라인 ID 복원, accessor `nextLineId()` |
+| FactoryMemento         | nextMachineId_          | MachineId                                     | private | 값 소유                  | 표시        | 동적 기계 ID 복원, accessor `nextMachineId()` |
 # 4 : 메서드
 
 | 클래스명                                                                                                                | 메서드 시그니처                                                                                                                                                          | 접근 지정자            | virtual/override/const/static 여부 | 역할                                   | UML 표시 여부 |

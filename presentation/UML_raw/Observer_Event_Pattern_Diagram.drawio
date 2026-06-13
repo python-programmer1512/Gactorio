@@ -49,7 +49,7 @@
         <mxCell id="EventType" parent="pkg-subscribers" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacing=8;" value="&lt;&lt;enum&gt;&gt;&lt;br&gt;&lt;b&gt;EventType&lt;/b&gt;&lt;hr&gt;Info&lt;br&gt;TaskEnqueued&lt;br&gt;TaskStarted&lt;br&gt;StepCompleted&lt;br&gt;ProductCompleted&lt;br&gt;MachineBroken&lt;br&gt;MachineRepaired&lt;br&gt;StateChanged&lt;br&gt;InputsConsumed&lt;br&gt;MachinePaused" vertex="1">
           <mxGeometry height="210" width="250" x="-80" y="57.5" as="geometry" />
         </mxCell>
-        <mxCell id="e-bus-observer" edge="1" parent="pkg-subscribers" source="EventType" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;exitX=1.001;exitY=0.304;exitDx=0;exitDy=0;exitPerimeter=0;" target="Observer" value="observers_ non-owning">
+        <mxCell id="e-bus-observer" edge="1" parent="1" source="EventBus" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="Observer" value="observers_ non-owning">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e-stat-eventtype" edge="1" parent="pkg-subscribers" source="StatisticsObserver" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=0.995;entryY=0.93;entryDx=0;entryDy=0;entryPerimeter=0;" target="EventType" value="switch(event.type())">
@@ -154,12 +154,6 @@
         <mxCell id="e-controller-stat" edge="1" parent="1" source="FactoryController" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" target="StatisticsObserver" value="reads statistics()">
           <mxGeometry relative="1" x="0.3579" as="geometry">
             <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="mhQCIihnqjORaNlZxa-i-1" edge="1" parent="1" source="EventBus" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="EventType" value="">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="865" y="217" as="sourcePoint" />
-            <mxPoint x="1200" y="194" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="note" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacing=8;" value="EventBus stores Observer* only. Factory owns EventBus, EventLogObserver, and StatisticsObserver as value members.&#xa;DTO snapshots do not subscribe; FactoryController copies observer data into DTO values." vertex="1">

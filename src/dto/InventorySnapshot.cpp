@@ -2,6 +2,10 @@
 
 #include <utility>
 
+// =============================================================================
+// InventorySnapshot.cpp — 재고 DTO 구현(항목 = 문자열 ID + 수량).
+// =============================================================================
+
 namespace gactorio {
 
 InventoryEntrySnapshot::InventoryEntrySnapshot(std::string id, int quantity)

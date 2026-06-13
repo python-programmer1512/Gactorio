@@ -2,6 +2,10 @@
 
 #include <utility>
 
+// =============================================================================
+// ProductionLineSnapshot.cpp — 라인 DTO 구현(기계 스냅샷 목록을 누적 보관).
+// =============================================================================
+
 namespace gactorio {
 
 ProductionLineSnapshot::ProductionLineSnapshot(

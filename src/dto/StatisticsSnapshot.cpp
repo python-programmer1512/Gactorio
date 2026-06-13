@@ -1,5 +1,9 @@
 #include "dto/StatisticsSnapshot.hpp"
 
+// =============================================================================
+// StatisticsSnapshot.cpp — 통계 DTO 구현(6개 카운터의 값 복사 + 접근자).
+// =============================================================================
+
 namespace gactorio {
 
 StatisticsSnapshot::StatisticsSnapshot(

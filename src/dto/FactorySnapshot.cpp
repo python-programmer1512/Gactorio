@@ -2,6 +2,10 @@
 
 #include <utility>
 
+// =============================================================================
+// FactorySnapshot.cpp — 최상위 스냅샷 DTO 구현(라인/이벤트 목록을 누적 보관).
+// =============================================================================
+
 namespace gactorio {
 
 FactorySnapshot::FactorySnapshot(SimulationTime simulationTime, InventorySnapshot inventory, StatisticsSnapshot statistics)

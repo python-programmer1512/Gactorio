@@ -18,4 +18,4 @@ View 구조는 수업 자료의 composable UI 구조와 유사합니다. 가장 
 
 결론적으로 JavaScript View는 ImGui 대신 DOM을 사용하지만, 수업 자료에서 요구한 MVC 구조, 즉 Model과 View의 분리, Controller를 통한 통신, composable UI component 구조를 유지하고 있습니다.
 
-추가로 Memento UML은 수정본에서 공개 field가 아니라 private field와 accessor로 표현했습니다. 이 변경은 public data member를 피하고 encapsulation을 강화하기 위한 것입니다.
+추가로 Memento UML은 공개 field가 아니라 private field와 accessor로 표현되어 있습니다. 이는 실제 코드(`FactoryMemento.hpp`)와 일치하며, public data member를 피하고 encapsulation을 강화하기 위한 것입니다.

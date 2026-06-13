@@ -3,10 +3,18 @@
 #include <algorithm>
 #include <utility>
 
+// =============================================================================
+// ProductionLine.cpp — 라인의 작업 큐 운영과 기계 배정 구현
+// 핵심: assignAvailableTask() 는 "유휴 기계 × 큐의 작업" 을 역할(role)로만 매칭한다.
+//       구체 기계 타입을 절대 보지 않는다(다형성/OCP 유지).
+// =============================================================================
+
 namespace gactorio {
 
 namespace {
 
+// 어떤 작업이 이미 (이 라인의) 어떤 기계에 배정돼 있는지 검사. 같은 작업이 두 기계에
+// 동시에 배정되는 것을 막기 위함.
 bool isAssignedToMachine(
     const std::vector<std::unique_ptr<Machine>>& machines,
     const ProductionTask* task) {
@@ -35,6 +43,7 @@ const std::vector<std::unique_ptr<Machine>>& ProductionLine::machines() const {
     return machines_;
 }
 
+// 버스 연결을 라인 자신과 소속 기계 전부에 전파.
 void ProductionLine::setEventBus(EventBus* eventBus) {
     eventBus_ = eventBus;
     for (auto& machine : machines_) {
@@ -42,6 +51,7 @@ void ProductionLine::setEventBus(EventBus* eventBus) {
     }
 }
 
+// 제품을 작업(ProductionTask)으로 감싸 큐 뒤에 추가. TaskEnqueued 이벤트 발행.
 void ProductionLine::enqueueProduct(std::shared_ptr<Product> product) {
     if (product == nullptr) {
         return;
@@ -62,14 +72,17 @@ std::shared_ptr<ProductionTask> ProductionLine::currentTask() const {
     if (taskQueue_.empty()) {
         return nullptr;
     }
-    return taskQueue_.front();
+    return taskQueue_.front();   // 큐 맨 앞(가장 먼저 들어온 작업)
 }
 
+// 기계 추가: 버스 연결 후 소유 이전.
 void ProductionLine::addMachine(std::unique_ptr<Machine> machine) {
     machine->setEventBus(eventBus_);
     machines_.push_back(std::move(machine));
 }
 
+// 유휴 기계마다, 큐의 작업 중 "현재 단계 역할이 이 기계 역할과 맞고 아직 미배정"인
+// 첫 작업을 찾아 배정한다. 타입 분기 없이 역할(role)만으로 매칭(다형성).
 void ProductionLine::assignAvailableTask() {
     if (taskQueue_.empty()) {
         return;
@@ -77,7 +90,7 @@ void ProductionLine::assignAvailableTask() {
 
     for (auto& machine : machines_) {
         if (!machine->canAcceptTask()) {
-            continue;
+            continue;   // 유휴+HP>0+작업없음 이 아니면 건너뜀
         }
 
         for (const auto& task : taskQueue_) {
@@ -85,18 +98,19 @@ void ProductionLine::assignAvailableTask() {
                 continue;
             }
             if (isAssignedToMachine(machines_, task.get())) {
-                continue;
+                continue;   // 이미 다른 기계가 처리 중
             }
 
             const auto* step = task->currentStep();
             if (step != nullptr && machine->canProcess(step->requiredRole())) {
-                machine->assignTask(task);
-                break;
+                machine->assignTask(task);   // 역할 일치 → 배정
+                break;                        // 이 기계는 한 작업만
             }
         }
     }
 }
 
+// 완료된 작업들을 큐에서 빼서 그 제품 ID 목록을 반환(Factory 가 재고에 더함).
 std::vector<ProductId> ProductionLine::collectCompletedProducts() {
     for (auto it = taskQueue_.begin(); it != taskQueue_.end();) {
         if (*it != nullptr && (*it)->isCompleted()) {
@@ -130,6 +144,7 @@ const Machine* ProductionLine::findMachine(MachineId id) const {
     return nullptr;
 }
 
+// 라인 단독 갱신(테스트/단독 사용 경로). 실제 런타임은 Factory::update 가 단계를 조율한다.
 void ProductionLine::update(double deltaTime) {
     assignAvailableTask();
     for (auto& machine : machines_) {
@@ -139,7 +154,8 @@ void ProductionLine::update(double deltaTime) {
     assignAvailableTask();
 }
 
-// ---- Memento support --------------------------------------------------------
+// ---- Memento 지원 ----------------------------------------------------------
+// 큐에 남은 작업들의 제품 ID 목록(복원 시 다시 enqueue 하기 위함).
 std::vector<ProductId> ProductionLine::pendingProductIds() const {
     std::vector<ProductId> out;
     out.reserve(taskQueue_.size());

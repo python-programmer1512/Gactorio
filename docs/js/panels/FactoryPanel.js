@@ -1,26 +1,33 @@
 // =============================================================================
-// FactoryPanel - production lines rendered as conveyor-belt shop-floor views.
+// FactoryPanel — 생산라인을 "컨베이어 벨트 + 기계 카드" 형태로 그리는 패널 (중앙)
+// -----------------------------------------------------------------------------
+// 스냅샷의 모든 LineView 를 렌더한다. 카드/버튼은 매 렌더마다 새로 만들어지므로,
+// 개별 버튼에 리스너를 달지 않고 #factory-content 에 위임(delegation) 리스너 하나만 둔다.
 //
-// Renders every LineView from the snapshot. Dynamic buttons are rebuilt with
-// each render, so actions use one delegated pointerdown listener scoped to
-// #factory-content.
+// 상호작용 중(드래그/슬라이더/휠 스크롤) 에는 #isLineInteracting 플래그를 세워
+// innerHTML 재구성을 잠시 멈춘다 — 그래야 드래그 도중 DOM 이 갈아엎혀 끊기지 않는다.
+//
+// MVC: 버튼(라인추가/제거/수리) → Module.Controller 명령. 그리기 → snapshot 기반.
+// (드래그/스크롤 같은 순수 표시 상호작용은 컨트롤러를 부르지 않고 View 내부에서만 처리.)
 // =============================================================================
 
 import { UIComponent } from '../UIComponent.js';
 import { esc } from '../util.js';
 
 export class FactoryPanel extends UIComponent {
-    #ctrl;
-    #isLineInteracting = false;
-    #lineInteractionTimer = 0;
-    #scrollLeftByLine = new Map();
+    #ctrl;                          // Module.Controller (명령 대상)
+    #isLineInteracting = false;     // 사용자가 라인과 상호작용 중인가(렌더 일시중지 플래그)
+    #lineInteractionTimer = 0;      // 상호작용 종료를 늦추는 타이머 핸들
+    #scrollLeftByLine = new Map();  // 라인별 가로 스크롤 위치 기억(재렌더 후 복원용)
 
     constructor(controller) {
         super();
         this.#ctrl = controller;
     }
 
+    // bind(): 라인 추가 버튼 + 위임 리스너들(버튼 동작, 드래그/휠/슬라이더 스크롤) 연결.
     bind() {
+        // 마우스로 컨베이어 라인을 좌우 드래그 스크롤(구형 브라우저/마우스 경로).
         const beginMouseDrag = (scroller, startX) => {
             const startScrollLeft = scroller.scrollLeft;
             this.#holdLineInteraction();
@@ -42,6 +49,7 @@ export class FactoryPanel extends UIComponent {
             window.addEventListener('mouseup', onUp);
         };
 
+        // 포인터(마우스/터치/펜) 통합 드래그 스크롤. 가능하면 포인터 캡처로 부드럽게.
         const beginPointerDrag = (scroller, event) => {
             const startX = event.clientX;
             const startScrollLeft = scroller.scrollLeft;
@@ -78,11 +86,14 @@ export class FactoryPanel extends UIComponent {
             window.addEventListener('pointercancel', onUp);
         };
 
+        // 라인 추가 버튼 → 컨트롤러 addLine 명령(새 4스테이션 라인 생성).
         document.getElementById('btn-add-line').addEventListener('click', () => {
             const id = this.#ctrl.addLine();
             console.log('[gactorio] addLine -> id', id);
         });
 
+        // 위임 리스너: 카드/버튼이 매 렌더 새로 생기므로 부모에서 한 번만 처리.
+        // data-act 속성으로 어떤 명령인지 구분해 컨트롤러로 보낸다.
         document.getElementById('factory-content').addEventListener('pointerdown', e => {
             const btn = e.target.closest('button[data-act]');
             if (btn && btn.disabled) return;
@@ -176,6 +187,8 @@ export class FactoryPanel extends UIComponent {
         }, true);
     }
 
+    // render(): 상호작용 중이면 DOM 재구성을 건너뛰고(드래그 끊김 방지) 스크롤바만 동기화.
+    // 평상시엔 모든 라인 HTML 을 새로 만들어 채우고, 스크롤 위치를 복원한다.
     render(snap) {
         if (this.#isLineInteracting) {
             this.#syncDragbars();
@@ -192,6 +205,8 @@ export class FactoryPanel extends UIComponent {
         this.#syncDragbars();
     }
 
+    // 라인 1개의 HTML 생성: 헤더(이름/큐·가동수/Disappear 버튼) + 기계 카드들의 벨트.
+    // Disappear(라인 제거) 버튼은 라인이 비어 있고(isRemovable) 라인이 2개 이상일 때만 활성.
     #lineHtml(line, totalLines) {
         const activeStations = line.machines.filter(m => m.state === 'Working' || m.state === 'Maintenance').length;
 
@@ -229,6 +244,8 @@ export class FactoryPanel extends UIComponent {
             </div>`;
     }
 
+    // 기계 1대의 카드 HTML: 상태 배지(색은 CSS의 state-*/machine-* 클래스), 진행 막대,
+    // HP 막대, Repair(+5) 버튼, 그리고 고장(Broken)일 때만 Repair All 버튼.
     #machineCard(m, index) {
         const stateCls = `state-${m.state.toLowerCase()}`;
         const cardCls = `machine-card machine-${m.state.toLowerCase()}`;
@@ -264,6 +281,8 @@ export class FactoryPanel extends UIComponent {
             </article>`;
     }
 
+    // 아래는 모두 "컨베이어 가로 스크롤" 보조 기능(순수 View 동작, 컨트롤러와 무관).
+    // 모든 라인의 스크롤바(슬라이더)를 현재 스크롤 위치에 맞춰 갱신.
     #syncDragbars() {
         for (const scroller of document.querySelectorAll('.conveyor-line')) {
             this.#syncDragbar(scroller);
@@ -276,6 +295,8 @@ export class FactoryPanel extends UIComponent {
         this.#scrollLeftByLine.set(lineId, scroller.scrollLeft);
     }
 
+    // 상호작용 시작 표시. durationMs>0 이면 그 시간 뒤 자동 해제(휠/슬라이더용),
+    // 0 이면 명시적 해제(드래그 종료)까지 유지.
     #holdLineInteraction(durationMs = 0) {
         this.#isLineInteracting = true;
         if (this.#lineInteractionTimer !== 0) {
@@ -290,6 +311,7 @@ export class FactoryPanel extends UIComponent {
         }
     }
 
+    // 드래그가 끝나면 약간의 지연 후 상호작용 해제(렌더 재개). 짧은 여유로 깜빡임 방지.
     #releaseLineInteractionSoon() {
         if (this.#lineInteractionTimer !== 0) {
             clearTimeout(this.#lineInteractionTimer);
@@ -308,6 +330,7 @@ export class FactoryPanel extends UIComponent {
         }
     }
 
+    // 한 라인의 슬라이더 max/value 를 스크롤 가능 폭에 맞춰 동기화. 스크롤 여백이 없으면 숨김.
     #syncDragbar(scroller) {
         const slider = scroller.querySelector('.conveyor-slider');
         if (!slider) return;

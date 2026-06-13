@@ -1,18 +1,22 @@
 // =============================================================================
-// InventoryPanel — raw items and finished products. (Right column.)
+// InventoryPanel — 원자재와 완제품 재고 표시 + 원자재 보충(+5) (오른쪽 컬럼)
+// -----------------------------------------------------------------------------
+// 스냅샷의 inventory 배열을 isProduct 플래그로 갈라 "원자재" / "완제품" 두 표로 그린다.
+// 원자재 행의 +5 버튼은 컨트롤러 restockItem 을 호출한다(제품은 보충 버튼 없음).
 // =============================================================================
 
 import { UIComponent } from '../UIComponent.js';
 import { esc } from '../util.js';
 
 export class InventoryPanel extends UIComponent {
-    #ctrl;
+    #ctrl;   // Module.Controller (restockItem 명령)
 
     constructor(controller) {
         super();
         this.#ctrl = controller;
     }
 
+    // bind(): 보충 버튼 클릭 위임. 매 렌더마다 표가 새로 그려지므로 위임 리스너를 쓴다.
     bind() {
         document.getElementById('inventory-content').addEventListener('pointerdown', e => {
             const btn = e.target.closest('button[data-restock-item]');
@@ -23,9 +27,10 @@ export class InventoryPanel extends UIComponent {
         });
     }
 
+    // render(): 재고를 원자재/완제품으로 분리해 두 개의 표로 출력.
     render(snap) {
-        const rawItems = snap.inventory.filter(it => !it.isProduct);
-        const products = snap.inventory.filter(it => it.isProduct);
+        const rawItems = snap.inventory.filter(it => !it.isProduct);   // 원자재
+        const products = snap.inventory.filter(it => it.isProduct);    // 완제품
 
         document.getElementById('inventory-content').innerHTML = `
             <h3>Raw Items</h3>
@@ -40,6 +45,7 @@ export class InventoryPanel extends UIComponent {
             </table>`;
     }
 
+    // 원자재 행: 이름/수량 + 보충(+5) 버튼. 비어 있으면 안내 행.
     #rawRows(items) {
         if (items.length === 0) {
             return '<tr><td colspan="3" style="color:#666">(empty)</td></tr>';
@@ -53,6 +59,7 @@ export class InventoryPanel extends UIComponent {
             </tr>`).join('');
     }
 
+    // 완제품 행: 이름/수량(보충 버튼 없음). 아직 없으면 안내 행.
     #productRows(products) {
         if (products.length === 0) {
             return '<tr><td colspan="2" style="color:#666">(none yet)</td></tr>';
