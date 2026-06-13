@@ -33,11 +33,13 @@ public:
 
     void addProductionLine(ProductionLine line);
     bool removeProductionLine(LineId id);
-    bool enqueueProduct(LineId lineId, std::shared_ptr<Product> product);
+    EnqueueResult enqueueProduct(LineId lineId, std::shared_ptr<Product> product);
     bool restockItem(ItemType itemType, int amount);
     ProductionLine* findProductionLine(LineId id);
     const ProductionLine* findProductionLine(LineId id) const;
     Machine* findMachine(MachineId id);
+    bool setLineScenario(LineId lineId, ScenarioType scenario);
+    std::optional<ScenarioType> getLineScenario(LineId lineId) const;
     SimulationTime update(double realDeltaTime);
     void pauseClock();
     void resumeClock();

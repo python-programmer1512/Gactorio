@@ -1,6 +1,9 @@
 #include "model/Factory.hpp"
 
+#include "common/ScenarioType.hpp"
+
 #include <algorithm>
+#include <string>
 #include <utility>
 
 namespace gactorio {
@@ -94,22 +97,21 @@ bool Factory::removeProductionLine(LineId id) {
     return true;
 }
 
-bool Factory::enqueueProduct(LineId lineId, std::shared_ptr<Product> product) {
+EnqueueResult Factory::enqueueProduct(LineId lineId, std::shared_ptr<Product> product) {
     if (product == nullptr) {
-        return false;
+        return EnqueueResult::RejectedFull;
     }
 
     auto* line = findProductionLine(lineId);
     if (line == nullptr) {
-        return false;
+        return EnqueueResult::RejectedFull;
     }
 
     if (!inventory_.consume(product->getRequirements())) {
-        return false;
+        return EnqueueResult::RejectedFull;
     }
 
-    line->enqueueProduct(std::move(product));
-    return true;
+    return line->enqueueProduct(std::move(product));
 }
 
 bool Factory::restockItem(ItemType itemType, int amount) {
@@ -159,6 +161,29 @@ Machine* Factory::findMachine(MachineId id) {
         }
     }
     return nullptr;
+}
+
+bool Factory::setLineScenario(LineId lineId, ScenarioType scenario) {
+    auto* line = findProductionLine(lineId);
+    if (line == nullptr) {
+        return false;
+    }
+
+    line->setScenario(scenario);
+    eventBus_.publish(Event(
+        clock_.now(),
+        EventType::Info,
+        lineId,
+        "Line " + std::to_string(lineId) + " scenario changed to " + scenarioTypeToDisplayName(scenario)));
+    return true;
+}
+
+std::optional<ScenarioType> Factory::getLineScenario(LineId lineId) const {
+    const auto* line = findProductionLine(lineId);
+    if (line == nullptr) {
+        return std::nullopt;
+    }
+    return line->scenario();
 }
 
 SimulationTime Factory::update(double realDeltaTime) {
@@ -238,7 +263,13 @@ FactoryMemento Factory::createMemento() const {
                 machine->id(), machine->getHealth(), machine->getStatus()
             );
         }
-        m.addLine(LineMemento(line.id(), line.pendingProductIds(), std::move(machineMementos)));
+        m.addLine(LineMemento(
+            line.id(),
+            line.pendingProductIds(),
+            std::move(machineMementos),
+            line.scenario(),
+            line.queueCapacity(),
+            line.droppedTaskCount()));
     }
     return m;
 }
@@ -299,6 +330,14 @@ void Factory::restoreFromMemento(const FactoryMemento& m) {
                 line->enqueueProduct(std::move(product));
             }
         }
+
+        line->setScenario(lm.scenario());
+        if (lm.queueCapacity().has_value()) {
+            line->setQueueCapacity(*lm.queueCapacity());
+        } else {
+            line->resetQueueCapacity();
+        }
+        line->setDroppedTaskCount(lm.droppedTaskCount());
     }
 }
 

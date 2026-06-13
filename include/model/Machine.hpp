@@ -57,6 +57,11 @@ public:
     double getHealth() const;
     double getProcessingSpeed() const;
     double getBreakdownProbability() const;
+    void resetScenarioModifiers();
+    void setScenarioSpeedMultiplier(double multiplier);
+    void setScenarioBreakdownProbabilityOverride(std::optional<double> probability);
+    double effectiveProcessingSpeed() const;
+    double effectiveBreakdownProbability() const;
     void pause();
     void resume();
 
@@ -101,6 +106,8 @@ private:
     double health_ = 100.0;
     double processingSpeed_ = 1.0;
     double breakdownProbability_ = 0.0;
+    double scenarioSpeedMultiplier_ = 1.0;
+    std::optional<double> scenarioBreakdownProbabilityOverride_;
     double maintenanceElapsed_ = 0.0;
     double maintenanceDuration_ = 2.0;
     SimulationTime simulationTime_ = 0.0;

@@ -12,14 +12,14 @@
 // bridge between this View and the C++ Model. No panel ever bypasses it.
 // =============================================================================
 
-import { Application }     from './Application.js?v=20260613-compactline11';
-import { SimControlPanel } from './panels/SimControlPanel.js?v=20260613-compactline11';
-import { FactoryPanel }    from './panels/FactoryPanel.js?v=20260613-compactline11';
-import { ProductsPanel }   from './panels/ProductsPanel.js?v=20260613-compactline11';
-import { EventLogPanel }   from './panels/EventLogPanel.js?v=20260613-compactline11';
-import { InventoryPanel }  from './panels/InventoryPanel.js?v=20260613-compactline11';
+import { Application }     from './Application.js?v=20260614-scenario13';
+import { SimControlPanel } from './panels/SimControlPanel.js?v=20260614-scenario13';
+import { FactoryPanel }    from './panels/FactoryPanel.js?v=20260614-scenario13';
+import { ProductsPanel }   from './panels/ProductsPanel.js?v=20260614-scenario13';
+import { EventLogPanel }   from './panels/EventLogPanel.js?v=20260614-scenario13';
+import { InventoryPanel }  from './panels/InventoryPanel.js?v=20260614-scenario13';
 
-console.log('[gactorio] main.js loaded - build', '2026-06-13-compactline11');
+console.log('[gactorio] main.js loaded - build', '2026-06-14-scenario13');
 
 function boot() {
     console.log('[gactorio] wasm runtime ready, creating Controller');

@@ -18,6 +18,7 @@ option(GACTORIO_BUILD_TESTS "Build BE smoke tests" ON)
 add_library(gactorio_backend
     src/common/Types.cpp
     src/common/SimClock.cpp
+    src/common/ScenarioType.cpp
     src/model/Item.cpp
     src/model/Product.cpp
     src/model/ProductCatalog.cpp
@@ -80,6 +81,7 @@ if (GACTORIO_BUILD_TESTS AND NOT EMSCRIPTEN)
         inventory_smoke_test:tests/model/InventorySmokeTest.cpp
         production_task_smoke_test:tests/model/ProductionTaskSmokeTest.cpp
         sim_clock_smoke_test:tests/model/SimClockSmokeTest.cpp
+        scenario_type_smoke_test:tests/model/ScenarioTypeSmokeTest.cpp
         machine_smoke_test:tests/model/MachineSmokeTest.cpp
         concrete_machine_smoke_test:tests/model/ConcreteMachineSmokeTest.cpp
         machine_state_smoke_test:tests/model/MachineStateSmokeTest.cpp

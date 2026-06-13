@@ -50,6 +50,10 @@ struct LineView {
     std::size_t queueLength;
     std::string currentTaskName;       // empty if idle
     double      currentTaskProgress;   // 0.0 .. 1.0
+    std::string scenarioId;
+    std::string scenarioName;
+    std::size_t queueCapacity = 0;
+    std::size_t droppedTaskCount = 0;
     bool        isRemovable;           // true ⇒ line can be safely deleted
     std::vector<MachineView> machines;
 };
@@ -127,6 +131,7 @@ public:
     // maintenance routine (config::kRepairAllDelaySeconds) that fully
     // restores HP and resumes the paused task from the start of its step.
     bool repairAll    (MachineId id);
+    bool setLineScenario(LineId line, const std::string& scenarioId);
 
     // ---- Memento (snapshot history) ----------------------------------------
     // Capture current Factory state and push onto an internal stack.
@@ -138,6 +143,7 @@ public:
 
     // ---- Query (read Model, returns cached View) ----------------------------
     const FactoryView& snapshot() const;
+    std::string getLineScenario(LineId line) const;
     const std::vector<ProductOption>& products() const;
 
 private:

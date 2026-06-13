@@ -1,5 +1,6 @@
 #include "controller/FactoryController.hpp"
 
+#include "common/ScenarioType.hpp"
 #include "model/Machine.hpp"
 #include "model/ProductCatalog.hpp"
 
@@ -51,7 +52,16 @@ ProductionLineSnapshot makeProductionLineSnapshot(const ProductionLine& line) {
         currentProgress = task->getProgressInRoute();
     }
 
-    ProductionLineSnapshot snapshot(line.id(), line.name(), line.queueLength(), currentName, currentProgress);
+    ProductionLineSnapshot snapshot(
+        line.id(),
+        line.name(),
+        line.queueLength(),
+        currentName,
+        currentProgress,
+        scenarioTypeToString(line.scenario()),
+        scenarioTypeToDisplayName(line.scenario()),
+        line.queueCapacityValueOrZero(),
+        line.droppedTaskCount());
     for (const auto& machine : line.machines()) {
         if (machine->hasTask()) {
             currentProgress = std::max(currentProgress, machine->getProgress());
@@ -143,9 +153,16 @@ FactoryCommandResult FactoryController::enqueueProductById(LineId lineId, Produc
     if (product == nullptr) {
         return FactoryCommandResult::InvalidRequest;
     }
-    return factory_->enqueueProduct(line->id(), std::move(product))
-        ? FactoryCommandResult::Success
-        : FactoryCommandResult::InvalidRequest;
+
+    switch (factory_->enqueueProduct(line->id(), std::move(product))) {
+    case EnqueueResult::Accepted:
+        return FactoryCommandResult::Success;
+    case EnqueueResult::LostOverflow:
+        return FactoryCommandResult::OverflowDropped;
+    case EnqueueResult::RejectedFull:
+    default:
+        return FactoryCommandResult::InvalidRequest;
+    }
 }
 
 LineId FactoryController::enqueueAuto(ProductType productType) {
@@ -263,6 +280,30 @@ FactoryCommandResult FactoryController::resumeMachine(MachineId id) {
 
     machine->resume();
     return FactoryCommandResult::Success;
+}
+
+FactoryCommandResult FactoryController::setLineScenario(LineId lineId, ScenarioType scenario) {
+    if (!factory_) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+    return factory_->setLineScenario(lineId, scenario)
+        ? FactoryCommandResult::Success
+        : FactoryCommandResult::NotFound;
+}
+
+FactoryCommandResult FactoryController::setLineScenarioById(LineId lineId, const std::string& scenarioId) {
+    const auto scenario = scenarioTypeFromString(scenarioId);
+    if (!scenario.has_value()) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+    return setLineScenario(lineId, *scenario);
+}
+
+std::optional<ScenarioType> FactoryController::getLineScenario(LineId lineId) const {
+    if (!factory_) {
+        return std::nullopt;
+    }
+    return factory_->getLineScenario(lineId);
 }
 
 FactorySnapshot FactoryController::getFactorySnapshot() const {

@@ -24,6 +24,7 @@ python tools/gen_config.py
 $sources = @(
     'src/common/Types.cpp',
     'src/common/SimClock.cpp',
+    'src/common/ScenarioType.cpp',
     'src/model/Item.cpp',
     'src/model/Product.cpp',
     'src/model/ProductCatalog.cpp',

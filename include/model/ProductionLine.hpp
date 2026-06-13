@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/ScenarioType.hpp"
 #include "common/Types.hpp"
 #include "model/Machine.hpp"
 #include "model/Product.hpp"
@@ -8,10 +9,25 @@
 
 #include <deque>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace gactorio {
+
+struct LineScenarioConfig {
+    ScenarioType type;
+    std::optional<MachineRole> bottleneckRole;
+    double bottleneckSpeedMultiplier;
+    std::optional<double> breakdownProbabilityOverride;
+    std::optional<std::size_t> queueCapacity;
+};
+
+enum class EnqueueResult {
+    Accepted,
+    RejectedFull,
+    LostOverflow
+};
 
 class ProductionLine {
 public:
@@ -24,10 +40,19 @@ public:
     ProductionLineId id() const;
     const std::string& name() const;
     const std::vector<std::unique_ptr<Machine>>& machines() const;
+    ScenarioType scenario() const;
+    ScenarioType getScenario() const;
 
+    void setScenario(ScenarioType scenario);
     void setEventBus(EventBus* eventBus);
-    void enqueueProduct(std::shared_ptr<Product> product);
+    EnqueueResult enqueueProduct(std::shared_ptr<Product> product);
     std::size_t queueLength() const;
+    std::optional<std::size_t> queueCapacity() const;
+    std::size_t queueCapacityValueOrZero() const;
+    void setQueueCapacity(std::size_t capacity);
+    void resetQueueCapacity();
+    std::size_t droppedTaskCount() const;
+    void setDroppedTaskCount(std::size_t count);
     std::shared_ptr<ProductionTask> currentTask() const;
     void assignAvailableTask();
     std::vector<ProductId> collectCompletedProducts();
@@ -44,9 +69,12 @@ public:
 private:
     ProductionLineId id_;
     std::string name_;
+    ScenarioType scenario_ = ScenarioType::NormalFlow;
     std::deque<std::shared_ptr<ProductionTask>> taskQueue_;
     std::vector<ProductId> completedProducts_;
     std::vector<std::unique_ptr<Machine>> machines_;
+    std::optional<std::size_t> queueCapacity_;
+    std::size_t droppedTaskCount_ = 0;
     EventBus* eventBus_ = nullptr;
 };
 

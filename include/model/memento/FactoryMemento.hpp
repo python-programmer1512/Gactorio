@@ -20,10 +20,12 @@
 //     real history, not state)
 // =============================================================================
 
+#include "common/ScenarioType.hpp"
 #include "common/Types.hpp"
 
 #include <cstddef>
 #include <map>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -49,19 +51,31 @@ public:
     LineMemento(
         LineId id,
         std::vector<ProductId> queueProductIds,
-        std::vector<MachineMemento> machines)
+        std::vector<MachineMemento> machines,
+        ScenarioType scenario = ScenarioType::NormalFlow,
+        std::optional<std::size_t> queueCapacity = std::nullopt,
+        std::size_t droppedTaskCount = 0)
         : id_(id),
           queueProductIds_(std::move(queueProductIds)),
-          machines_(std::move(machines)) {}
+          machines_(std::move(machines)),
+          scenario_(scenario),
+          queueCapacity_(queueCapacity),
+          droppedTaskCount_(droppedTaskCount) {}
 
     LineId id() const { return id_; }
     const std::vector<ProductId>& queueProductIds() const { return queueProductIds_; }
     const std::vector<MachineMemento>& machines() const { return machines_; }
+    ScenarioType scenario() const { return scenario_; }
+    const std::optional<std::size_t>& queueCapacity() const { return queueCapacity_; }
+    std::size_t droppedTaskCount() const { return droppedTaskCount_; }
 
 private:
     LineId                       id_;
     std::vector<ProductId>       queueProductIds_;
     std::vector<MachineMemento>  machines_;
+    ScenarioType                 scenario_;
+    std::optional<std::size_t>   queueCapacity_;
+    std::size_t                  droppedTaskCount_;
 };
 
 class FactoryMemento {

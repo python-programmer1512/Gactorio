@@ -9,6 +9,13 @@
 import { UIComponent } from '../UIComponent.js';
 import { esc } from '../util.js';
 
+const SCENARIO_OPTIONS = [
+    { id: 'normal-flow', label: 'Normal Flow' },
+    { id: 'random-breakdowns', label: 'Random Breakdowns' },
+    { id: 'bottleneck', label: 'Bottleneck' },
+    { id: 'overflow', label: 'Overflow' },
+];
+
 export class FactoryPanel extends UIComponent {
     #ctrl;
     #isLineInteracting = false;
@@ -84,6 +91,11 @@ export class FactoryPanel extends UIComponent {
         });
 
         document.getElementById('factory-content').addEventListener('pointerdown', e => {
+            if (e.target.closest('.scenario-select')) {
+                this.#holdLineInteraction();
+                return;
+            }
+
             const btn = e.target.closest('button[data-act]');
             if (btn && btn.disabled) return;
 
@@ -167,6 +179,35 @@ export class FactoryPanel extends UIComponent {
             this.#holdLineInteraction(350);
         });
 
+        document.getElementById('factory-content').addEventListener('change', e => {
+            const select = e.target.closest('.scenario-select');
+            if (!select) return;
+
+            const lineId = parseInt(select.dataset.line, 10);
+            const scenarioId = select.value;
+            try {
+                const ok = this.#ctrl.setLineScenario(lineId, scenarioId);
+                if (!ok) {
+                    console.warn('[gactorio] setLineScenario failed', lineId, scenarioId);
+                }
+            } catch (err) {
+                console.warn('[gactorio] setLineScenario threw:', err);
+            }
+            this.#releaseLineInteractionSoon();
+        });
+
+        document.getElementById('factory-content').addEventListener('focusin', e => {
+            if (e.target.closest('.scenario-select')) {
+                this.#holdLineInteraction();
+            }
+        });
+
+        document.getElementById('factory-content').addEventListener('focusout', e => {
+            if (e.target.closest('.scenario-select')) {
+                this.#releaseLineInteractionSoon();
+            }
+        });
+
         document.getElementById('factory-content').addEventListener('scroll', e => {
             const scroller = e.target.closest?.('.conveyor-line');
             if (!scroller) return;
@@ -194,6 +235,14 @@ export class FactoryPanel extends UIComponent {
 
     #lineHtml(line, totalLines) {
         const activeStations = line.machines.filter(m => m.state === 'Working' || m.state === 'Maintenance').length;
+        const scenarioId = line.scenarioId || 'normal-flow';
+        const scenarioName = line.scenarioName || 'Normal Flow';
+        const queueCapacity = Number(line.queueCapacity || 0);
+        const droppedTaskCount = Number(line.droppedTaskCount || 0);
+        const capacityText = queueCapacity === 0 ? 'Unlimited' : String(queueCapacity);
+        const scenarioOptions = SCENARIO_OPTIONS.map(option => `
+            <option value="${esc(option.id)}" ${option.id === scenarioId ? 'selected' : ''}>${esc(option.label)}</option>
+        `).join('');
 
         const canDisappear = line.isRemovable && totalLines > 1;
         const disappearTitle = totalLines <= 1
@@ -217,7 +266,21 @@ export class FactoryPanel extends UIComponent {
                 <div class="line-header">
                     <div>
                         <h3>${esc(line.name)}</h3>
-                        <div class="meta">Queue/WIP: <b>${line.queueLength}</b> &middot; Active stations: <b>${activeStations}</b></div>
+                        <div class="scenario-control">
+                            <label>
+                                Scenario
+                                <select class="scenario-select" data-line="${line.id}" aria-label="${esc(line.name)} scenario">
+                                    ${scenarioOptions}
+                                </select>
+                            </label>
+                            <span>${esc(scenarioName)}</span>
+                        </div>
+                        <div class="meta">
+                            Queue/WIP: <b>${line.queueLength}</b> &middot;
+                            Active stations: <b>${activeStations}</b> &middot;
+                            Capacity: <b>${esc(capacityText)}</b> &middot;
+                            Dropped: <b>${droppedTaskCount}</b>
+                        </div>
                     </div>
                     ${disappearBtn}
                 </div>

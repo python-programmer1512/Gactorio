@@ -110,6 +110,34 @@ section h3 { margin: 16px 0 8px; color: #aaa; font-size: 13px; }
 }
 .line-header > div { flex: 1; min-width: 0; }
 .line-header h3 { margin: 0; flex: 1; }
+.scenario-control {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 5px 0 4px;
+    color: #aeb6c4;
+    font-size: 12px;
+}
+.scenario-control label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.scenario-control select {
+    max-width: 190px;
+    min-width: 150px;
+    height: 26px;
+    border: 1px solid #45515f;
+    border-radius: 4px;
+    background: #1f252d;
+    color: #e8e8e8;
+    font-size: 12px;
+}
+.scenario-control span {
+    color: #f4c430;
+    font-variant-numeric: tabular-nums;
+}
 
 /* ---------- Controls ---------- */
 .row { margin: 8px 0; }

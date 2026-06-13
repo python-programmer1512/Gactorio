@@ -2,6 +2,7 @@
 
 // Only this .cpp file knows about the gactorio model. Translation between
 // view-friendly types (ctrl::*) and model types (gactorio::*) lives here.
+#include "common/ScenarioType.hpp"
 #include "common/Types.hpp"
 #include "controller/FactoryController.hpp"
 #include "model/Item.hpp"
@@ -128,6 +129,10 @@ struct Controller::Impl {
             lv.queueLength         = line.queueLength();
             lv.currentTaskName     = line.currentTaskName();
             lv.currentTaskProgress = line.currentTaskProgress();
+            lv.scenarioId          = line.scenarioId();
+            lv.scenarioName        = line.scenarioName();
+            lv.queueCapacity       = line.queueCapacity();
+            lv.droppedTaskCount    = line.droppedTaskCount();
             bool busy = lv.queueLength > 0 || !lv.currentTaskName.empty();
             for (const auto& m : line.machines()) {
                 lv.machines.push_back({
@@ -220,9 +225,23 @@ bool Controller::repairAll(MachineId id) {
         == gactorio::FactoryCommandResult::Success;
 }
 
+bool Controller::setLineScenario(LineId line, const std::string& scenarioId) {
+    m_impl->dirty = true;
+    return m_impl->backend.setLineScenarioById(line, scenarioId)
+        == gactorio::FactoryCommandResult::Success;
+}
+
 const FactoryView& Controller::snapshot() const {
     if (m_impl->dirty) m_impl->rebuild();
     return m_impl->cached;
+}
+
+std::string Controller::getLineScenario(LineId line) const {
+    const auto scenario = m_impl->backend.getLineScenario(line);
+    if (!scenario.has_value()) {
+        return "";
+    }
+    return gactorio::scenarioTypeToString(*scenario);
 }
 
 const std::vector<ProductOption>& Controller::products() const {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/ScenarioType.hpp"
 #include "common/Types.hpp"
 #include "controller/FactoryCommand.hpp"
 #include "controller/SimulationHistory.hpp"
@@ -10,6 +11,8 @@
 
 #include <cstddef>
 #include <memory>
+#include <optional>
+#include <string>
 #include <vector>
 
 namespace gactorio {
@@ -45,6 +48,9 @@ public:
     FactoryCommandResult restockItem(ItemType itemType, int amount);
     FactoryCommandResult pauseMachine(MachineId id);
     FactoryCommandResult resumeMachine(MachineId id);
+    FactoryCommandResult setLineScenario(LineId lineId, ScenarioType scenario);
+    FactoryCommandResult setLineScenarioById(LineId lineId, const std::string& scenarioId);
+    std::optional<ScenarioType> getLineScenario(LineId lineId) const;
 
     FactorySnapshot getFactorySnapshot() const;
     std::vector<EventSnapshot> getEventLogs() const;

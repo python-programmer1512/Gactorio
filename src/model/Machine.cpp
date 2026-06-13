@@ -209,6 +209,31 @@ double Machine::getBreakdownProbability() const {
     return breakdownProbability_;
 }
 
+void Machine::resetScenarioModifiers() {
+    scenarioSpeedMultiplier_ = 1.0;
+    scenarioBreakdownProbabilityOverride_.reset();
+}
+
+void Machine::setScenarioSpeedMultiplier(double multiplier) {
+    scenarioSpeedMultiplier_ = std::max(0.0, multiplier);
+}
+
+void Machine::setScenarioBreakdownProbabilityOverride(std::optional<double> probability) {
+    if (probability.has_value()) {
+        scenarioBreakdownProbabilityOverride_ = std::clamp(*probability, 0.0, 1.0);
+        return;
+    }
+    scenarioBreakdownProbabilityOverride_.reset();
+}
+
+double Machine::effectiveProcessingSpeed() const {
+    return processingSpeed_ * scenarioSpeedMultiplier_;
+}
+
+double Machine::effectiveBreakdownProbability() const {
+    return scenarioBreakdownProbabilityOverride_.value_or(breakdownProbability_);
+}
+
 void Machine::pause() {
     if (status_ == MachineStatus::Broken || status_ == MachineStatus::Maintenance) {
         return;
@@ -234,7 +259,7 @@ void Machine::advanceProduction(double deltaTime) {
     // from progress 0.
     if (task_ != nullptr) {
         const double dt = std::max(0.0, deltaTime);
-        const double damageChance = config::kDamageChancePerSecond * dt;
+        const double damageChance = effectiveBreakdownProbability() * dt;
         if (uniform01() < damageChance) {
             const double range = config::kDamageMaxHp - config::kDamageMinHp;
             const double dmg   = config::kDamageMinHp + uniform01() * range;
@@ -257,7 +282,7 @@ void Machine::advanceProduction(double deltaTime) {
             return;
         }
 
-        progress_ += std::max(0.0, deltaTime) * processingSpeed_;
+        progress_ += std::max(0.0, deltaTime) * effectiveProcessingSpeed();
         if (progress_ >= stepDuration) {
             progress_ = 0.0;
             task_->advanceStep();
@@ -278,7 +303,7 @@ void Machine::advanceProduction(double deltaTime) {
         return;
     }
 
-    progress_ += (std::max(0.0, deltaTime) * processingSpeed_) / recipe_->durationSeconds();
+    progress_ += (std::max(0.0, deltaTime) * effectiveProcessingSpeed()) / recipe_->durationSeconds();
     if (progress_ >= 1.0) {
         progress_ = 0.0;
         notify(EventType::ProductCompleted, name_ + " completed " + recipe_->name());
