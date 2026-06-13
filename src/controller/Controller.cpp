@@ -233,11 +233,33 @@ bool Controller::repair(MachineId id) {            // Repair 버튼 = +5 HP 즉�
     return m_impl->backend.incrementalRepairMachine(id)
         == gactorio::FactoryCommandResult::Success;
 }
+
+bool Controller::instantRepair(MachineId id) {
+    m_impl->dirty = true;
+    return m_impl->backend.instantRepairMachine(id)
+        == gactorio::FactoryCommandResult::Success;
+}
+
 bool Controller::restockItem(ItemId id) {          // 원자재 +5
     m_impl->dirty = true;
     return m_impl->backend.restockItem(static_cast<gactorio::ItemType>(id), 5)
         == gactorio::FactoryCommandResult::Success;
 }
+
+void Controller::setScenario(const std::string& scenario) {
+    m_impl->backend.setRandomBreakdownsEnabled(scenario != "normal");
+    m_impl->dirty = true;
+}
+
+std::string Controller::scenario() const {
+    return m_impl->backend.randomBreakdownsEnabled() ? "random-breakdowns" : "normal";
+}
+
+void Controller::clearEventLog() {
+    m_impl->backend.clearEventLog();
+    m_impl->dirty = true;
+}
+
 bool Controller::repairAll(MachineId id) {         // Repair All = 정비(지연 후 전량 회복)
     m_impl->dirty = true;
     return m_impl->backend.repairMachine(id)

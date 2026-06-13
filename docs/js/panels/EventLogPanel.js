@@ -9,6 +9,19 @@ import { UIComponent } from '../UIComponent.js';
 import { esc } from '../util.js';
 
 export class EventLogPanel extends UIComponent {
+    #ctrl;
+
+    constructor(controller) {
+        super();
+        this.#ctrl = controller;
+    }
+
+    bind() {
+        document.getElementById('btn-clear-log').addEventListener('click', () => {
+            this.#ctrl.clearEventLog();
+        });
+    }
+
     // 스냅샷의 이벤트를 뒤(최신)에서부터 앞으로 순회해 위에 최신이 오도록 렌더.
     render(snap) {
         const events = snap.events;

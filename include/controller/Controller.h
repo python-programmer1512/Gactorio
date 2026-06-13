@@ -139,8 +139,12 @@ public:
     bool breakMachine (MachineId id);            // 강제 고장
     // 항상 가능한 빠른 수리: +config::kIncrementalRepairHp HP.
     bool repair       (MachineId id);
+    bool instantRepair(MachineId id);
     // 원자재 1종을 5개 보충. 제품 ID는 거부.
     bool restockItem  (ItemId id);
+    void setScenario(const std::string& scenario);
+    std::string scenario() const;
+    void clearEventLog();
     // 고장(HP=0)일 때만 의미 있음. 긴 정비 루틴을 돌려 HP 전량 회복 후 작업 재개.
     bool repairAll    (MachineId id);
 

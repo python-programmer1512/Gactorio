@@ -25,6 +25,7 @@ export class Application {
     #ui = new AppUI();      // 패널 합성기
     #lastTime = 0;          // 직전 프레임 시각(틱 delta 계산용)
     #lastRenderMs = 0;      // 직전 렌더 시각(throttle 용)
+    #tickCount = 0;
 
     constructor(controller) {
         this.#ctrl = controller;
@@ -48,10 +49,13 @@ export class Application {
         // 시뮬레이션은 매 vsync 마다 진행. C++ SimClock 이 pause 를 내부 처리하므로
         // 일시정지 중 tick 호출은 무해(0초 진행).
         this.#ctrl.tick(dt);
+        this.#tickCount += 1;
 
         // 렌더는 10Hz 로 제한: 스냅샷을 plain 데이터로 변환해 패널들에 전달.
         if (now - this.#lastRenderMs >= Application.RENDER_INTERVAL_MS) {
-            this.#ui.renderAll(toPlainSnapshot(this.#ctrl.snapshot()));
+            const snapshot = toPlainSnapshot(this.#ctrl.snapshot());
+            snapshot.tickCount = this.#tickCount;
+            this.#ui.renderAll(snapshot);
             this.#lastRenderMs = now;
         }
 

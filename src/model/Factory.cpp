@@ -62,6 +62,7 @@ const SimClock& Factory::clock() const {
 void Factory::addProductionLine(ProductionLine line) {
     line.setEventBus(&eventBus_);
     for (const auto& machine : line.machines()) {
+        machine->setBreakdownsEnabled(randomBreakdownsEnabled_);
         machines_.push_back(machine.get());
     }
     productionLines_.push_back(std::move(line));
@@ -145,6 +146,23 @@ bool Factory::restockItem(ItemType itemType, int amount) {
 
     inventory_.addItem(itemType, amount);
     return true;
+}
+
+void Factory::setRandomBreakdownsEnabled(bool enabled) {
+    randomBreakdownsEnabled_ = enabled;
+    for (auto* machine : machines_) {
+        if (machine != nullptr) {
+            machine->setBreakdownsEnabled(enabled);
+        }
+    }
+}
+
+bool Factory::randomBreakdownsEnabled() const {
+    return randomBreakdownsEnabled_;
+}
+
+void Factory::clearEventLog() {
+    eventLog_.clear();
 }
 
 ProductionLine* Factory::findProductionLine(LineId id) {

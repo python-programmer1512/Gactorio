@@ -56,8 +56,12 @@ public:
     FactoryCommandResult removeLine(LineId id);
     FactoryCommandResult forceBreak(MachineId id);
     FactoryCommandResult repairMachine(MachineId id);             // 정비(지연 후 전량 회복)
+    FactoryCommandResult instantRepairMachine(MachineId id);
     FactoryCommandResult incrementalRepairMachine(MachineId id);  // +5 HP 즉시
     FactoryCommandResult restockItem(ItemType itemType, int amount);
+    void setRandomBreakdownsEnabled(bool enabled);
+    bool randomBreakdownsEnabled() const;
+    void clearEventLog();
     FactoryCommandResult pauseMachine(MachineId id);
     FactoryCommandResult resumeMachine(MachineId id);
 

@@ -79,8 +79,11 @@ public:
     double getHealth() const;
     double getProcessingSpeed() const;
     double getBreakdownProbability() const;
+    bool breakdownsEnabled() const;
+    void setBreakdownsEnabled(bool enabled);
     void pause();    // 일시정지(Idle로) — 고장/정비 중이면 무시
     void resume();   // 재개(Working으로) — 고장/정비 중이면 무시
+    void instantRepair();
 
     // ---- 파생 클래스가 반드시 구현하는 "정체성" (순수 가상) ----------------
     // 새 기계 타입을 추가할 때 이 4개만 구현하면 됨(시뮬레이션 루프 수정 불필요 → OCP).
@@ -131,6 +134,7 @@ private:
     double health_ = 100.0;                         // HP
     double processingSpeed_ = 1.0;                  // 처리 속도 배수
     double breakdownProbability_ = 0.0;             // 고장 확률(현재 손상은 HP기반)
+    bool breakdownsEnabled_ = true;
     double maintenanceElapsed_ = 0.0;               // 정비 경과 시간
     double maintenanceDuration_ = 2.0;              // 정비 소요 시간(생성자에서 설정)
     SimulationTime simulationTime_ = 0.0;           // 이벤트 타임스탬프용 누적 시간

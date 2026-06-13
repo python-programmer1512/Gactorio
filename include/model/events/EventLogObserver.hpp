@@ -18,6 +18,7 @@ class EventLogObserver : public Observer {
 public:
     void onEvent(const Event& event) override;       // 이벤트를 events_ 에 추가
     const std::vector<Event>& events() const;        // 누적된 이벤트 목록 읽기
+    void clear();
 
 private:
     std::vector<Event> events_;   // 이벤트 기록(Event 값 소유)

@@ -38,5 +38,9 @@ const std::vector<Event>& EventLogObserver::events() const {
     return events_;
 }
 
+void EventLogObserver::clear() {
+    events_.clear();
+}
+
 } // namespace gactorio
 

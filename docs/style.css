@@ -24,7 +24,7 @@ main {
     display: grid;
     /* sim-control widened +10% (320→352), products is the new column,
        factory still gets 1fr so it stays the biggest.                */
-    grid-template-columns: 320px minmax(0, 1fr) 210px 240px;
+    grid-template-columns: 300px minmax(0, 1fr) 250px 210px 230px;
     gap: 14px;
     padding: 14px;
     /* viewport minus header (~75 px) minus our padding (28 px) */
@@ -62,6 +62,42 @@ section h3 { margin: 16px 0 8px; color: #aaa; font-size: 13px; }
     flex: 1 1 auto;
     overflow-y: auto;
     min-height: 0;
+}
+
+/* ---------- Inspector --------------------------------------- */
+#inspector-content {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+}
+.muted { color: #888; font-size: 12px; }
+.inspector-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.inspector-title b { color: #fff; overflow-wrap: anywhere; }
+.inspector-title span {
+    color: #f4c430;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+.inspector-fields {
+    display: grid;
+    grid-template-columns: 82px 1fr;
+    gap: 5px 8px;
+    margin: 0 0 12px;
+    font-size: 12px;
+}
+.inspector-fields dt { color: #888; }
+.inspector-fields dd { margin: 0; color: #e8e8e8; overflow-wrap: anywhere; }
+.inspector-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
 }
 
 /* ---------- Inventory (right column) ------------------------ */
@@ -215,6 +251,10 @@ button:disabled:hover         { background: #3a3a3e; color: #666; cursor: not-al
         #222a33;
     color: #dce4ee;
     box-shadow: 0 8px 18px rgba(0,0,0,0.3);
+}
+.machine-card.selected {
+    outline: 2px solid #f4c430;
+    outline-offset: 2px;
 }
 .machine-card h4 {
     margin: 7px 0 4px;
@@ -427,10 +467,13 @@ progress { width: 100%; height: 10px; }
 /* ---------- Custom scrollbar so the side columns feel cohesive --- */
 #event-log::-webkit-scrollbar,
 #factory-content::-webkit-scrollbar,
-#inventory-content::-webkit-scrollbar { width: 8px; }
+#inventory-content::-webkit-scrollbar,
+#inspector-content::-webkit-scrollbar { width: 8px; }
 #event-log::-webkit-scrollbar-thumb,
 #factory-content::-webkit-scrollbar-thumb,
-#inventory-content::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+#inventory-content::-webkit-scrollbar-thumb,
+#inspector-content::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
 #event-log::-webkit-scrollbar-track,
 #factory-content::-webkit-scrollbar-track,
-#inventory-content::-webkit-scrollbar-track { background: transparent; }
+#inventory-content::-webkit-scrollbar-track,
+#inspector-content::-webkit-scrollbar-track { background: transparent; }

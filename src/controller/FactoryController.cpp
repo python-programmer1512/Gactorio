@@ -231,6 +231,20 @@ FactoryCommandResult FactoryController::repairMachine(MachineId id) {
     return FactoryCommandResult::Success;
 }
 
+FactoryCommandResult FactoryController::instantRepairMachine(MachineId id) {
+    if (!factory_) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+
+    auto* machine = factory_->findMachine(id);
+    if (machine == nullptr) {
+        return FactoryCommandResult::NotFound;
+    }
+
+    machine->instantRepair();
+    return FactoryCommandResult::Success;
+}
+
 FactoryCommandResult FactoryController::incrementalRepairMachine(MachineId id) {
     if (!factory_) {
         return FactoryCommandResult::InvalidRequest;
@@ -253,6 +267,22 @@ FactoryCommandResult FactoryController::restockItem(ItemType itemType, int amoun
     return factory_->restockItem(itemType, amount)
         ? FactoryCommandResult::Success
         : FactoryCommandResult::InvalidRequest;
+}
+
+void FactoryController::setRandomBreakdownsEnabled(bool enabled) {
+    if (factory_) {
+        factory_->setRandomBreakdownsEnabled(enabled);
+    }
+}
+
+bool FactoryController::randomBreakdownsEnabled() const {
+    return factory_ != nullptr && factory_->randomBreakdownsEnabled();
+}
+
+void FactoryController::clearEventLog() {
+    if (factory_) {
+        factory_->clearEventLog();
+    }
 }
 
 FactoryCommandResult FactoryController::pauseMachine(MachineId id) {

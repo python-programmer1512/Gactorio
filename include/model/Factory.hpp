@@ -55,6 +55,9 @@ public:
     bool removeProductionLine(LineId id);                        // 라인 제거(유휴일 때만, 최소 1개 유지)
     bool enqueueProduct(LineId lineId, std::shared_ptr<Product> product); // 재료 소비 후 큐 등록
     bool restockItem(ItemType itemType, int amount);            // 원자재 보충
+    void setRandomBreakdownsEnabled(bool enabled);
+    bool randomBreakdownsEnabled() const;
+    void clearEventLog();
     ProductionLine* findProductionLine(LineId id);
     const ProductionLine* findProductionLine(LineId id) const;
     Machine* findMachine(MachineId id);
@@ -92,6 +95,7 @@ private:
     EventBus eventBus_;                       // 이벤트 발행 버스(composition)
     EventLogObserver eventLog_;               // 로그 Observer(composition)
     StatisticsObserver statistics_;           // 통계 Observer(composition)
+    bool randomBreakdownsEnabled_ = true;
 };
 
 } // namespace gactorio

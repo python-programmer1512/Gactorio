@@ -16,13 +16,15 @@ import { esc } from '../util.js';
 
 export class FactoryPanel extends UIComponent {
     #ctrl;                          // Module.Controller (명령 대상)
+    #selection;
     #isLineInteracting = false;     // 사용자가 라인과 상호작용 중인가(렌더 일시중지 플래그)
     #lineInteractionTimer = 0;      // 상호작용 종료를 늦추는 타이머 핸들
     #scrollLeftByLine = new Map();  // 라인별 가로 스크롤 위치 기억(재렌더 후 복원용)
 
-    constructor(controller) {
+    constructor(controller, selection = { machineId: null }) {
         super();
         this.#ctrl = controller;
+        this.#selection = selection;
     }
 
     // bind(): 라인 추가 버튼 + 위임 리스너들(버튼 동작, 드래그/휠/슬라이더 스크롤) 연결.
@@ -138,6 +140,12 @@ export class FactoryPanel extends UIComponent {
                 return;
             }
 
+            const card = e.target.closest('.machine-card[data-machine-id]');
+            if (card) {
+                this.#selection.machineId = parseInt(card.dataset.machineId, 10);
+                return;
+            }
+
             const scroller = e.target.closest('.conveyor-line');
             if (!scroller || e.button !== 0) return;
             e.preventDefault();
@@ -248,7 +256,8 @@ export class FactoryPanel extends UIComponent {
     // HP 막대, Repair(+5) 버튼, 그리고 고장(Broken)일 때만 Repair All 버튼.
     #machineCard(m, index) {
         const stateCls = `state-${m.state.toLowerCase()}`;
-        const cardCls = `machine-card machine-${m.state.toLowerCase()}`;
+        const selectedCls = this.#selection.machineId === m.id ? ' selected' : '';
+        const cardCls = `machine-card machine-${m.state.toLowerCase()}${selectedCls}`;
         const progress = Math.max(0, Math.min(1, m.progress));
         const progressPct = Math.round(progress * 100);
         const hpPct = Math.max(0, Math.min(100, m.health));
@@ -257,7 +266,7 @@ export class FactoryPanel extends UIComponent {
             : '';
 
         return `
-            <article class="${cardCls}">
+            <article class="${cardCls}" data-machine-id="${m.id}">
                 <div class="machine-card-top">
                     <span class="station-index">${String(index + 1).padStart(2, '0')}</span>
                     <b class="${stateCls}">${esc(m.state)}</b>

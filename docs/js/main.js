@@ -18,25 +18,28 @@
 // =============================================================================
 
 // 쿼리스트링(?v=...)은 브라우저 캐시 무효화용 버전 태그. 코드와는 무관.
-import { Application }     from './Application.js?v=20260613-compactline11';
-import { SimControlPanel } from './panels/SimControlPanel.js?v=20260613-compactline11';
-import { FactoryPanel }    from './panels/FactoryPanel.js?v=20260613-compactline11';
-import { ProductsPanel }   from './panels/ProductsPanel.js?v=20260613-compactline11';
-import { EventLogPanel }   from './panels/EventLogPanel.js?v=20260613-compactline11';
-import { InventoryPanel }  from './panels/InventoryPanel.js?v=20260613-compactline11';
+import { Application }     from './Application.js?v=20260614-checklist';
+import { SimControlPanel } from './panels/SimControlPanel.js?v=20260614-checklist';
+import { FactoryPanel }    from './panels/FactoryPanel.js?v=20260614-checklist';
+import { ProductsPanel }   from './panels/ProductsPanel.js?v=20260614-checklist';
+import { EventLogPanel }   from './panels/EventLogPanel.js?v=20260614-checklist';
+import { InventoryPanel }  from './panels/InventoryPanel.js?v=20260614-checklist';
+import { InspectorPanel }  from './panels/InspectorPanel.js?v=20260614-checklist';
 
-console.log('[gactorio] main.js loaded - build', '2026-06-13-compactline11');
+console.log('[gactorio] main.js loaded - build', '2026-06-14-checklist');
 
 // 부팅: 컨트롤러 1개 생성 → Application 에 주입 → 5개 패널 등록 → 루프 시작.
 function boot() {
     console.log('[gactorio] wasm runtime ready, creating Controller');
     const controller = new Module.Controller();   // ★ C++ ctrl::Controller 인스턴스
+    const selection = { machineId: null };
 
     const app = new Application(controller);
     app.addPanel(new SimControlPanel(controller)); // 좌상단: 제어/통계/이벤트
-    app.addPanel(new FactoryPanel(controller));    // 중앙: 생산라인/기계 카드
+    app.addPanel(new FactoryPanel(controller, selection));    // 중앙: 생산라인/기계 카드
+    app.addPanel(new InspectorPanel(controller, selection));  // 선택 기계 상세/명령
     app.addPanel(new ProductsPanel(controller));   // 제품 카탈로그 버튼
-    app.addPanel(new EventLogPanel());             // 이벤트 로그(컨트롤러 불필요)
+    app.addPanel(new EventLogPanel(controller));   // 이벤트 로그
     app.addPanel(new InventoryPanel(controller));  // 재고/보충
     app.run();
 }

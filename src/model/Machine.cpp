@@ -228,6 +228,14 @@ double Machine::getBreakdownProbability() const {
     return breakdownProbability_;
 }
 
+bool Machine::breakdownsEnabled() const {
+    return breakdownsEnabled_;
+}
+
+void Machine::setBreakdownsEnabled(bool enabled) {
+    breakdownsEnabled_ = enabled;
+}
+
 // 일시정지: 고장/정비 중이면 무시. 그 외엔 Idle 로 전이하고 MachinePaused 이벤트 발행.
 void Machine::pause() {
     if (status_ == MachineStatus::Broken || status_ == MachineStatus::Maintenance) {
@@ -244,6 +252,18 @@ void Machine::resume() {
     }
     transitionToWorking("resumed");
     notify(EventType::TaskStarted, name_ + " resumed");
+}
+
+void Machine::instantRepair() {
+    health_ = config::kInitialHealth;
+    maintenanceElapsed_ = 0.0;
+    progress_ = 0.0;
+    notify(EventType::MachineRepaired, name_ + " instantly repaired");
+    if (breakdownsEnabled_ && task_ != nullptr) {
+        transitionToWorking("instant repair, resuming task");
+    } else {
+        transitionToIdle("instant repair completed");
+    }
 }
 
 // WorkingState 가 매 틱 호출. 생산 진행과 무작위 손상을 처리한다.

@@ -56,19 +56,28 @@ export class SimControlPanel extends UIComponent {
             this.#ctrl.setSpeed(v);
             document.getElementById('speed-label').textContent = v.toFixed(1) + '×';
         });
+
+        document.getElementById('scenario').addEventListener('change', e => {
+            this.#ctrl.setScenario(e.target.value);
+        });
     }
 
     // render(): 스냅샷의 시간/통계를 화면에 반영.
     render(snap) {
         document.getElementById('sim-time').textContent = snap.simulationTime.toFixed(2);
+        document.getElementById('tick-count').textContent = snap.tickCount ?? 0;
+        document.getElementById('scenario').value = this.#ctrl.scenario();
 
         const s = snap.stats;
+        const wip = snap.lines.reduce((sum, line) => sum + line.queueLength, 0);
         document.getElementById('stats-grid').innerHTML = `
             <div>Tasks started     <b>${s.tasksStarted}</b></div>
             <div>Steps completed   <b>${s.stepsCompleted}</b></div>
             <div>Products done     <b>${s.productsDone}</b></div>
+            <div>WIP products      <b>${wip}</b></div>
             <div>Machines broken   <b>${s.machinesBroken}</b></div>
             <div>Machines repaired <b>${s.machinesRepaired}</b></div>
+            <div>Lost products     <b>0</b></div>
             <div>State changes     <b>${s.stateChanges}</b></div>`;
 
         // Memento 상태(히스토리 개수/Undo 가능 여부)는 스냅샷이 아니라 컨트롤러에 직접
