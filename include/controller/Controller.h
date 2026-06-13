@@ -65,18 +65,27 @@ struct EventView {
 };
 
 struct InventoryEntry {
-    ItemId      id;
-    std::string name;       // "Ingredient", "Voltz Classic", ...
-    int         quantity;
-    bool        isProduct;  // false = raw item, true = finished product
+    std::string id;          // stable item/product id, e.g. "ingredient"
+    ItemId      legacyId = 0; // numeric compatibility id, or 0 if unknown
+    std::string name;        // compatibility display name
+    std::string displayName;
+    std::string kind;
+    int         quantity = 0;
+    bool        isProduct = false;
+    bool        restockable = false;
+    int         restockAmount = 0;
 };
 
 struct ProductOption {
-    ProductId   id;
-    std::string key;        // stable UI key, e.g. "VoltzClassic"
+    std::string id;         // stable product id, e.g. "voltz_classic"
+    ProductId   legacyId = 0;
+    std::string key;        // compatibility UI key
     std::string name;
+    std::string displayName;
+    std::string defaultRecipeId;
     std::string tier;
-    double      durationSeconds;
+    std::string color;
+    double      durationSeconds = 0.0;
     std::string requirements; // "Ingredient x2, Water x1, ..."
 };
 
@@ -115,9 +124,11 @@ public:
     void setSpeed(double multiplier);
     bool enqueue      (LineId line,    ProductKind product);
     bool enqueueProduct(LineId line, ProductId product);
+    bool enqueueProductById(LineId line, const std::string& productId);
     // Enqueue to whichever line currently has the smallest queue.
     LineId enqueueAuto(ProductKind product);
     LineId enqueueAutoProduct(ProductId product);
+    LineId enqueueAutoProductById(const std::string& productId);
     // Spawn a new beverage line. Returns its LineId (0 on failure).
     LineId addLine();
     // Remove a line. Returns false if the line is busy or unknown.
@@ -127,11 +138,13 @@ public:
     bool repair       (MachineId id);
     // Add 5 units of one raw inventory item. Product IDs are rejected.
     bool restockItem  (ItemId id);
+    bool restockItemById(const std::string& itemId);
     // Only meaningful when the machine is Broken (HP=0). Triggers a long
     // maintenance routine (config::kRepairAllDelaySeconds) that fully
     // restores HP and resumes the paused task from the start of its step.
     bool repairAll    (MachineId id);
     bool setLineScenario(LineId line, const std::string& scenarioId);
+    bool loadFactoryConfigFromString(const std::string& jsonText);
 
     // ---- Memento (snapshot history) ----------------------------------------
     // Capture current Factory state and push onto an internal stack.

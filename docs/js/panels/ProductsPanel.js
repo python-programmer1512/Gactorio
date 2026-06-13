@@ -21,7 +21,7 @@ export class ProductsPanel extends UIComponent {
         const products = vecToArray(this.#ctrl.products());
         list.innerHTML = products.map(product => `
             <button class="product-btn" data-act="enqueueAuto" data-product-id="${product.id}">
-                <b>${esc(product.name)}</b>
+                <b>${esc(product.displayName || product.name || product.id)}</b>
                 <span>${product.durationSeconds.toFixed(0)} s</span>
                 <span class="requirements">Uses: ${esc(product.requirements)}</span>
             </button>`).join('');
@@ -30,9 +30,9 @@ export class ProductsPanel extends UIComponent {
             const btn = e.target.closest('button[data-product-id]');
             if (!btn) return;
 
-            const productId = parseInt(btn.dataset.productId, 10);
-            const lineId = this.#ctrl.enqueueAutoProduct(productId);
-            console.log('[gactorio] enqueueAutoProduct', productId, '→ line', lineId);
+            const productId = btn.dataset.productId;
+            const lineId = this.#ctrl.enqueueAutoProductById(productId);
+            console.log('[gactorio] enqueueAutoProductById', productId, '→ line', lineId);
         });
     }
 

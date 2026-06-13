@@ -1,8 +1,11 @@
 #include "controller/FactoryController.hpp"
 
 #include "common/ScenarioType.hpp"
+#include "model/CarbonationFactory.hpp"
+#include "model/FactoryBuilder.hpp"
 #include "model/Machine.hpp"
-#include "model/ProductCatalog.hpp"
+#include "model/config/ConfigIdAdapters.hpp"
+#include "model/config/FactoryConfigLoader.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -12,13 +15,47 @@ namespace gactorio {
 
 namespace {
 
-InventorySnapshot makeInventorySnapshot(const Inventory& inventory) {
+std::string fallbackDisplayName(const std::string& id) {
+    return id.empty() ? std::string("Unknown") : id;
+}
+
+InventorySnapshot makeInventorySnapshot(
+    const Inventory& inventory,
+    const config_model::DefinitionRegistry* registry) {
     InventorySnapshot snapshot;
     for (const auto& item : inventory.items()) {
-        snapshot.addItem(std::to_string(static_cast<std::uint64_t>(item.first)), item.second);
+        if (registry != nullptr) {
+            if (const auto* definition = registry->findItem(item.first)) {
+                snapshot.addItem(
+                    item.first,
+                    item.second,
+                    definition->displayName.empty() ? item.first : definition->displayName,
+                    definition->category,
+                    definition->restockable,
+                    definition->restockAmount);
+                continue;
+            }
+        }
+        snapshot.addItem(item.first, item.second, fallbackDisplayName(item.first), "item", false, 0);
     }
     for (const auto& product : inventory.products()) {
-        snapshot.addItem(std::to_string(product.first), product.second);
+        if (registry != nullptr) {
+            if (const auto* definition = registry->findProduct(product.first)) {
+                snapshot.addItem(
+                    product.first,
+                    product.second,
+                    definition->displayName.empty() ? product.first : definition->displayName,
+                    "product",
+                    false,
+                    0);
+                continue;
+            }
+        }
+        if (const auto* definition = findProductDefinition(product.first)) {
+            snapshot.addItem(product.first, product.second, definition->name, definition->tier, false, 0);
+            continue;
+        }
+        snapshot.addItem(product.first, product.second, fallbackDisplayName(product.first), "product", false, 0);
     }
     return snapshot;
 }
@@ -78,12 +115,52 @@ FactoryController::FactoryController() {
     createDefaultCarbonationFactory();
 }
 
+FactoryController::FactoryController(std::unique_ptr<Factory> factory) {
+    replaceFactory(std::move(factory));
+}
+
+FactoryController::FactoryController(
+    std::unique_ptr<Factory> factory,
+    std::unique_ptr<config_model::FactoryRuntimeContext> runtimeContext) {
+    replaceFactory(std::move(factory), std::move(runtimeContext));
+}
+
+FactoryController FactoryController::createFromConfigFile(const std::filesystem::path& path) {
+    auto runtimeContext = std::make_unique<config_model::FactoryRuntimeContext>(
+        config_model::FactoryConfigLoader::loadFromFile(path));
+    auto factory = FactoryBuilder::createFactory(*runtimeContext);
+    return FactoryController(std::move(factory), std::move(runtimeContext));
+}
+
+FactoryController FactoryController::createFromConfigString(std::string_view jsonText) {
+    auto runtimeContext = std::make_unique<config_model::FactoryRuntimeContext>(
+        config_model::FactoryConfigLoader::loadFromString(jsonText));
+    auto factory = FactoryBuilder::createFactory(*runtimeContext);
+    return FactoryController(std::move(factory), std::move(runtimeContext));
+}
+
 void FactoryController::createDefaultCarbonationFactory() {
-    factory_ = std::make_unique<CarbonationFactory>();
+    replaceFactory(std::make_unique<CarbonationFactory>(), nullptr);
+}
+
+void FactoryController::replaceFactory(std::unique_ptr<Factory> factory) {
+    replaceFactory(std::move(factory), nullptr);
+}
+
+void FactoryController::replaceFactory(
+    std::unique_ptr<Factory> factory,
+    std::unique_ptr<config_model::FactoryRuntimeContext> runtimeContext) {
+    factory_ = std::move(factory);
+    runtimeContext_ = std::move(runtimeContext);
     history_.clear();
 }
 
 void FactoryController::reset() {
+    if (runtimeContext_) {
+        factory_ = FactoryBuilder::createFactory(*runtimeContext_);
+        history_.clear();
+        return;
+    }
     createDefaultCarbonationFactory();
 }
 
@@ -136,7 +213,10 @@ void FactoryController::setSimulationSpeed(double speedMultiplier) {
 }
 
 FactoryCommandResult FactoryController::enqueueProduct(LineId lineId, ProductType productType) {
-    return enqueueProductById(lineId, static_cast<ProductId>(productType));
+    if (productType == ProductType::Unknown) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+    return enqueueProductById(lineId, config_model::toProductId(productType));
 }
 
 FactoryCommandResult FactoryController::enqueueProductById(LineId lineId, ProductId productId) {
@@ -149,7 +229,7 @@ FactoryCommandResult FactoryController::enqueueProductById(LineId lineId, Produc
         return FactoryCommandResult::NotFound;
     }
 
-    auto product = createProduct(productId);
+    auto product = factory_->createProductForQueue(productId);
     if (product == nullptr) {
         return FactoryCommandResult::InvalidRequest;
     }
@@ -166,7 +246,10 @@ FactoryCommandResult FactoryController::enqueueProductById(LineId lineId, Produc
 }
 
 LineId FactoryController::enqueueAuto(ProductType productType) {
-    return enqueueAutoById(static_cast<ProductId>(productType));
+    if (productType == ProductType::Unknown) {
+        return 0;
+    }
+    return enqueueAutoById(config_model::toProductId(productType));
 }
 
 LineId FactoryController::enqueueAutoById(ProductId productId) {
@@ -192,7 +275,11 @@ LineId FactoryController::enqueueAutoById(ProductId productId) {
 
 LineId FactoryController::addLine() {
     if (!factory_) return 0;
-    return factory_->addDynamicLine();
+    auto* carbonationFactory = dynamic_cast<CarbonationFactory*>(factory_.get());
+    if (carbonationFactory == nullptr) {
+        return 0;
+    }
+    return carbonationFactory->addDynamicLine();
 }
 
 FactoryCommandResult FactoryController::removeLine(LineId id) {
@@ -252,6 +339,27 @@ FactoryCommandResult FactoryController::restockItem(ItemType itemType, int amoun
     return factory_->restockItem(itemType, amount)
         ? FactoryCommandResult::Success
         : FactoryCommandResult::InvalidRequest;
+}
+
+FactoryCommandResult FactoryController::restockItemById(const std::string& itemId) {
+    if (!factory_) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+
+    if (const auto* currentRegistry = registry()) {
+        const auto* item = currentRegistry->findItem(itemId);
+        if (item == nullptr || !item->restockable || item->restockAmount <= 0) {
+            return FactoryCommandResult::InvalidRequest;
+        }
+        factory_->inventory().addItem(itemId, item->restockAmount);
+        return FactoryCommandResult::Success;
+    }
+
+    const auto itemType = config_model::itemTypeFromId(itemId);
+    if (!itemType.has_value()) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+    return restockItem(*itemType, 5);
 }
 
 FactoryCommandResult FactoryController::pauseMachine(MachineId id) {
@@ -336,7 +444,7 @@ FactorySnapshot FactoryController::snapshot() const {
 
     FactorySnapshot snapshot(
         factory_->simulationTime(),
-        makeInventorySnapshot(factory_->inventory()),
+        makeInventorySnapshot(factory_->inventory(), registry()),
         makeStatisticsSnapshot(factory_->statistics()));
 
     for (const auto& line : factory_->productionLines()) {
@@ -349,6 +457,29 @@ FactorySnapshot FactoryController::snapshot() const {
     }
 
     return snapshot;
+}
+
+std::vector<ProductDefinition> FactoryController::availableProductDefinitions() const {
+    if (const auto* currentRegistry = registry()) {
+        return productDefinitionsFromRegistry(*currentRegistry);
+    }
+    return productDefinitions();
+}
+
+bool FactoryController::hasRuntimeContext() const noexcept {
+    return runtimeContext_ != nullptr;
+}
+
+const config_model::FactoryRuntimeContext* FactoryController::runtimeContext() const noexcept {
+    return runtimeContext_.get();
+}
+
+const config_model::FactoryConfig* FactoryController::config() const noexcept {
+    return runtimeContext_ == nullptr ? nullptr : &runtimeContext_->config();
+}
+
+const config_model::DefinitionRegistry* FactoryController::registry() const noexcept {
+    return runtimeContext_ == nullptr ? nullptr : &runtimeContext_->registry();
 }
 
 // =============================================================================

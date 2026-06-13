@@ -12,12 +12,14 @@ struct ProductDefinition;
 // Item quantity required to start producing a Product unit.
 class ItemRequirement {
 public:
+    ItemRequirement(std::string itemId, int quantity);
     ItemRequirement(ItemType itemType, int quantity);
+    const std::string& itemId() const;
     ItemType itemType() const;
     int quantity() const;
 
 private:
-    ItemType itemType_;
+    std::string itemId_;
     int quantity_;
 };
 
@@ -45,6 +47,8 @@ public:
     virtual ~Product();
 
     virtual ProductId getProductId() const = 0;
+    virtual const ProductId& productId() const = 0;
+    virtual const RecipeId& defaultRecipeId() const = 0;
     virtual const std::string& getName() const = 0;
     virtual const std::vector<ItemRequirement>& getRequirements() const = 0;
     virtual const std::vector<ProcessStep>& getRoute() const = 0;
@@ -53,17 +57,21 @@ protected:
     explicit Product(const ProductDefinition& definition);
 
     Product(ProductId id,
+            RecipeId defaultRecipeId,
             std::string name,
             std::vector<ItemRequirement> requirements,
             std::vector<ProcessStep> route);
 
     ProductId storedProductId() const;
+    const ProductId& storedProductIdRef() const;
+    const RecipeId& storedDefaultRecipeId() const;
     const std::string& storedName() const;
     const std::vector<ItemRequirement>& storedRequirements() const;
     const std::vector<ProcessStep>& storedRoute() const;
 
 private:
     ProductId id_;
+    RecipeId defaultRecipeId_;
     std::string name_;
     std::vector<ItemRequirement> requirements_;
     std::vector<ProcessStep> route_;
@@ -79,6 +87,8 @@ class VoltzClassic final : public Product {
 public:
     VoltzClassic();
     ProductId getProductId() const override;
+    const ProductId& productId() const override;
+    const RecipeId& defaultRecipeId() const override;
     const std::string& getName() const override;
     const std::vector<ItemRequirement>& getRequirements() const override;
     const std::vector<ProcessStep>& getRoute() const override;
@@ -88,6 +98,8 @@ class HyperBolt final : public Product {
 public:
     HyperBolt();
     ProductId getProductId() const override;
+    const ProductId& productId() const override;
+    const RecipeId& defaultRecipeId() const override;
     const std::string& getName() const override;
     const std::vector<ItemRequirement>& getRequirements() const override;
     const std::vector<ProcessStep>& getRoute() const override;
@@ -97,6 +109,8 @@ class AuroraZero final : public Product {
 public:
     AuroraZero();
     ProductId getProductId() const override;
+    const ProductId& productId() const override;
+    const RecipeId& defaultRecipeId() const override;
     const std::string& getName() const override;
     const std::vector<ItemRequirement>& getRequirements() const override;
     const std::vector<ProcessStep>& getRoute() const override;

@@ -18,6 +18,8 @@ public:
     bool isCompleted() const;
     double getProgressInRoute() const;
     ProductId getProductId() const;
+    const ProductId& productId() const;
+    const RecipeId& recipeId() const;
     const std::string& getProductName() const;
     std::size_t currentStepIndex() const;
     std::size_t totalStepCount() const;

@@ -33,6 +33,7 @@ public:
 
     void addProductionLine(ProductionLine line);
     bool removeProductionLine(LineId id);
+    std::shared_ptr<Product> createProductForQueue(ProductId id) const;
     EnqueueResult enqueueProduct(LineId lineId, std::shared_ptr<Product> product);
     bool restockItem(ItemType itemType, int amount);
     ProductionLine* findProductionLine(LineId id);

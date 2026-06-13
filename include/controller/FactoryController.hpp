@@ -7,12 +7,16 @@
 #include "dto/EventSnapshot.hpp"
 #include "dto/FactorySnapshot.hpp"
 #include "dto/StatisticsSnapshot.hpp"
-#include "model/CarbonationFactory.hpp"
+#include "model/Factory.hpp"
+#include "model/ProductCatalog.hpp"
+#include "model/config/FactoryRuntimeContext.hpp"
 
 #include <cstddef>
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace gactorio {
@@ -20,6 +24,10 @@ namespace gactorio {
 class FactoryController {
 public:
     FactoryController();
+    explicit FactoryController(std::unique_ptr<Factory> factory);
+
+    static FactoryController createFromConfigFile(const std::filesystem::path& path);
+    static FactoryController createFromConfigString(std::string_view jsonText);
 
     void createDefaultCarbonationFactory();
     void reset();
@@ -46,6 +54,7 @@ public:
     FactoryCommandResult repairMachine(MachineId id);       // full restore w/ delay
     FactoryCommandResult incrementalRepairMachine(MachineId id);  // +5 HP instant
     FactoryCommandResult restockItem(ItemType itemType, int amount);
+    FactoryCommandResult restockItemById(const std::string& itemId);
     FactoryCommandResult pauseMachine(MachineId id);
     FactoryCommandResult resumeMachine(MachineId id);
     FactoryCommandResult setLineScenario(LineId lineId, ScenarioType scenario);
@@ -56,6 +65,11 @@ public:
     std::vector<EventSnapshot> getEventLogs() const;
     StatisticsSnapshot getStatistics() const;
     FactorySnapshot snapshot() const;
+    std::vector<ProductDefinition> availableProductDefinitions() const;
+    bool hasRuntimeContext() const noexcept;
+    const config_model::FactoryRuntimeContext* runtimeContext() const noexcept;
+    const config_model::FactoryConfig* config() const noexcept;
+    const config_model::DefinitionRegistry* registry() const noexcept;
 
     // ---- Memento (Caretaker-side façade) ---------------------------------
     void        saveCheckpoint();
@@ -64,8 +78,18 @@ public:
     std::size_t historySize() const;
 
 private:
-    std::unique_ptr<CarbonationFactory> factory_;
-    SimulationHistory                   history_;
+    FactoryController(
+        std::unique_ptr<Factory> factory,
+        std::unique_ptr<config_model::FactoryRuntimeContext> runtimeContext);
+
+    void replaceFactory(std::unique_ptr<Factory> factory);
+    void replaceFactory(
+        std::unique_ptr<Factory> factory,
+        std::unique_ptr<config_model::FactoryRuntimeContext> runtimeContext);
+
+    std::unique_ptr<config_model::FactoryRuntimeContext> runtimeContext_;
+    std::unique_ptr<Factory> factory_;
+    SimulationHistory        history_;
 };
 
 } // namespace gactorio

@@ -97,6 +97,10 @@ bool Factory::removeProductionLine(LineId id) {
     return true;
 }
 
+std::shared_ptr<Product> Factory::createProductForQueue(ProductId id) const {
+    return createProductById(std::move(id));
+}
+
 EnqueueResult Factory::enqueueProduct(LineId lineId, std::shared_ptr<Product> product) {
     if (product == nullptr) {
         return EnqueueResult::RejectedFull;

@@ -14,6 +14,8 @@ int main() {
     assert(task.currentStep()->requiredRole() == gactorio::MachineRole::Mixing);
     assert(task.getProgressInRoute() == 0.0);
     assert(task.getProductName() == std::string("Aurora Zero"));
+    assert(task.productId() == "aurora_zero");
+    assert(task.recipeId() == "aurora_zero_recipe");
 
     task.advanceStep();
     assert(!task.isCompleted());

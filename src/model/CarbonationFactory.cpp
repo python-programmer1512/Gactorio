@@ -57,9 +57,9 @@ MachineId nextMachineIdAfter(const std::vector<Machine*>& machines) {
 CarbonationFactory::CarbonationFactory() {
     // ---- Recipes (currently unused by the runtime but kept for inspection) --
     for (const auto& definition : productDefinitions()) {
-        Recipe recipe(definition.id, definition.name + " Brew", definition.totalDurationSeconds);
+        Recipe recipe(definition.defaultRecipeId, definition.name + " Brew", definition.totalDurationSeconds);
         for (const auto& requirement : definition.requirements) {
-            recipe.addInput(requirement.itemType(), requirement.quantity());
+            recipe.addInput(requirement.itemId(), requirement.quantity());
         }
         recipe.addOutput(definition.id, 1);
         recipes_.push_back(std::move(recipe));

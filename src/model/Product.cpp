@@ -1,6 +1,7 @@
 #include "model/Product.hpp"
 
 #include "model/ProductCatalog.hpp"
+#include "model/config/ConfigIdAdapters.hpp"
 
 #include <stdexcept>
 #include <utility>
@@ -22,11 +23,19 @@ const ProductDefinition& definitionFor(ProductType type) {
 // -----------------------------------------------------------------------------
 // ItemRequirement
 // -----------------------------------------------------------------------------
-ItemRequirement::ItemRequirement(ItemType itemType, int quantity)
-    : itemType_(itemType), quantity_(quantity) {}
+ItemRequirement::ItemRequirement(std::string itemId, int quantity)
+    : itemId_(std::move(itemId)), quantity_(quantity) {}
 
-ItemType ItemRequirement::itemType() const { return itemType_; }
-int      ItemRequirement::quantity() const { return quantity_; }
+ItemRequirement::ItemRequirement(ItemType itemType, int quantity)
+    : ItemRequirement(config_model::toItemId(itemType), quantity) {}
+
+const std::string& ItemRequirement::itemId() const { return itemId_; }
+
+ItemType ItemRequirement::itemType() const {
+    return config_model::itemTypeFromId(itemId_).value_or(ItemType::Unknown);
+}
+
+int ItemRequirement::quantity() const { return quantity_; }
 
 // -----------------------------------------------------------------------------
 // ProcessStep
@@ -42,10 +51,12 @@ SimulationTime ProcessStep::durationSeconds() const     { return baseDurationSec
 // Product (abstract)
 // -----------------------------------------------------------------------------
 Product::Product(ProductId id,
+                 RecipeId defaultRecipeId,
                  std::string name,
                  std::vector<ItemRequirement> requirements,
                  std::vector<ProcessStep> route)
-    : id_(id),
+    : id_(std::move(id)),
+      defaultRecipeId_(std::move(defaultRecipeId)),
       name_(std::move(name)),
       requirements_(std::move(requirements)),
       route_(std::move(route)) {}
@@ -53,6 +64,7 @@ Product::Product(ProductId id,
 Product::Product(const ProductDefinition& definition)
     : Product(
           definition.id,
+          definition.defaultRecipeId,
           definition.name,
           definition.requirements,
           definition.route) {}
@@ -60,6 +72,8 @@ Product::Product(const ProductDefinition& definition)
 Product::~Product() = default;
 
 ProductId          Product::storedProductId()    const { return id_; }
+const ProductId&   Product::storedProductIdRef() const { return id_; }
+const RecipeId&    Product::storedDefaultRecipeId() const { return defaultRecipeId_; }
 const std::string& Product::storedName()         const { return name_; }
 const std::vector<ItemRequirement>& Product::storedRequirements() const { return requirements_; }
 const std::vector<ProcessStep>&     Product::storedRoute()        const { return route_; }
@@ -72,6 +86,8 @@ VoltzClassic::VoltzClassic()
     : Product(definitionFor(ProductType::VoltzClassic)) {}
 
 ProductId          VoltzClassic::getProductId() const         { return storedProductId(); }
+const ProductId&   VoltzClassic::productId() const            { return storedProductIdRef(); }
+const RecipeId&    VoltzClassic::defaultRecipeId() const      { return storedDefaultRecipeId(); }
 const std::string& VoltzClassic::getName() const              { return storedName(); }
 const std::vector<ItemRequirement>& VoltzClassic::getRequirements() const { return storedRequirements(); }
 const std::vector<ProcessStep>&     VoltzClassic::getRoute()        const { return storedRoute(); }
@@ -84,6 +100,8 @@ HyperBolt::HyperBolt()
     : Product(definitionFor(ProductType::HyperBolt)) {}
 
 ProductId          HyperBolt::getProductId() const            { return storedProductId(); }
+const ProductId&   HyperBolt::productId() const               { return storedProductIdRef(); }
+const RecipeId&    HyperBolt::defaultRecipeId() const         { return storedDefaultRecipeId(); }
 const std::string& HyperBolt::getName() const                 { return storedName(); }
 const std::vector<ItemRequirement>& HyperBolt::getRequirements() const { return storedRequirements(); }
 const std::vector<ProcessStep>&     HyperBolt::getRoute()        const { return storedRoute(); }
@@ -96,6 +114,8 @@ AuroraZero::AuroraZero()
     : Product(definitionFor(ProductType::AuroraZero)) {}
 
 ProductId          AuroraZero::getProductId() const           { return storedProductId(); }
+const ProductId&   AuroraZero::productId() const              { return storedProductIdRef(); }
+const RecipeId&    AuroraZero::defaultRecipeId() const        { return storedDefaultRecipeId(); }
 const std::string& AuroraZero::getName() const                { return storedName(); }
 const std::vector<ItemRequirement>& AuroraZero::getRequirements() const { return storedRequirements(); }
 const std::vector<ProcessStep>&     AuroraZero::getRoute()        const { return storedRoute(); }

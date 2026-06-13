@@ -4,19 +4,18 @@
 // view-friendly types (ctrl::*) and model types (gactorio::*) lives here.
 #include "common/ScenarioType.hpp"
 #include "common/Types.hpp"
+#include "controller/ControllerConfigIdAdapters.hpp"
 #include "controller/FactoryController.hpp"
 #include "model/Item.hpp"
+#include "model/config/ConfigIdAdapters.hpp"
 #include "model/ProductCatalog.hpp"
 
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 
 namespace ctrl {
 namespace {
-
-gactorio::ProductId toModelId(ProductKind k) {
-    return static_cast<gactorio::ProductId>(k);
-}
 
 const char* stateName(gactorio::MachineStatus s) {
     using S = gactorio::MachineStatus;
@@ -48,25 +47,47 @@ const char* eventName(gactorio::EventType t) {
     return "Unknown";
 }
 
-// Gactorio stores inventory IDs as numeric strings (item-types 1-5,
-// product-ids 101-103). Translate them to human-readable labels.
-ItemId parseInventoryId(const std::string& numeric) {
+std::optional<gactorio::ProductId> toModelProductId(ProductId id) {
     try {
-        return static_cast<ItemId>(std::stoul(numeric));
+        return toProductId(static_cast<ProductKind>(id));
+    } catch (const std::exception&) {
+        return std::nullopt;
+    }
+}
+
+// Gactorio now stores raw item inventory IDs as stable strings while finished
+// product IDs are still numeric. Keep the current UI DTO numeric until the
+// public Controller/WASM API moves to string IDs.
+ItemId parseInventoryId(const std::string& id) {
+    if (const auto itemType = gactorio::config_model::itemTypeFromId(id)) {
+        return static_cast<ItemId>(*itemType);
+    }
+    if (const auto productKind = productKindFromId(id)) {
+        return static_cast<ItemId>(*productKind);
+    }
+    try {
+        return static_cast<ItemId>(std::stoul(id));
     } catch (const std::exception&) {
         return 0;
     }
 }
 
-bool isProductInventoryId(ItemId id) {
-    return gactorio::findProductDefinition(static_cast<gactorio::ProductId>(id)) != nullptr;
+bool isProductInventoryEntry(const gactorio::InventoryEntrySnapshot& entry) {
+    return entry.kind() == "product" || gactorio::findProductDefinition(entry.id()) != nullptr;
 }
 
-std::string humanizeInventoryId(ItemId id) {
-    if (const auto* product = gactorio::findProductDefinition(static_cast<gactorio::ProductId>(id))) {
+std::string humanizeInventoryId(const gactorio::InventoryEntrySnapshot& entry, ItemId parsedId) {
+    if (!entry.displayName().empty()) {
+        return entry.displayName();
+    }
+    const auto& rawId = entry.id();
+    if (const auto itemType = gactorio::config_model::itemTypeFromId(rawId)) {
+        return gactorio::ItemTypeName::get(*itemType);
+    }
+    if (const auto* product = gactorio::findProductDefinition(rawId)) {
         return product->name;
     }
-    return gactorio::ItemTypeName::get(static_cast<gactorio::ItemType>(id));
+    return rawId.empty() ? std::string("Unknown") : rawId;
 }
 
 std::string formatRequirements(const gactorio::ProductDefinition& definition) {
@@ -77,7 +98,8 @@ std::string formatRequirements(const gactorio::ProductDefinition& definition) {
             out << ", ";
         }
         first = false;
-        out << gactorio::ItemTypeName::get(requirement.itemType())
+        const auto itemType = gactorio::config_model::itemTypeFromId(requirement.itemId());
+        out << (itemType ? gactorio::ItemTypeName::get(*itemType) : requirement.itemId())
             << " x" << requirement.quantity();
     }
     return out.str();
@@ -95,12 +117,22 @@ struct Controller::Impl {
     mutable bool                dirty = true;
 
     Impl() {
-        for (const auto& definition : gactorio::productDefinitions()) {
+        rebuildProducts();
+    }
+
+    void rebuildProducts() {
+        products.clear();
+        for (const auto& definition : backend.availableProductDefinitions()) {
+            const auto legacyId = productKindFromId(definition.id).value_or(ProductKind::Unknown);
             products.push_back({
-                static_cast<ProductId>(definition.id),
+                definition.id,
+                static_cast<ProductId>(legacyId),
                 definition.key,
                 definition.name,
+                definition.name,
+                definition.defaultRecipeId,
                 definition.tier,
+                "",
                 definition.totalDurationSeconds,
                 formatRequirements(definition)
             });
@@ -154,12 +186,18 @@ struct Controller::Impl {
         }
 
         for (const auto& entry : snap.inventory().items()) {
-            const auto id = parseInventoryId(entry.id());
+            const auto legacyId = parseInventoryId(entry.id());
+            const auto displayName = humanizeInventoryId(entry, legacyId);
             cached.inventory.push_back({
-                id,
-                humanizeInventoryId(id),
+                entry.id(),
+                legacyId,
+                displayName,
+                displayName,
+                entry.kind(),
                 entry.quantity(),
-                isProductInventoryId(id)
+                isProductInventoryEntry(entry),
+                entry.restockable(),
+                entry.restockAmount()
             });
         }
 
@@ -180,20 +218,35 @@ void Controller::reset()                       { m_impl->backend.resetSimulation
 void Controller::setSpeed(double mult)         { m_impl->backend.setSimulationSpeed(mult); }
 
 bool Controller::enqueue(LineId line, ProductKind p) {
-    return enqueueProduct(line, static_cast<ProductId>(toModelId(p)));
+    return enqueueProduct(line, static_cast<ProductId>(p));
 }
 
 bool Controller::enqueueProduct(LineId line, ProductId p) {
+    const auto productId = toModelProductId(p);
+    if (!productId.has_value()) {
+        return false;
+    }
+    return enqueueProductById(line, *productId);
+}
+
+bool Controller::enqueueProductById(LineId line, const std::string& productId) {
     m_impl->dirty = true;
-    return m_impl->backend.enqueueProductById(line, static_cast<gactorio::ProductId>(p))
+    return m_impl->backend.enqueueProductById(line, productId)
         == gactorio::FactoryCommandResult::Success;
 }
 LineId Controller::enqueueAuto(ProductKind p) {
-    return enqueueAutoProduct(static_cast<ProductId>(toModelId(p)));
+    return enqueueAutoProduct(static_cast<ProductId>(p));
 }
 LineId Controller::enqueueAutoProduct(ProductId p) {
+    const auto productId = toModelProductId(p);
+    if (!productId.has_value()) {
+        return 0;
+    }
+    return enqueueAutoProductById(*productId);
+}
+LineId Controller::enqueueAutoProductById(const std::string& productId) {
     m_impl->dirty = true;
-    return static_cast<LineId>(m_impl->backend.enqueueAutoById(static_cast<gactorio::ProductId>(p)));
+    return static_cast<LineId>(m_impl->backend.enqueueAutoById(productId));
 }
 LineId Controller::addLine() {
     m_impl->dirty = true;
@@ -215,8 +268,16 @@ bool Controller::repair(MachineId id) {
         == gactorio::FactoryCommandResult::Success;
 }
 bool Controller::restockItem(ItemId id) {
+    try {
+        const auto itemId = gactorio::config_model::toItemId(static_cast<gactorio::ItemType>(id));
+        return restockItemById(itemId);
+    } catch (const std::exception&) {
+        return false;
+    }
+}
+bool Controller::restockItemById(const std::string& itemId) {
     m_impl->dirty = true;
-    return m_impl->backend.restockItem(static_cast<gactorio::ItemType>(id), 5)
+    return m_impl->backend.restockItemById(itemId)
         == gactorio::FactoryCommandResult::Success;
 }
 bool Controller::repairAll(MachineId id) {
@@ -229,6 +290,17 @@ bool Controller::setLineScenario(LineId line, const std::string& scenarioId) {
     m_impl->dirty = true;
     return m_impl->backend.setLineScenarioById(line, scenarioId)
         == gactorio::FactoryCommandResult::Success;
+}
+
+bool Controller::loadFactoryConfigFromString(const std::string& jsonText) {
+    try {
+        m_impl->backend = gactorio::FactoryController::createFromConfigString(jsonText);
+        m_impl->rebuildProducts();
+        m_impl->dirty = true;
+        return true;
+    } catch (const std::exception&) {
+        return false;
+    }
 }
 
 const FactoryView& Controller::snapshot() const {

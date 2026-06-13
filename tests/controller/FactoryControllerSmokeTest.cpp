@@ -55,7 +55,7 @@ int main() {
 
     const auto logsBeforeDrop = controller.getEventLogs();
     const auto enqueuedBeforeDrop = countLogsContaining(logsBeforeDrop, "enqueued Aurora Zero");
-    assert(controller.enqueueProductById(1, 103)
+    assert(controller.enqueueProductById(1, "aurora_zero")
                == gactorio::FactoryCommandResult::OverflowDropped);
     const auto logsAfterDrop = controller.getEventLogs();
     assert(countLogsContaining(logsAfterDrop, "overflow: product task dropped") >= 1);
@@ -79,12 +79,12 @@ int main() {
     assert(controller.forceBreak(999)  == gactorio::FactoryCommandResult::NotFound);
 
     const auto beforeRestock = controller.snapshot();
-    const int ingredientsBefore = inventoryQty(beforeRestock, "1");
+    const int ingredientsBefore = inventoryQty(beforeRestock, "ingredient");
     assert(controller.restockItem(gactorio::ItemType::Ingredient, 5)
                == gactorio::FactoryCommandResult::Success);
     assert(controller.restockItem(static_cast<gactorio::ItemType>(101), 5)
                == gactorio::FactoryCommandResult::InvalidRequest);
-    assert(inventoryQty(controller.snapshot(), "1") == ingredientsBefore + 5);
+    assert(inventoryQty(controller.snapshot(), "ingredient") == ingredientsBefore + 5);
 
     controller.tick(2.0);
 

@@ -30,9 +30,9 @@ int main() {
         factory.update(10.0);
     }
 
-    // ProductId 101 = VoltzClassic
+    // Product id "voltz_classic" = Voltz Classic
     const auto& products = factory.inventory().products();
-    const auto found = products.find(101);
+    const auto found = products.find("voltz_classic");
     assert(found != products.end());
     assert(found->second >= 1);
     assert(factory.productionLines().front().queueLength() == 0);

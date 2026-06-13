@@ -3,10 +3,15 @@
 #include "model/Product.hpp"
 
 #include <memory>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace gactorio {
+namespace config_model {
+class DefinitionRegistry;
+}
 
 // Central product registry.
 //
@@ -18,6 +23,7 @@ namespace gactorio {
 struct ProductDefinition {
     ProductId id;
     ProductType type;
+    RecipeId defaultRecipeId;
     std::string key;
     std::string name;
     std::string tier;
@@ -27,10 +33,21 @@ struct ProductDefinition {
 };
 
 const std::vector<ProductDefinition>& productDefinitions();
-const ProductDefinition* findProductDefinition(ProductId id);
+const ProductDefinition* findProductDefinition(std::string_view id);
 const ProductDefinition* findProductDefinition(ProductType type);
 
-std::shared_ptr<Product> createProduct(ProductId id);
+std::shared_ptr<Product> createProduct(std::string_view id);
 std::shared_ptr<Product> createProduct(ProductType type);
+
+std::vector<ProductDefinition> productDefinitionsFromRegistry(
+    const config_model::DefinitionRegistry& registry);
+
+std::optional<ProductDefinition> makeProductDefinitionFromRegistry(
+    const config_model::DefinitionRegistry& registry,
+    std::string_view productId);
+
+std::shared_ptr<Product> createProductFromRegistry(
+    const config_model::DefinitionRegistry& registry,
+    std::string_view productId);
 
 } // namespace gactorio

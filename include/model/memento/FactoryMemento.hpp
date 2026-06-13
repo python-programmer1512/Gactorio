@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <map>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -82,14 +83,14 @@ class FactoryMemento {
 public:
     FactoryMemento(
         SimulationTime simulationTime,
-        std::map<ItemType, int> items,
+        std::map<std::string, int> items,
         std::map<ProductId, int> products)
         : simulationTime_(simulationTime),
           items_(std::move(items)),
           products_(std::move(products)) {}
 
     SimulationTime simulationTime() const { return simulationTime_; }
-    const std::map<ItemType, int>& items() const { return items_; }
+    const std::map<std::string, int>& items() const { return items_; }
     const std::map<ProductId, int>& products() const { return products_; }
     const std::vector<LineMemento>& lines() const { return lines_; }
     LineId nextLineId() const { return nextLineId_; }
@@ -106,7 +107,7 @@ public:
 
 private:
     SimulationTime                simulationTime_;
-    std::map<ItemType, int>       items_;
+    std::map<std::string, int>    items_;
     std::map<ProductId, int>      products_;
     std::vector<LineMemento>      lines_;
     LineId                        nextLineId_ = 0;

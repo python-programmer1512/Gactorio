@@ -44,6 +44,14 @@ ProductId ProductionTask::getProductId() const {
     return product_->getProductId();
 }
 
+const ProductId& ProductionTask::productId() const {
+    return product_->productId();
+}
+
+const RecipeId& ProductionTask::recipeId() const {
+    return product_->defaultRecipeId();
+}
+
 const std::string& ProductionTask::getProductName() const {
     return product_->getName();
 }

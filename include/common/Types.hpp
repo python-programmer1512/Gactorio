@@ -1,14 +1,15 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 namespace gactorio {
 
 using SimulationTime = double;
 
 using ItemId           = std::uint64_t;
-using ProductId        = std::uint64_t;
-using RecipeId         = std::uint64_t;
+using ProductId        = std::string;
+using RecipeId         = std::string;
 using MachineId        = std::uint64_t;
 using LineId           = std::uint64_t;
 using ProductionLineId = LineId;

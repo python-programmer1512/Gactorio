@@ -18,8 +18,8 @@ export class InventoryPanel extends UIComponent {
             const btn = e.target.closest('button[data-restock-item]');
             if (!btn || btn.disabled) return;
 
-            const itemId = parseInt(btn.dataset.restockItem, 10);
-            console.log('[gactorio] restockItem', itemId, '→', this.#ctrl.restockItem(itemId));
+            const itemId = btn.dataset.restockItem;
+            console.log('[gactorio] restockItemById', itemId, '→', this.#ctrl.restockItemById(itemId));
         });
     }
 
@@ -47,10 +47,18 @@ export class InventoryPanel extends UIComponent {
 
         return items.map(it => `
             <tr>
-                <td>${esc(it.name)}</td>
+                <td>${esc(it.displayName || it.name || it.id)}</td>
                 <td>${it.quantity}</td>
-                <td><button class="small restock" data-restock-item="${it.id}">+5</button></td>
+                <td>${this.#restockButton(it)}</td>
             </tr>`).join('');
+    }
+
+    #restockButton(item) {
+        if (item.restockable === false) {
+            return '';
+        }
+        const amount = item.restockAmount || 5;
+        return `<button class="small restock" data-restock-item="${esc(item.id)}">+${amount}</button>`;
     }
 
     #productRows(products) {
@@ -60,7 +68,7 @@ export class InventoryPanel extends UIComponent {
 
         return products.map(it => `
             <tr>
-                <td>${esc(it.name)}</td>
+                <td>${esc(it.displayName || it.name || it.id)}</td>
                 <td>${it.quantity}</td>
             </tr>`).join('');
     }

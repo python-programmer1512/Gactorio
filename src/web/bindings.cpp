@@ -60,16 +60,25 @@ EMSCRIPTEN_BINDINGS(gactorio_module) {
 
     value_object<InventoryEntry>("InventoryEntry")
         .field("id",        &InventoryEntry::id)
+        .field("legacyId",  &InventoryEntry::legacyId)
         .field("name",      &InventoryEntry::name)
+        .field("displayName", &InventoryEntry::displayName)
+        .field("kind",      &InventoryEntry::kind)
         .field("quantity",  &InventoryEntry::quantity)
-        .field("isProduct", &InventoryEntry::isProduct);
+        .field("isProduct", &InventoryEntry::isProduct)
+        .field("restockable", &InventoryEntry::restockable)
+        .field("restockAmount", &InventoryEntry::restockAmount);
     register_vector<InventoryEntry>("VectorInventoryEntry");
 
     value_object<ProductOption>("ProductOption")
         .field("id",              &ProductOption::id)
+        .field("legacyId",        &ProductOption::legacyId)
         .field("key",             &ProductOption::key)
         .field("name",            &ProductOption::name)
+        .field("displayName",     &ProductOption::displayName)
+        .field("defaultRecipeId", &ProductOption::defaultRecipeId)
         .field("tier",            &ProductOption::tier)
+        .field("color",           &ProductOption::color)
         .field("durationSeconds", &ProductOption::durationSeconds)
         .field("requirements",    &ProductOption::requirements);
     register_vector<ProductOption>("VectorProductOption");
@@ -102,15 +111,19 @@ EMSCRIPTEN_BINDINGS(gactorio_module) {
         .function("setSpeed",     &Controller::setSpeed)
         .function("enqueue",      &Controller::enqueue)
         .function("enqueueProduct", &Controller::enqueueProduct)
+        .function("enqueueProductById", &Controller::enqueueProductById)
         .function("enqueueAuto",  &Controller::enqueueAuto)
         .function("enqueueAutoProduct", &Controller::enqueueAutoProduct)
+        .function("enqueueAutoProductById", &Controller::enqueueAutoProductById)
         .function("addLine",      &Controller::addLine)
         .function("removeLine",   &Controller::removeLine)
         .function("breakMachine", &Controller::breakMachine)
         .function("repair",         &Controller::repair)
         .function("restockItem",    &Controller::restockItem)
+        .function("restockItemById", &Controller::restockItemById)
         .function("repairAll",      &Controller::repairAll)
         .function("setLineScenario", &Controller::setLineScenario)
+        .function("loadFactoryConfigFromString", &Controller::loadFactoryConfigFromString)
         .function("getLineScenario", &Controller::getLineScenario)
         .function("saveCheckpoint", &Controller::saveCheckpoint)
         .function("undo",           &Controller::undo)
