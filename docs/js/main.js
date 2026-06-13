@@ -12,16 +12,16 @@
 // bridge between this View and the C++ Model. No panel ever bypasses it.
 // =============================================================================
 
-import { Application }     from './Application.js?v=20260614-hotfix-checklist';
-import { SimControlPanel } from './panels/SimControlPanel.js?v=20260614-hotfix-checklist';
-import { FactoryPanel }    from './panels/FactoryPanel.js?v=20260614-hotfix-checklist';
-import { ProductsPanel }   from './panels/ProductsPanel.js?v=20260614-hotfix-checklist';
-import { EventLogPanel }   from './panels/EventLogPanel.js?v=20260614-hotfix-checklist';
-import { InventoryPanel }  from './panels/InventoryPanel.js?v=20260614-hotfix-checklist';
-import { RuntimeConfigPanel } from './panels/RuntimeConfigPanel.js?v=20260614-hotfix-checklist';
-import { InspectorPanel }  from './panels/InspectorPanel.js?v=20260614-hotfix-checklist';
+import { Application }     from './Application.js?v=20260614-hotfix-cleanup';
+import { SimControlPanel } from './panels/SimControlPanel.js?v=20260614-hotfix-cleanup';
+import { FactoryPanel }    from './panels/FactoryPanel.js?v=20260614-hotfix-cleanup';
+import { ProductsPanel }   from './panels/ProductsPanel.js?v=20260614-hotfix-cleanup';
+import { EventLogPanel }   from './panels/EventLogPanel.js?v=20260614-hotfix-cleanup';
+import { InventoryPanel }  from './panels/InventoryPanel.js?v=20260614-hotfix-cleanup';
+import { RuntimeConfigPanel } from './panels/RuntimeConfigPanel.js?v=20260614-hotfix-cleanup';
+import { InspectorPanel }  from './panels/InspectorPanel.js?v=20260614-hotfix-cleanup';
 
-console.log('[gactorio] main.js loaded - build', '2026-06-14-hotfix-checklist');
+console.log('[gactorio] main.js loaded - build', '2026-06-14-hotfix-cleanup');
 
 function boot() {
     console.log('[gactorio] wasm runtime ready, creating Controller');

@@ -9,8 +9,8 @@ namespace gactorio::config {
 
 inline constexpr double kInitialHealth             = 100.0;
 inline constexpr double kDamageChancePerSecond     = 0.5;
-inline constexpr double kDamageMinHp               = 1.0;
-inline constexpr double kDamageMaxHp               = 5.0;
+inline constexpr double kDamageMinHp               = 5.0;
+inline constexpr double kDamageMaxHp               = 10.0;
 inline constexpr double kIncrementalRepairHp       = 5.0;
 inline constexpr double kRepairAllDelaySeconds     = 3.0;
 

@@ -21,7 +21,6 @@ export class Application {
     #ui = new AppUI();
     #lastTime = 0;
     #lastRenderMs = 0;
-    #tickCount = 0;
 
     constructor(controller) {
         this.#ctrl = controller;
@@ -33,7 +32,6 @@ export class Application {
 
     renderNow() {
         const snapshot = toPlainSnapshot(this.#ctrl.snapshot());
-        snapshot.tickCount = this.#tickCount;
         this.#ui.renderAll(snapshot);
         this.#lastRenderMs = performance.now();
     }
@@ -51,11 +49,9 @@ export class Application {
         // Simulation always advances at full vsync rate; the C++ SimClock
         // internally honours pause, so ticking while paused is a no-op.
         this.#ctrl.tick(dt);
-        this.#tickCount += 1;
 
         if (now - this.#lastRenderMs >= Application.RENDER_INTERVAL_MS) {
             const snapshot = toPlainSnapshot(this.#ctrl.snapshot());
-            snapshot.tickCount = this.#tickCount;
             this.#ui.renderAll(snapshot);
             this.#lastRenderMs = now;
         }

@@ -61,7 +61,6 @@ export class SimControlPanel extends UIComponent {
     render(snap) {
         this.#lastSnap = snap;
         document.getElementById('sim-time').textContent = snap.simulationTime.toFixed(2);
-        document.getElementById('tick-count').textContent = snap.tickCount ?? 0;
         const firstLine = snap.lines[0];
         if (firstLine) {
             document.getElementById('global-scenario').value = firstLine.scenarioId || 'normal-flow';

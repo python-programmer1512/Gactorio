@@ -109,16 +109,6 @@ export class FactoryPanel extends UIComponent {
                         console.log('[gactorio] removeLine', id, '->', this.#ctrl.removeLine(id));
                         break;
                     }
-                    case 'repair': {
-                        const id = parseInt(btn.dataset.machine, 10);
-                        console.log('[gactorio] repair (+5 HP)', id, '->', this.#ctrl.repair(id));
-                        break;
-                    }
-                    case 'repairAll': {
-                        const id = parseInt(btn.dataset.machine, 10);
-                        console.log('[gactorio] repairAll', id, '->', this.#ctrl.repairAll(id));
-                        break;
-                    }
                     }
                 } catch (err) {
                     console.error('[gactorio] factory action threw:', err);
@@ -179,7 +169,8 @@ export class FactoryPanel extends UIComponent {
         document.getElementById('factory-content').addEventListener('input', e => {
             const slider = e.target.closest('.conveyor-slider');
             if (!slider) return;
-            const scroller = slider.closest('.conveyor-line');
+            const line = slider.closest('.line');
+            const scroller = line?.querySelector('.conveyor-line');
             if (!scroller) return;
             scroller.scrollLeft = Number(slider.value);
             this.#rememberScroll(scroller);
@@ -292,10 +283,12 @@ export class FactoryPanel extends UIComponent {
                     </div>
                     ${disappearBtn}
                 </div>
-                <div class="conveyor-line" data-line-id="${line.id}" style="--belt-width:${beltWidth}px">
-                    <div class="conveyor-belt" aria-hidden="true"></div>
-                    <div class="machine-flow">${machineCards}</div>
-                    <input class="conveyor-slider" type="range" min="0" max="0" value="0" aria-label="Line scroll">
+                <div class="conveyor-shell">
+                    <div class="conveyor-line" data-line-id="${line.id}" style="--belt-width:${beltWidth}px">
+                        <div class="conveyor-belt" aria-hidden="true"></div>
+                        <div class="machine-flow">${machineCards}</div>
+                    </div>
+                    <input class="conveyor-slider" type="range" min="0" max="0" value="0" aria-label="${esc(line.name)} horizontal scroll">
                 </div>
             </div>`;
     }
@@ -307,9 +300,6 @@ export class FactoryPanel extends UIComponent {
         const progress = Math.max(0, Math.min(1, m.progress));
         const progressPct = Math.round(progress * 100);
         const hpPct = Math.max(0, Math.min(100, m.health));
-        const repairAllBtn = m.state === 'Broken'
-            ? `<button class="small danger" data-act="repairAll" data-machine="${m.id}">Repair All</button>`
-            : '';
 
         return `
             <article class="${cardCls}" data-machine-id="${m.id}">
@@ -329,10 +319,6 @@ export class FactoryPanel extends UIComponent {
                     <span>${m.health.toFixed(0)}</span>
                 </div>
                 <div class="hp-meter"><span style="width:${hpPct.toFixed(0)}%"></span></div>
-                <div class="machine-actions">
-                    <button class="small" data-act="repair" data-machine="${m.id}">Repair</button>
-                    ${repairAllBtn}
-                </div>
             </article>`;
     }
 
@@ -381,7 +367,7 @@ export class FactoryPanel extends UIComponent {
     }
 
     #syncDragbar(scroller) {
-        const slider = scroller.querySelector('.conveyor-slider');
+        const slider = scroller.closest('.conveyor-shell')?.querySelector('.conveyor-slider');
         if (!slider) return;
 
         const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
