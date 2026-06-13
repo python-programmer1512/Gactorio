@@ -134,7 +134,7 @@ button:disabled,
 button:disabled:hover         { background: #3a3a3e; color: #666; cursor: not-allowed; }
 
 .speed { margin-left: 4px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; flex-wrap: wrap; }
-input[type=range] { width: 90px; }
+.speed input[type=range] { width: 90px; }
 
 /* ---------- Stats grid ---------- */
 #stats-grid {
@@ -165,50 +165,34 @@ input[type=range] { width: 90px; }
 .conveyor-line {
     position: relative;
     width: 100%;
-    min-height: 230px;
+    min-height: 154px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 8px 4px 12px;
+    padding: 8px 4px 14px;
+    cursor: grab;
+    user-select: none;
 }
-.conveyor-line::-webkit-scrollbar { height: 8px; }
-.conveyor-line::-webkit-scrollbar-thumb { background: #49515e; border-radius: 4px; }
+.conveyor-line.dragging { cursor: grabbing; }
+.conveyor-line::-webkit-scrollbar { height: 0; }
+.conveyor-line::-webkit-scrollbar-thumb { background: transparent; }
 .conveyor-line::-webkit-scrollbar-track { background: transparent; }
 
 .conveyor-belt {
     position: absolute;
     left: 4px;
     right: auto;
-    top: 120px;
+    top: 65px;
     width: var(--belt-width);
-    height: 58px;
-    border: 1px solid #596273;
-    border-radius: 6px;
+    height: 28px;
+    border: 1px solid #44505f;
+    border-radius: 3px;
     background:
-        repeating-linear-gradient(
-            90deg,
-            #343a44 0,
-            #343a44 18px,
-            #2a3039 18px,
-            #2a3039 36px
-        );
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.22)),
+        repeating-linear-gradient(90deg, #242b34 0 16px, #1b222b 16px 32px);
     box-shadow:
-        inset 0 8px 0 rgba(255,255,255,0.045),
-        inset 0 -8px 0 rgba(0,0,0,0.28);
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        inset 0 -1px 0 rgba(0,0,0,0.5);
 }
-.conveyor-belt::before,
-.conveyor-belt::after {
-    content: "";
-    position: absolute;
-    top: 9px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background:
-        radial-gradient(circle at 50% 50%, #767f8f 0 28%, #2c323b 30% 58%, #15191f 60%);
-    box-shadow: 0 0 0 1px #8790a0;
-}
-.conveyor-belt::before { left: 18px; }
-.conveyor-belt::after { right: 18px; }
 
 .machine-flow {
     position: relative;
@@ -220,94 +204,101 @@ input[type=range] { width: 90px; }
 }
 
 .machine-card {
-    flex: 0 0 205px;
-    min-height: 198px;
-    padding: 13px 14px;
-    border: 1px solid #4a5361;
-    border-left: 5px solid #7d8797;
-    border-radius: 6px;
-    background: #f7f9fc;
-    color: #27313e;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.28);
+    flex: 0 0 168px;
+    min-height: 136px;
+    padding: 8px;
+    border: 1px solid #45515f;
+    border-top: 4px solid #7d8797;
+    border-radius: 4px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.065), rgba(255,255,255,0)),
+        #222a33;
+    color: #dce4ee;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.3);
 }
 .machine-card h4 {
-    margin: 12px 0 4px;
-    color: #202833;
-    font-size: 18px;
-    line-height: 1.1;
+    margin: 7px 0 4px;
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
 }
 .machine-card-top {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     min-width: 0;
 }
 .station-index {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #0f8a68;
-    color: white;
-    font-size: 12px;
+    width: 25px;
+    height: 20px;
+    border-radius: 3px;
+    background: #111820;
+    border: 1px solid #647286;
+    color: #f4c430;
+    font-size: 11px;
     font-weight: 700;
 }
 .machine-badge {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    border-radius: 999px;
-    background: #e8ddff;
-    color: #6b2db8;
-    padding: 4px 8px;
-    font-size: 12px;
+    display: inline-block;
+    max-width: 100%;
+    border-radius: 3px;
+    background: #2d3744;
+    color: #9ec5ff;
+    padding: 3px 5px;
+    font-size: 10px;
+    line-height: 1.2;
     font-weight: 700;
+    overflow-wrap: anywhere;
 }
 .machine-card-top b {
-    font-size: 12px;
+    justify-self: end;
+    font-size: 11px;
     text-transform: uppercase;
     white-space: nowrap;
 }
 .machine-route {
-    min-height: 34px;
-    color: #697386;
-    font-size: 12px;
+    display: none;
+    min-height: 0;
+    color: #aeb8c7;
+    font-size: 11px;
+    overflow-wrap: anywhere;
 }
 .meter-row {
     display: flex;
     justify-content: space-between;
     gap: 8px;
-    margin-top: 8px;
-    color: #697386;
-    font-size: 12px;
+    margin-top: 6px;
+    color: #bac5d4;
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
 }
 .machine-card progress {
     width: 100%;
-    height: 11px;
+    height: 8px;
     margin: 5px 0 2px;
     overflow: hidden;
     border: 0;
-    border-radius: 999px;
-    background: #d9dde4;
+    border-radius: 3px;
+    background: #151b22;
 }
 .machine-card progress::-webkit-progress-bar {
-    background: #d9dde4;
-    border-radius: 999px;
+    background: #151b22;
+    border-radius: 3px;
 }
 .machine-card progress::-webkit-progress-value {
-    background: #0f8a68;
-    border-radius: 999px;
+    background: #25b39b;
+    border-radius: 3px;
 }
 .hp-meter {
-    height: 9px;
+    height: 7px;
     overflow: hidden;
-    border-radius: 999px;
-    background: #d9dde4;
+    border-radius: 3px;
+    background: #151b22;
 }
 .hp-meter span {
     display: block;
@@ -318,49 +309,86 @@ input[type=range] { width: 90px; }
 .machine-actions {
     display: flex;
     gap: 6px;
-    margin-top: 11px;
+    margin-top: 7px;
 }
 
 .belt-link {
     position: relative;
-    flex: 0 0 44px;
-    min-height: 198px;
+    flex: 0 0 24px;
+    min-height: 136px;
 }
 .belt-link::before {
     content: "";
     position: absolute;
-    top: 92px;
-    left: 0;
-    right: 10px;
-    border-top: 3px dashed #8fa0b8;
+    top: 62px;
+    left: 2px;
+    right: 8px;
+    height: 4px;
+    border-radius: 999px;
+    background: #7d8ba1;
+    opacity: 0.9;
 }
 .belt-link::after {
     content: "";
     position: absolute;
-    top: 84px;
-    right: 0;
+    top: 56px;
+    right: 1px;
     width: 0;
     height: 0;
-    border-top: 9px solid transparent;
-    border-bottom: 9px solid transparent;
-    border-left: 14px solid #8fa0b8;
-}
-.belt-link span {
-    position: absolute;
-    left: 12px;
-    bottom: 31px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 50% 50%, #a2adbc 0 22%, #303743 25% 62%, #15191f 64%);
-    box-shadow: 0 0 0 1px #8790a0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-left: 11px solid #7d8ba1;
 }
 
-.machine-working { border-left-color: #0f8a68; }
-.machine-idle { border-left-color: #7d8797; }
-.machine-broken { border-left-color: #c81d25; }
-.machine-maintenance { border-left-color: #e0a800; }
-.machine-paused { border-left-color: #7d8797; }
+.conveyor-line .conveyor-slider {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: 1px;
+    width: calc(100% - 8px);
+    height: 12px;
+    margin: 0;
+    accent-color: #7f8da3;
+    cursor: pointer;
+    appearance: none;
+    background: transparent;
+}
+.conveyor-line .conveyor-slider.is-hidden { display: none; }
+.conveyor-line .conveyor-slider::-webkit-slider-runnable-track {
+    height: 12px;
+    border-radius: 999px;
+    background: #303946;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.conveyor-line .conveyor-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 72px;
+    height: 12px;
+    border: 0;
+    border-radius: 999px;
+    background: #7f8da3;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.18),
+        0 1px 4px rgba(0,0,0,0.25);
+}
+.conveyor-line .conveyor-slider::-moz-range-track {
+    height: 12px;
+    border-radius: 999px;
+    background: #303946;
+}
+.conveyor-line .conveyor-slider::-moz-range-thumb {
+    width: 72px;
+    height: 12px;
+    border: 0;
+    border-radius: 999px;
+    background: #7f8da3;
+}
+
+.machine-working { border-top-color: #25b39b; }
+.machine-idle { border-top-color: #7d8797; }
+.machine-broken { border-top-color: #c81d25; }
+.machine-maintenance { border-top-color: #e0a800; }
+.machine-paused { border-top-color: #7d8797; }
 .machine-card.machine-broken progress::-webkit-progress-value,
 .machine-card.machine-broken .hp-meter span { background: #c81d25; }
 .machine-card.machine-maintenance progress::-webkit-progress-value,

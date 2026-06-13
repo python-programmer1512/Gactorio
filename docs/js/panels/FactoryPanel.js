@@ -11,6 +11,9 @@ import { esc } from '../util.js';
 
 export class FactoryPanel extends UIComponent {
     #ctrl;
+    #isLineInteracting = false;
+    #lineInteractionTimer = 0;
+    #scrollLeftByLine = new Map();
 
     constructor(controller) {
         super();
@@ -18,6 +21,63 @@ export class FactoryPanel extends UIComponent {
     }
 
     bind() {
+        const beginMouseDrag = (scroller, startX) => {
+            const startScrollLeft = scroller.scrollLeft;
+            this.#holdLineInteraction();
+            scroller.classList.add('dragging');
+
+            const onMove = event => {
+                scroller.scrollLeft = startScrollLeft - (event.clientX - startX);
+                this.#rememberScroll(scroller);
+                this.#syncDragbar(scroller);
+            };
+            const onUp = () => {
+                this.#releaseLineInteractionSoon();
+                scroller.classList.remove('dragging');
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
+            };
+
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+        };
+
+        const beginPointerDrag = (scroller, event) => {
+            const startX = event.clientX;
+            const startScrollLeft = scroller.scrollLeft;
+            this.#holdLineInteraction();
+            scroller.classList.add('dragging');
+            try {
+                scroller.setPointerCapture(event.pointerId);
+            } catch (_err) {
+                // Pointer capture is an enhancement; window listeners below
+                // still keep drag scrolling usable if capture is unavailable.
+            }
+
+            const onMove = moveEvent => {
+                scroller.scrollLeft = startScrollLeft - (moveEvent.clientX - startX);
+                this.#rememberScroll(scroller);
+                this.#syncDragbar(scroller);
+            };
+            const onUp = () => {
+                this.#releaseLineInteractionSoon();
+                scroller.classList.remove('dragging');
+                scroller.removeEventListener('pointermove', onMove);
+                scroller.removeEventListener('pointerup', onUp);
+                scroller.removeEventListener('pointercancel', onUp);
+                window.removeEventListener('pointermove', onMove);
+                window.removeEventListener('pointerup', onUp);
+                window.removeEventListener('pointercancel', onUp);
+            };
+
+            scroller.addEventListener('pointermove', onMove);
+            scroller.addEventListener('pointerup', onUp);
+            scroller.addEventListener('pointercancel', onUp);
+            window.addEventListener('pointermove', onMove);
+            window.addEventListener('pointerup', onUp);
+            window.addEventListener('pointercancel', onUp);
+        };
+
         document.getElementById('btn-add-line').addEventListener('click', () => {
             const id = this.#ctrl.addLine();
             console.log('[gactorio] addLine -> id', id);
@@ -25,39 +85,111 @@ export class FactoryPanel extends UIComponent {
 
         document.getElementById('factory-content').addEventListener('pointerdown', e => {
             const btn = e.target.closest('button[data-act]');
-            if (!btn || btn.disabled) return;
+            if (btn && btn.disabled) return;
 
-            try {
-                switch (btn.dataset.act) {
-                case 'removeLine': {
-                    const id = parseInt(btn.dataset.line, 10);
-                    console.log('[gactorio] removeLine', id, '->', this.#ctrl.removeLine(id));
-                    break;
+            if (btn) {
+                try {
+                    switch (btn.dataset.act) {
+                    case 'removeLine': {
+                        const id = parseInt(btn.dataset.line, 10);
+                        console.log('[gactorio] removeLine', id, '->', this.#ctrl.removeLine(id));
+                        break;
+                    }
+                    case 'repair': {
+                        const id = parseInt(btn.dataset.machine, 10);
+                        console.log('[gactorio] repair (+5 HP)', id, '->', this.#ctrl.repair(id));
+                        break;
+                    }
+                    case 'repairAll': {
+                        const id = parseInt(btn.dataset.machine, 10);
+                        console.log('[gactorio] repairAll', id, '->', this.#ctrl.repairAll(id));
+                        break;
+                    }
+                    }
+                } catch (err) {
+                    console.error('[gactorio] factory action threw:', err);
                 }
-                case 'repair': {
-                    const id = parseInt(btn.dataset.machine, 10);
-                    console.log('[gactorio] repair (+5 HP)', id, '->', this.#ctrl.repair(id));
-                    break;
-                }
-                case 'repairAll': {
-                    const id = parseInt(btn.dataset.machine, 10);
-                    console.log('[gactorio] repairAll', id, '->', this.#ctrl.repairAll(id));
-                    break;
-                }
-                }
-            } catch (err) {
-                console.error('[gactorio] factory action threw:', err);
+                return;
             }
+
+            const slider = e.target.closest('.conveyor-slider');
+            if (slider) {
+                this.#holdLineInteraction();
+                const onRelease = () => {
+                    this.#releaseLineInteractionSoon();
+                    window.removeEventListener('pointerup', onRelease);
+                    window.removeEventListener('pointercancel', onRelease);
+                    window.removeEventListener('mouseup', onRelease);
+                };
+                window.addEventListener('pointerup', onRelease);
+                window.addEventListener('pointercancel', onRelease);
+                window.addEventListener('mouseup', onRelease);
+                return;
+            }
+
+            const scroller = e.target.closest('.conveyor-line');
+            if (!scroller || e.button !== 0) return;
+            e.preventDefault();
+            beginPointerDrag(scroller, e);
+            return;
         });
+
+        document.getElementById('factory-content').addEventListener('mousedown', e => {
+            if (e.target.closest('button')) return;
+            if (e.target.closest('.conveyor-slider')) return;
+            const scroller = e.target.closest('.conveyor-line');
+            if (!scroller || e.button !== 0) return;
+
+            e.preventDefault();
+            beginMouseDrag(scroller, e.clientX);
+        });
+
+        document.getElementById('factory-content').addEventListener('wheel', e => {
+            const scroller = e.target.closest('.conveyor-line');
+            if (!scroller) return;
+            if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+
+            scroller.scrollLeft += e.deltaY;
+            this.#rememberScroll(scroller);
+            this.#syncDragbar(scroller);
+            this.#holdLineInteraction(350);
+            e.preventDefault();
+        }, { passive: false });
+
+        document.getElementById('factory-content').addEventListener('input', e => {
+            const slider = e.target.closest('.conveyor-slider');
+            if (!slider) return;
+            const scroller = slider.closest('.conveyor-line');
+            if (!scroller) return;
+            scroller.scrollLeft = Number(slider.value);
+            this.#rememberScroll(scroller);
+            this.#syncDragbar(scroller);
+            this.#holdLineInteraction(350);
+        });
+
+        document.getElementById('factory-content').addEventListener('scroll', e => {
+            const scroller = e.target.closest?.('.conveyor-line');
+            if (!scroller) return;
+            this.#rememberScroll(scroller);
+            this.#syncDragbar(scroller);
+            this.#holdLineInteraction(200);
+        }, true);
     }
 
     render(snap) {
+        if (this.#isLineInteracting) {
+            this.#syncDragbars();
+            return;
+        }
+
         let html = '';
         for (const line of snap.lines) {
             html += this.#lineHtml(line, snap.lines.length);
         }
         document.getElementById('factory-content').innerHTML =
             html || '<div class="empty-factory">No production lines.</div>';
+        this.#restoreScrollPositions();
+        this.#syncDragbars();
     }
 
     #lineHtml(line, totalLines) {
@@ -72,10 +204,12 @@ export class FactoryPanel extends UIComponent {
         const disappearBtn = `
             <button class="small danger" data-act="removeLine" data-line="${line.id}"
                     title="${esc(disappearTitle)}" ${canDisappear ? '' : 'disabled'}>Disappear</button>`;
-        const beltWidth = (line.machines.length * 205) + (Math.max(0, line.machines.length - 1) * 44);
+        const cardWidth = 168;
+        const linkWidth = 24;
+        const beltWidth = (line.machines.length * cardWidth) + (Math.max(0, line.machines.length - 1) * linkWidth);
         const machineCards = line.machines.map((m, index) => `
             ${this.#machineCard(m, index)}
-            ${index < line.machines.length - 1 ? '<div class="belt-link" aria-hidden="true"><span></span></div>' : ''}
+            ${index < line.machines.length - 1 ? '<div class="belt-link" aria-hidden="true"></div>' : ''}
         `).join('');
 
         return `
@@ -87,9 +221,10 @@ export class FactoryPanel extends UIComponent {
                     </div>
                     ${disappearBtn}
                 </div>
-                <div class="conveyor-line" style="--belt-width:${beltWidth}px">
+                <div class="conveyor-line" data-line-id="${line.id}" style="--belt-width:${beltWidth}px">
                     <div class="conveyor-belt" aria-hidden="true"></div>
                     <div class="machine-flow">${machineCards}</div>
+                    <input class="conveyor-slider" type="range" min="0" max="0" value="0" aria-label="Line scroll">
                 </div>
             </div>`;
     }
@@ -108,11 +243,10 @@ export class FactoryPanel extends UIComponent {
             <article class="${cardCls}">
                 <div class="machine-card-top">
                     <span class="station-index">${String(index + 1).padStart(2, '0')}</span>
-                    <span class="machine-badge">${esc(m.type)}</span>
                     <b class="${stateCls}">${esc(m.state)}</b>
                 </div>
                 <h4>${esc(m.name)}</h4>
-                <div class="machine-route">${esc(m.type)} process station</div>
+                <div class="machine-badge">${esc(m.type)}</div>
                 <div class="meter-row">
                     <span>Progress</span>
                     <span>${progressPct}%</span>
@@ -128,5 +262,64 @@ export class FactoryPanel extends UIComponent {
                     ${repairAllBtn}
                 </div>
             </article>`;
+    }
+
+    #syncDragbars() {
+        for (const scroller of document.querySelectorAll('.conveyor-line')) {
+            this.#syncDragbar(scroller);
+        }
+    }
+
+    #rememberScroll(scroller) {
+        const lineId = scroller.dataset.lineId;
+        if (!lineId) return;
+        this.#scrollLeftByLine.set(lineId, scroller.scrollLeft);
+    }
+
+    #holdLineInteraction(durationMs = 0) {
+        this.#isLineInteracting = true;
+        if (this.#lineInteractionTimer !== 0) {
+            clearTimeout(this.#lineInteractionTimer);
+            this.#lineInteractionTimer = 0;
+        }
+        if (durationMs > 0) {
+            this.#lineInteractionTimer = setTimeout(() => {
+                this.#isLineInteracting = false;
+                this.#lineInteractionTimer = 0;
+            }, durationMs);
+        }
+    }
+
+    #releaseLineInteractionSoon() {
+        if (this.#lineInteractionTimer !== 0) {
+            clearTimeout(this.#lineInteractionTimer);
+        }
+        this.#lineInteractionTimer = setTimeout(() => {
+            this.#isLineInteracting = false;
+            this.#lineInteractionTimer = 0;
+        }, 150);
+    }
+
+    #restoreScrollPositions() {
+        for (const scroller of document.querySelectorAll('.conveyor-line')) {
+            const lineId = scroller.dataset.lineId;
+            if (!lineId || !this.#scrollLeftByLine.has(lineId)) continue;
+            scroller.scrollLeft = this.#scrollLeftByLine.get(lineId);
+        }
+    }
+
+    #syncDragbar(scroller) {
+        const slider = scroller.querySelector('.conveyor-slider');
+        if (!slider) return;
+
+        const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+        if (maxScrollLeft <= 0) {
+            slider.classList.add('is-hidden');
+            return;
+        }
+
+        slider.classList.remove('is-hidden');
+        slider.max = String(Math.round(maxScrollLeft));
+        slider.value = String(Math.round(scroller.scrollLeft));
     }
 }
