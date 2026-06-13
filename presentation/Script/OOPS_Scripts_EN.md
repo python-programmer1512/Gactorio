@@ -1,342 +1,188 @@
-# JP Gactorio Presentation Script
+# Gactorio OOPS Presentation Script
 
-Members: Wonkyu Go, Yongbin Cho
-Last modified: 2026.06.13
+Team members: Go Won-gyu, Cho Yong-bin  
+Last revised: 26.06.13
 
-# 1. Project and Backend Scope
+---
 
-Hello. We will now present the Backend UML structure of the Gactorio Project.
+# 1. Application UI Demonstration - 1 min
 
-Gactorio is a C++ project that simulates a beverage production factory.
-The Backend of this project manages production lines, machines, products, inventory, simulation time, event logs, statistics, and the undo feature.
+First, we will open the Gactorio executable file and show the actual UI.
 
-The scope of UML analysis in this presentation is the Backend structure.
-Specifically, it includes the Model layer, such as Factory, ProductionLine, Machine, Product, and Inventory; the FactoryController, which handles external requests; DTO Snapshots, which are delivered to the screen or API; and structures related to Event, Observer, and Memento.
+At the top of the screen, you can see the title `Gactorio` and a description saying that it is an energy drink factory simulator. This project is structured so that the C++ Backend is built into WebAssembly and controlled through an HTML, CSS, and JavaScript View.
 
-First, we will look at the overall Backend structure through the complete class diagram.
-Then, we will explain the core simulation structure and the tick/update flow.
-After that, we will examine the product domain and the main design patterns in order.
+In the `Simulation Control` area on the left, you can check the current simulation time and control the simulation status and speed using the `Pause`, `Reset`, and `Speed` slider. If we increase the speed here, time passes faster. If we press pause, the production progress stops.
 
-In particular, there are three important design points in this project:
-the State Pattern for managing Machine states,
-the Observer Pattern for event logs and statistics,
-and the Memento Pattern for checkpoint and undo features.
+Below that, in the `Memento` area, there are `Save Checkpoint` and `Undo` buttons. After saving the current factory state as a checkpoint, even if product production or machine states change, pressing undo restores the previous state. The history number shows how many checkpoints are currently saved.
 
-In other words, this presentation will explain, mainly through UML, what classes make up the Gactorio Backend and how these classes cooperate during the simulation process.
+In the center `Factory` area, production lines and machine cards are displayed. Each line has machines such as Mixing, Quality, Bottling, and Packaging. When a product task is added, we can see the machine status and progress change. We can also add a new production line using the `+ Add Line` button.
 
-# 2. Overall Class Diagram
+On the right side, in the `Products` area, we can select products such as Voltz Classic, Hyper Bolt, and Aurora Zero and add them to the production queue. In the `Inventory` area, we can check raw materials and finished product stock, and we can also restock raw materials.
 
-In this section, we will first look at the overall class structure of the Gactorio Backend.
+Finally, the `Statistics` and `Event Log` areas display events and statistics collected through the Observer pattern, such as production started, process completed, product completed, machine broken, and repair completed. In other words, this UI is not just a simple screen. It is the result of the Backend’s Factory, Controller, DTO, and Event structures actually being connected and working together.
 
-This diagram divides the Backend into four main areas: Controller, DTO, Common, and Model.
-The most important point in the overall flow is that external requests enter through the FactoryController, the FactoryController manipulates the Model, and then returns the result to the outside in the form of DTO Snapshots.
+---
 
-First, the FactoryController in the Controller area serves as the entry point of the Backend.
-It is the class that users directly access when they progress the simulation, add products, or use checkpoint and undo features.
-The FactoryController internally owns the Factory and also manages SimulationHistory for the undo feature.
+# 2. Implemented Scenarios - 1 min
 
-The DTO area consists of read-only state objects delivered to the outside.
-FactorySnapshot represents the overall factory state, and it contains inventory, production line, machine, event, and statistics information.
-The important point is that DTOs do not directly expose Model objects. Instead, they copy the current state as values and deliver them.
+We implemented three representative scenarios.
 
-The Common area contains simulation time and common types.
-SimClock manages simulation time, speed multiplier, and pause state.
-Types.hpp contains common definitions such as product IDs, machine IDs, item types, machine states, and event types.
+The first is the product production scenario. When the user selects a product in the Products panel, the View does not directly modify the Model. Instead, it sends an enqueue command to the Controller. The Controller forwards the request to the Factory, and the Factory checks and consumes the required raw materials from the Inventory. Then it creates a ProductionTask and adds it to the ProductionLine queue. After that, as ticks proceed, the ProductionLine assigns tasks to idle Machines, and each Machine increases the process progress. When all ProcessSteps are finished, the finished product quantity is reflected in the Inventory, and the Event Log and Statistics are also updated.
 
-The largest area, the Model area, is responsible for the actual simulation logic.
-At the center is the Factory, which manages Inventory, ProductionLine, EventBus, Observer, and SimClock.
-ProductionLine has task queues and machines and performs actual production, while Machine handles each process step.
+The second is the machine breakdown and repair scenario. During production, if a Machine’s health decreases or a break command is called, the Machine enters the Broken state. In the Broken state, production does not proceed even if update is called. After that, when a repair or repairAll command is received, the Machine changes to the Maintenance state. Once the repair time has passed, it returns to an available state. This flow is implemented using the State Pattern, so the behavior of each state — Idle, Working, Broken, and Maintenance — is separated.
 
-On the right side, the Memento-related structures are placed.
-The FactoryMemento hierarchy stores the internal state of the factory for checkpoint and undo, and SimulationHistory keeps these Mementos in a stack structure.
+The third is the checkpoint and undo scenario. When the user presses Save Checkpoint, the FactoryController saves the current state of the Factory as a FactoryMemento and stores it in the SimulationHistory stack. After that, even if a line is added or a product is produced, pressing Undo retrieves the most recent FactoryMemento and allows the Factory to restore its time, inventory, production line queues, and machine states. This feature was implemented using the Memento Pattern.
 
-To summarize, this overall class diagram shows that the Gactorio Backend receives external requests through the FactoryController boundary, manages simulation state around the Factory, and separately uses DTO, Event, and Memento structures.
+---
 
-# 3. Core Simulation Class Diagram
+# 3. Class Diagrams and Class Structures - 13 min
 
-In this section, we will look at the Core Simulation structure, which is the center of the actual simulation.
+Now, we will explain the overall class structure while looking at the class diagram.
 
-The key point of this diagram is to show how production lines, machines, tasks, products, and inventory are connected around the Factory.
-In the Gactorio Backend, Factory serves as the aggregate root of the simulation.
-In other words, it is the central object that manages the factory’s internal time, inventory, production lines, and event system in one place.
+## 3.1 Overall Class Diagram
 
-First, Factory manages SimClock, Inventory, multiple ProductionLines, and EventBus.
-SimClock is responsible for simulation time, speed multiplier, and pause state, while Inventory manages the quantities of raw materials and finished products.
-ProductionLine is the unit where actual production occurs, and EventBus delivers events that occur during production.
+First, this is the overall class diagram.
 
-ProductionLine has two main components.
-One is the ProductionTask queue, which stores pending tasks.
-The other is the list of Machines that process the actual production steps.
-In other words, a production line manages which product tasks are waiting and assigns those tasks to machines that can process them.
+The Backend is largely divided into four areas: `Controller`, `DTO`, `Common`, and `Model`. The most important point in the overall flow is that external requests enter through the `FactoryController`, the `FactoryController` manipulates the Model, and then returns the result to the outside in the form of DTO Snapshots.
 
-ProductionTask represents the production progress of a single product.
-Each task refers to a specific Product and manages the current process step using currentStepIndex.
-Since each product has a different required process sequence, ProductionTask checks the currently required process by following the list of ProcessSteps owned by the Product.
+`FactoryController` is the entry point of the Backend. It is the class that users directly access when they run the simulation, add products, or use checkpoint and undo features. Internally, it owns a `CarbonationFactory` through a `unique_ptr`, and it also has a `SimulationHistory` for the undo feature.
 
-Machine is an abstract base class that processes the actual production steps.
-Concrete machines inherit from Machine and perform tasks according to the roles they can handle.
-When a task is assigned, the Machine progresses production according to its current state.
-When the process is complete, it either moves the task to the next step or reports product completion.
+The DTO area consists of read-only state objects delivered to the outside. `FactorySnapshot` represents the entire factory state, and it contains `InventorySnapshot`, `ProductionLineSnapshot`, `MachineSnapshot`, `EventSnapshot`, and `StatisticsSnapshot`. The key point of this structure is that Model objects are not directly exposed to the outside. Instead, the current state is copied and delivered as values.
 
-An important point here is that state-specific behavior of Machine is separated into MachineState objects.
-Machine has states such as Idle, Working, Broken, and Maintenance, and the actual update behavior for each state is delegated to each State object.
-This part will be explained in more detail in the State Pattern section later.
+The Common area contains `SimClock`, common enums, and ID types. `SimClock` handles simulation time, speed multiplier, and pause state. `Types.hpp` defines common types such as `ProductId`, `MachineId`, `ItemType`, `MachineStatus`, and `EventType`.
 
-The overall production flow can be summarized as follows.
-Factory manages production lines and inventory, and ProductionLine assigns tasks to machines.
-Machine processes each step according to its state and role, and completed products are reflected back into Inventory.
+The Model area contains the actual simulation logic. At the center is `Factory`, and `Factory` manages `Inventory`, `ProductionLine`, `EventBus`, `EventLogObserver`, `StatisticsObserver`, and `SimClock`. `ProductionLine` has the task queue and Machine list and performs the actual production process. `Machine` processes each production step.
 
-The point to emphasize in this diagram is ownership.
-Factory owns ProductionLines, and ProductionLine owns Machines.
-On the other hand, tasks can be shared between the queue and machines, so they are connected using shared pointers.
+Now, I will first explain the has-a relationships. `FactoryController` has a `CarbonationFactory` and a `SimulationHistory`. `Factory` has a `SimClock`, an `Inventory`, a list of `ProductionLine` objects, an `EventBus`, and Observer objects. `ProductionLine` has machines and a task queue. `FactorySnapshot` has other snapshot DTOs. These relationships are represented as composition or aggregation, showing where each object’s lifecycle and responsibility belong.
 
-To summarize, the Core Simulation structure is the key diagram that shows how actual production logic in the Gactorio Backend is carried out through cooperation among objects.
+On the other hand, is-a relationships are inheritance relationships. `CarbonationFactory` is a `Factory`. `MixingStation`, `QualityStation`, `BottlingStation`, and `PackagingStation` are `Machine` objects. `IdleState`, `WorkingState`, `BrokenState`, and `MaintenanceState` are `MachineState` objects. `EventLogObserver` and `StatisticsObserver` are `Observer` objects. Thanks to these inheritance relationships, Factory or EventBus can operate based on abstract roles rather than concrete classes.
 
-# 4. Tick/Update Sequence Diagram
+There are also dependency relationships. `FactoryController` depends on the Model layer, but the View does not directly depend on the Model. The View depends only on the View-friendly DTOs such as `ctrl::Controller` and `FactoryView`. Inside the Model, `Machine` depends on an `EventBus` pointer to publish events, and Panels depend on `Module.Controller` to send commands. These dependencies are restricted so that they flow only in the necessary direction.
 
-In this section, we will examine the order in which the Core Simulation structure introduced earlier operates during actual execution.
+## 3.2 Core Simulation Class Diagram
 
-This diagram shows how one simulation update proceeds when FactoryController::tick(deltaTime) is called.
-In other words, while the previous Class Diagram showed “which objects are connected,” this Sequence Diagram shows “in what order those objects are called.”
+Next is the Core Simulation Class Diagram.
 
-First, the outside calls tick() on FactoryController.
-FactoryController does not directly handle production logic. Instead, it calls update() on its internal Factory.
-In this way, the Controller serves as an entry point that delivers external commands to the Model.
+The key point of this diagram is how production lines, machines, tasks, products, and inventory cooperate around the `Factory`. `Factory` acts as the aggregate root. In other words, it is the central object that manages time, inventory, production lines, and the event system inside the factory.
 
-When Factory::update() starts, it first updates the SimClock.
-SimClock reflects the given deltaTime based on simulation time and manages how much the current time has progressed.
-If the simulation is paused or stopped, this step prevents time from progressing.
+`Factory` updates time using `SimClock` and manages raw material and finished product quantities using `Inventory`. Multiple `ProductionLine` objects are the units where actual production happens, and each line has a waiting `ProductionTask` queue and a list of `Machine` objects that process the actual steps.
 
-Next, Factory calls assignAvailableTask() for each ProductionLine.
-In this step, if there is a pending ProductionTask in the task queue and an idle Machine that can process the task’s current process step, the task is assigned.
-The assigned Machine transitions to the Working state and performs actual production in the later update step.
+`ProductionTask` represents the production progress of one product. It references one `Product` and manages which process step is currently being performed using `currentStepIndex`. Since each product has a different process order, it checks the currently required machine role by following the `ProcessStep` list owned by the Product.
 
-After that, Factory iterates over the Machine list and calls update() on each Machine.
-Each Machine behaves according to its current state, and the state-specific processing is delegated to a MachineState object.
-For example, in the Working state, production progress increases; in the Maintenance state, repair progresses; and in the Broken state, production remains stopped.
+`Machine` is an abstract base class that performs the actual process. Concrete machines inherit from `Machine` and perform tasks according to the roles they can handle. For example, a machine with the Mixing role handles the mixing process, while a machine with the Bottling role handles the bottling process.
 
-As production progresses, ProductionTask checks the current ProcessStep.
-When a process step is complete, it moves on to the next step.
-When all process steps are complete, product production is finished, and the result is delivered to the Factory through the ProductionLine.
+The execution flow starts from `FactoryController::tick(deltaTime)`. The Controller does not directly handle production logic. Instead, it calls `Factory::update()`. `Factory` first updates the `SimClock`, then assigns available tasks to Machines for each ProductionLine. After that, Machine updates are performed. When a process is completed, the task moves to the next step or is completed as a finished product. The completed product is reflected through `Inventory::addProduct()`, and the necessary events are published through the `EventBus`.
 
-After machine updates are complete, Factory collects the completed products.
-Then, it calls Inventory::addProduct() to increase the finished product inventory.
-If necessary, product completion events or machine state change events are also published through EventBus during this process.
+This structure is easy to modify because the overall production flow and detailed roles are separated. When adding a new product, we only need to add a ProductDefinition to the ProductCatalog. When adding a new machine, we can create a new class that inherits from Machine. This allows us to extend detailed objects while keeping the overall orchestration of the Factory unchanged.
 
-Finally, Factory calls assignAvailableTask() once again.
-The reason for this is that a machine may have just finished a task and become Idle.
-This structure allows the system to immediately assign the next available task without waiting until the next tick.
+## 3.3 Product Domain Class Diagram
 
-The overall flow can be summarized as follows.
-FactoryController receives the tick command, Factory updates time, and ProductionLine assigns tasks.
-Then, Machines progress production according to their states, and completed products are reflected in Inventory.
-Finally, if any machine has newly become available, another task is assigned.
+Next is the Product Domain Class Diagram.
 
-Therefore, one tick flow proceeds in the following order:
+This diagram shows how a product is defined as data and how that data is used in production tasks and inventory management. The central classes are `ProductCatalog`, `ProductDefinition`, `Product`, `Inventory`, and `ProductionTask`.
 
-time update → task assignment → machine update → process progress → completed product reflected in inventory → reassignment
+`ProductCatalog` is a registry that stores product definitions. Each product’s ID, name, type, required materials, and process route are stored in the form of a `ProductDefinition`. A `ProductDefinition` can be seen as a blueprint for making one product.
 
-This Sequence Diagram is a key diagram that shows how the static class structure of the Gactorio Backend cooperates inside the actual simulation loop.
+`ProductDefinition` has two key pieces of data. The first is `ItemRequirement`. It represents which raw materials and how many of them are needed to make one product. The second is `ProcessStep`. It represents the order of processes required to produce the product, and each step contains the required `MachineRole` and base processing time.
 
-# 5. Product Domain Class Diagram
+`ProductCatalog` creates actual `Product` objects based on these definitions. `ProductionTask` references a Product and manages the current process progress. `Inventory` does not store actual Product objects. Instead, it stores raw material quantities based on `ItemType` and finished product quantities based on `ProductId`.
 
-In this section, we will look at the product domain structure.
+Here, the has-a relationship is that `Product` has item requirements and process steps. `ProductionTask` has a Product reference and a current step index. `Inventory` has maps of item quantities and product quantities.
 
-So far, we have seen how production lines and machines operate when tick is called.
-In this section, we will explain how the products being produced are defined and how those definitions are connected to the actual production flow.
+For is-a relationships, `VoltzClassic`, `HyperBolt`, and `AuroraZero` are concrete products of `Product`. On the raw material side, `Ingredient`, `Water`, `EmptyBottle`, `Label`, and `Package` belong to the `Item` hierarchy.
 
-At the center of this diagram are ProductCatalog, ProductDefinition, Product, Inventory, and ProductionTask.
+This design supports the Open-Closed Principle. When adding a new product, we can add a product definition instead of modifying the production line or Machine code. Since the production system only reads the Product’s requirements and route, it is not tightly coupled to specific product names.
 
-First, ProductCatalog serves as a catalog that stores product definitions.
-Each product’s ID, name, type, required materials, and process route are stored in the form of ProductDefinition.
-In other words, ProductDefinition can be understood as the blueprint for producing a product.
+## 3.4 Machine State Diagram
 
-There are two important pieces of information in ProductDefinition.
-The first is ItemRequirement.
-ItemRequirement represents which materials and how many of them are required to produce one unit of a product.
+Next is the Machine State Diagram.
 
-The second is ProcessStep.
-ProcessStep represents the process sequence through which a product is produced.
-Each step contains the required machine role and the standard processing time.
-Therefore, the process route defines which machines a product must pass through and in what order.
+The key point of this diagram is that `Machine` does not operate using only a single simple state value. Instead, it uses the State Pattern to separate state-specific behavior into separate classes.
 
-ProductCatalog creates actual Product objects based on these ProductDefinitions.
-Production lines or machines do not need to directly know the concrete product implementation.
-They only use the ID, name, required materials, and process route provided by Product.
+A Machine has four states: `Idle`, `Working`, `Broken`, and `Maintenance`. Idle means the machine is waiting for work, and Working means production is in progress. Broken means the machine is broken, so production does not proceed even when update is called. Maintenance means the machine is under repair, and once the repair is completed, it returns to an available state.
 
-ProductionTask represents an actual product task that is currently being produced.
-Each ProductionTask refers to one Product and manages how far the production has progressed using currentStepIndex.
-It also checks the current ProcessStep so that it can determine which role of Machine the task should be assigned to.
+`Machine` has a `MachineState` object representing its current state. When update is called, the actual behavior is delegated to this State object. For example, if the current state is `WorkingState`, the production progress logic is executed. If the current state is `MaintenanceState`, the repair progress logic is executed.
 
-Inventory manages stock.
-However, it does not store actual Product objects.
-Instead, it stores only quantities: raw materials by ItemType and finished products by ProductId.
-When a production request comes in, Factory checks the Product’s required materials and consumes them from Inventory.
-When the product is completed, the finished product quantity is increased based on ProductId.
+Here, the `MachineStatus` enum is a value used for external display and storage. When showing the machine state in a DTO Snapshot or saving and restoring it through Memento, an enum value is needed. However, the actual behavior is handled by the `MachineState` classes.
 
-The overall flow can be summarized as follows.
-ProductCatalog manages product definitions, and ProductDefinition contains required materials and process routes.
-Factory consumes materials from Inventory based on this information, and ProductionTask follows the Product’s ProcessSteps to proceed with production.
-Finally, the completed product is reflected in Inventory.
+This design follows the Single Responsibility Principle and the Open-Closed Principle. `Machine` manages common machine data and state transitions, while each State class handles the update logic for each state. If a new state is needed, we can extend the system by adding a new MachineState implementation instead of adding a huge if-statement inside Machine.
 
-Therefore, the Product Domain structure is a diagram that shows what data defines a product and how that data is used in production tasks and inventory management.
+## 3.5 Observer / Event Pattern Diagram
 
-# 6. Machine State Diagram
+Next is the Observer / Event Pattern Diagram.
 
-In this section, we will look at the Machine state management structure.
+The key point of this structure is that events generated during the production process are delivered by the `EventBus`, and multiple Observers receive those events and perform their own roles.
 
-The key point of this diagram is that Machine does not operate using only a simple state value.
-Instead, it uses the State Pattern to separate behavior for each state into separate classes.
+The main event publishers are `ProductionLine` and `Machine`. Events are generated when a task is added to the queue, when a task starts, when a process is completed, when a product is completed, when a machine breaks down, and when repair is completed.
 
-Machine has four main states:
-Idle, Working, Broken, and Maintenance.
+The important point is that ProductionLine or Machine does not directly modify logs or statistics. Instead, they create an `Event` object and publish it through `EventBus::publish()`. The `Event` contains information such as the time of occurrence, event type, related machine ID, and message.
 
-First, Idle is the state in which the machine is waiting.
-When a task that the machine can process is assigned, it transitions to the Working state.
+`EventBus` has a list of registered `Observer` objects. When an event is published, it calls each Observer’s `onEvent()` method. Representative Observers are `EventLogObserver` and `StatisticsObserver`. `EventLogObserver` stores events in an internal list, and `StatisticsObserver` updates statistics such as the number of completed products and machine breakdowns based on the event type.
 
-Working is the state in which actual production is carried out.
-In this state, the progress of the currently assigned ProductionTask increases.
-When the process is complete, the task either moves to the next step or product completion is handled.
+The dependency in this design is very clear. The production logic depends only on EventBus and does not depend on the specific processing method of logs or statistics. If we need a new notification feature or monitoring feature, we can add a new Observer. There is no need to significantly modify the existing Machine or ProductionLine code.
 
-Broken is the state in which the machine has broken down.
-In this state, production does not progress even if update is called.
-To use the machine again, it must move into the repair process through repair().
+This part is also related to the Dependency Inversion Principle. Event handlers are connected through the `Observer` interface, and EventBus does not depend on the internal implementation of concrete Observers.
 
-Maintenance is the state in which the machine is being repaired.
-In this state, repair time progresses, and when repair is completed, the machine’s health is restored.
-After that, depending on the situation, the machine can return to the Idle state or continue its task.
+## 3.6 Memento Pattern Diagram
 
-The important design point here is that state-specific behavior is not handled with a large if-statement inside Machine.
-Machine has a MachineState object representing the current state, and when update is called, the actual behavior is delegated to this State object.
+Next is the Memento Pattern Diagram.
 
-For example, if the current state is WorkingState, production progress logic is executed.
-If it is MaintenanceState, repair progress logic is executed.
-If it is BrokenState, production does not proceed.
-If it is IdleState, the machine remains ready to receive a new task.
+The key point of this diagram is that roles are separated so that the simulation state can be saved as a checkpoint and restored to a previous state when needed.
 
-In this way, MachineState is responsible for behavior specific to each state.
-On the other hand, the MachineStatus enum is used as a state value for external display and saving.
-For example, the MachineStatus value is needed when displaying machine state in DTO Snapshot or when saving and restoring state through Memento.
+There are three important roles in the Memento Pattern. The first is the Originator, and in this project, `Factory` plays that role. Factory can save the current simulation state as a `FactoryMemento`, and it can also receive a FactoryMemento and restore its own state.
 
-Therefore, in this structure, MachineState objects are responsible for actual behavior, while the MachineStatus enum is used for lookup, display, and saving.
+The second is the Memento. This role is handled by `FactoryMemento`, `LineMemento`, and `MachineMemento`. `FactoryMemento` stores the entire factory state, including the states of production lines and machines. `LineMemento` stores production line queue information, and `MachineMemento` stores information such as the status and health of each machine.
 
-The state transitions can be summarized as follows.
-A machine basically starts in the Idle state.
-When a task is assigned, it becomes Working.
-When production is complete, it returns to Idle.
-If a breakdown occurs during production, it becomes Broken.
-When repair is called, it moves to Maintenance.
-When repair is completed, it returns to a usable state.
+Here, the Memento objects are not structs with public fields. Instead, they are classes with private fields and getters. This means Factory and the restoration logic can read the required values, but external code cannot directly modify the internal values of the snapshot. This strengthens encapsulation.
 
-To summarize, the Machine State structure separates machine behavior by state into separate classes.
-This allows the Machine class to avoid directly handling all state logic, and it also keeps the structure clearer when adding new states or state-specific behavior.
+The third role is the Caretaker, and `SimulationHistory` plays this role. `SimulationHistory` stores FactoryMementos in a stack structure and supports checkpoint saving and undo. However, it does not directly modify internal Factory objects. The Originator, Factory, is responsible for deciding how to restore the actual state.
 
-# 7. Observer / Event Pattern Diagram
+The entry point for using this feature from the outside is `FactoryController`. It provides methods such as `saveCheckpoint()`, `undo()`, `canUndo()`, and `historySize()`, so the View or external layers can use state saving and restoration without knowing the internal structure of the Memento.
 
-In this section, we will look at the Observer / Event structure of the Gactorio Backend.
+This structure follows the Single Responsibility Principle. Factory is responsible for saving and restoring its own state, while SimulationHistory is responsible only for managing the stack of saved snapshots. Also, because DTO Snapshot and Memento are separated, screen display data and internal restoration data are not mixed together.
 
-The key point of this diagram is that EventBus delivers events generated during production, and multiple Observers receive those events and perform their own roles.
+## 3.7 FE JS View Class Diagram and MVC Boundary
 
-The main sources of events are ProductionLine and Machine.
-ProductionLine can generate an event when a task enters the queue.
-Machine can generate events such as task start, process completion, product completion, machine breakdown, and repair completion.
+Following the Backend UML, let us also briefly look at the JavaScript View structure that handles the actual screen.
 
-At this point, ProductionLine or Machine does not directly store events in a log or modify statistics.
-Instead, they create Event objects and publish them through EventBus::publish().
-An Event object contains information such as occurrence time, event type, related machine ID, and message.
+The MVC mapping of this project is as follows. The Model is the `gactorio::*` C++ backend classes, and the Controller is `ctrl::Controller`. In JavaScript, this Controller is exposed as an object called `Module.Controller` through Emscripten embind. The View consists of `Application`, `AppUI`, `UIComponent`, and each Panel class.
 
-EventBus serves as a dispatcher that delivers events.
-EventBus maintains a list of registered Observers, and when an event is published, it calls onEvent() on each Observer.
+The important point is that the View does not directly know the Model. In the JavaScript files, Model classes such as `Factory`, `Machine`, and `ProductionLine` are not handled directly. The View only sends commands to `Module.Controller` and reads the plain data received through `snapshot()` to render the screen.
 
-The representative classes that implement the Observer interface are EventLogObserver and StatisticsObserver.
+`Application` handles the main loop. Every frame, it calls the controller’s `tick()` method, and at regular intervals, it receives a `snapshot()` and passes it to `AppUI`. `AppUI` stores multiple `UIComponent` panels and renders all panels through `renderAll(snapshot)`.
 
-EventLogObserver stores received events in an internal list.
-This object serves as an event log that records what happened during the simulation.
+Each screen area is divided into a separate panel class. `SimControlPanel` handles pause, reset, speed, checkpoint, and undo. `FactoryPanel` renders production lines and machine cards. `ProductsPanel` handles the product catalog and enqueue buttons. `InventoryPanel` handles raw item restocking and the finished product table. `EventLogPanel` shows the event log collected through the Observer pattern.
 
-StatisticsObserver updates statistics based on event types rather than simply storing events.
-For example, when a product completion event occurs, it increases the number of completed products.
-When a machine breakdown event occurs, it increases the breakdown count.
+Here, the is-a relationship is that each Panel inherits from `UIComponent`. The has-a relationship is that `Application` has an `AppUI`, and `AppUI` has UIComponent panels. The dependency structure is that Panels depend on `Module.Controller` to send commands and depend on snapshot data for rendering.
 
-In this structure, Factory manages EventBus and the Observers.
-Factory registers EventLogObserver and StatisticsObserver with EventBus so that events generated during production are delivered to both Observers.
+This View structure is also easy to extend. If a new panel is needed, we can create a class that inherits from `UIComponent` and add it through `app.addPanel()` in `main.js`. There is no need to significantly modify the existing AppUI or other panels.
 
-The important point is that production logic is separated from logging and statistics.
-Machine and ProductionLine only need to report that “an event occurred.”
-Whether that event is stored as a log or aggregated as statistics is handled by the Observers.
+## 3.8 How the Code Is Easy to Extend and Modify
 
-Also, DTOs and Observers are not directly connected.
-When the state needs to be shown externally, FactoryController reads the results from the Observers and converts them into DTOs such as EventSnapshot or StatisticsSnapshot.
+Now, let us summarize why this code is easy to extend and modify.
 
-The overall flow can be summarized as follows.
-An event occurs in ProductionLine or Machine.
-EventBus delivers this event to the Observers.
-EventLogObserver stores the event record, and StatisticsObserver updates statistics.
-Finally, FactoryController provides this information externally in the form of DTO Snapshots.
+First, the boundaries between Controller, DTO, Model, and View are separated. The View does not directly modify internal Model classes. It only uses Controller commands and snapshots. Therefore, even if the UI changes, the impact on the production logic is small. Conversely, even if the internal Backend structure changes, the impact on the View is reduced as long as the DTO contract is maintained.
 
-To summarize, the Observer / Event structure separates the production logic that generates events from the log and statistics functions that process those events.
-Thanks to this structure, even if a notification feature or debugging monitoring feature is added later, it can be extended by adding a new Observer without significantly changing the existing production logic.
+Second, product definitions and the production flow are separated. When adding a new product, we can add its definition and process route to the ProductCatalog, while keeping the core algorithms of ProductionLine and Machine unchanged.
 
-# 8. Memento Pattern Diagram
+Third, state, event, and restoration features are separated through design patterns. Machine states are handled by the State Pattern, logs and statistics are handled by the Observer Pattern, and checkpoint and undo are handled by the Memento Pattern. Therefore, when modifying one feature, the scope of impact on other features is reduced.
 
-In this section, we will look at the Memento Pattern structure of the Gactorio Backend.
+Fourth, has-a relationships and is-a relationships are clear. Objects that should be owned are connected through composition, while roles that should be extended are represented through inheritance and interfaces. This makes object lifecycles and extension points easier to understand.
 
-The key point of this diagram is that the roles are separated so that simulation state can be saved as checkpoints and restored to a previous state when needed.
+## 3.9 SOLID Principles
 
-There are three important roles in the Memento Pattern.
+Finally, let us look at the design from the perspective of the SOLID principles.
 
-The first is the Originator.
-In this project, Factory plays the role of Originator.
-Factory can save the current simulation state as a FactoryMemento, and it can also receive a FactoryMemento to restore its own state.
+First is the Single Responsibility Principle. `FactoryController` is responsible for handling external commands and providing snapshots, while `Factory` is responsible for factory state and simulation flow. `Inventory` is responsible only for inventory management, `SimClock` only for time management, `EventLogObserver` only for storing logs, and `StatisticsObserver` only for updating statistics.
 
-The second is the Memento.
-This role is handled by FactoryMemento, LineMemento, and MachineMemento.
-FactoryMemento stores the overall factory state, and it contains production line states and machine states.
-LineMemento stores task queue information for a production line, while MachineMemento stores the state and health of each individual machine.
+Next is the Open-Closed Principle. New products can be extended by adding ProductCatalog definitions, and new machines can be added by inheriting from Machine. New event handling features can be added by adding Observers, and new View panels can be added by inheriting from UIComponent.
 
-The third is the Caretaker.
-This role is handled by SimulationHistory.
-SimulationHistory stores FactoryMementos in a stack structure and supports checkpoint saving and undo.
-In other words, SimulationHistory stores states, but it does not directly modify the internal structure of Factory.
+Next is the Liskov Substitution Principle. `MixingStation`, `QualityStation`, `BottlingStation`, and `PackagingStation` can all be treated as `Machine`. Each MachineState can also be substituted through the `MachineState` interface. Observer implementations can also be treated uniformly as `Observer`.
 
-The entry point for using this feature from the outside is FactoryController.
-FactoryController provides checkpoint and undo features through methods such as saveCheckpoint(), undo(), canUndo(), and historySize().
-Therefore, external layers can use state saving and restoration through FactoryController without knowing the internal structure of Memento.
+Next is the Interface Segregation Principle. The View does not need to know the entire Model API. It only uses the View-oriented commands of `ctrl::Controller` and the `FactoryView` snapshot. Observers only need to implement the necessary interface, which is `onEvent()`. Each layer uses only the small interface it needs.
 
-The saving flow is as follows.
-First, FactoryController::saveCheckpoint() is called.
-Then, FactoryController asks Factory to create a FactoryMemento from the current state.
-Factory gathers the information necessary for restoration, such as current time, inventory, production line queues, and machine states, and creates a FactoryMemento.
-After that, SimulationHistory saves this Memento in a stack.
+Finally, the Dependency Inversion Principle. Event handling depends on the `Observer` abstraction rather than concrete log or statistics classes. The View also does not directly depend on concrete C++ Model classes. Instead, it depends on the Controller and DTOs. Thanks to this, the upper-level flow is less sensitive to changes in concrete implementations.
 
-The undo flow proceeds in the opposite direction.
-When FactoryController::undo() is called, the most recent checkpoint is popped from SimulationHistory.
-Then, this FactoryMemento is passed to Factory::restoreFromMemento().
-Factory restores its internal state based on the saved time, inventory, production line state, and machine state.
+In summary, Gactorio manages simulation state around the Factory and separates the Model from external layers using the Controller and DTOs. It also uses the State, Observer, and Memento Patterns to separate responsibilities for state management, event handling, and state restoration. Therefore, even when requirements increase, the system can be extended and modified without significantly disrupting the existing code.
 
-An important design point here is that DTO Snapshots and Mementos are separated.
-DTO Snapshots are value objects used to show the current state on the screen or through an API.
-On the other hand, Mementos are storage objects used to restore internal state.
-Therefore, DTOs such as FactorySnapshot are not used for undo; only the FactoryMemento hierarchy is used for restoration.
-
-Another important point is that SimulationHistory does not directly handle Factory’s internal objects.
-SimulationHistory only stores and retrieves saved Mementos.
-How the state is saved and restored is handled by Factory, the Originator.
-Thanks to this, the responsibility for state management remains inside Factory, while history management logic and restoration logic are separated.
-
-To summarize, this Memento structure is organized so that Factory acts as the Originator that saves and restores its own state, while SimulationHistory acts as the Caretaker that stores those states.
-By providing checkpoint and undo features externally through FactoryController, the external layer can return the simulation state to a previous point without directly manipulating the Model internals.
-
-# 9. Design Advantages and Conclusion
-
-Finally, we will summarize the Gactorio Backend structure.
-
-This project manages simulation state around the Factory and separates the external layer from the Model through FactoryController and DTOs.
-
-In addition, Machine state management is implemented using the State Pattern,
-event logs and statistics are implemented using the Observer Pattern,
-and checkpoint and undo features are implemented using the Memento Pattern.
-
-As a result, the responsibilities of production logic, state management, event handling, and restoration are separated, making the structure easier to maintain and extend.
-
-This concludes our presentation.
-Thank you.
+This concludes our presentation. Thank you.

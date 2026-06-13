@@ -35,7 +35,7 @@
 | `src/model/events/EventLogObserver.cpp`       |        포함 | Event      | 이벤트 누적 구현                                                       |                                            |     |
 | `include/model/events/StatisticsObserver.hpp` |        포함 | Event      | 이벤트 기반 통계 Observer                                              |                                            |     |
 | `src/model/events/StatisticsObserver.cpp`     |        포함 | Event      | 통계 카운터 갱신 구현                                                    |                                            |     |
-| `include/model/memento/FactoryMemento.hpp`    |        포함 | Memento    | Factory/Line/Machine snapshot 구조체                               |                                            |     |
+| `include/model/memento/FactoryMemento.hpp`    |        포함 | Memento    | Factory/Line/Machine snapshot class와 accessor                    |                                            |     |
 | `include/controller/SimulationHistory.hpp`    |        포함 | Memento    | Memento Caretaker, snapshot stack 관리                            |                                            |     |
 | `src/controller/SimulationHistory.cpp`        |        포함 | Memento    | SimulationHistory push/pop/clear 구현                             |                                            |     |
 | `include/controller/FactoryCommand.hpp`       |        포함 | Controller | 컨트롤러 명령 결과 enum                                                 |                                            |     |
@@ -122,9 +122,9 @@
 | Observer               | class  | `include/model/events/Observer.hpp`           | `gactorio`              | 포함        | 이벤트 Observer 인터페이스                           |
 | EventLogObserver       | class  | `include/model/events/EventLogObserver.hpp`   | `gactorio`              | 포함        | 이벤트 로그 누적 Observer                           |
 | StatisticsObserver     | class  | `include/model/events/StatisticsObserver.hpp` | `gactorio`              | 포함        | 이벤트 기반 통계 Observer                           |
-| MachineMemento         | struct | `include/model/memento/FactoryMemento.hpp`    | `gactorio`              | 포함        | 기계 snapshot 데이터                              |
-| LineMemento            | struct | `include/model/memento/FactoryMemento.hpp`    | `gactorio`              | 포함        | 생산라인 snapshot 데이터                            |
-| FactoryMemento         | struct | `include/model/memento/FactoryMemento.hpp`    | `gactorio`              | 포함        | Factory 전체 snapshot 데이터                      |
+| MachineMemento         | class  | `include/model/memento/FactoryMemento.hpp`    | `gactorio`              | 포함        | 기계 snapshot 데이터, private field + getter        |
+| LineMemento            | class  | `include/model/memento/FactoryMemento.hpp`    | `gactorio`              | 포함        | 생산라인 snapshot 데이터, private field + getter      |
+| FactoryMemento         | class  | `include/model/memento/FactoryMemento.hpp`    | `gactorio`              | 포함        | Factory 전체 snapshot 데이터, private field + getter |
 
 # 3 : 변수
 
@@ -257,6 +257,7 @@
 | StatisticsObserver     | brokenMachineEvents_    | int                                           | private | 값 소유                  | 표시        | 통계 카운터                                |
 | StatisticsObserver     | repairedMachineEvents_  | int                                           | private | 값 소유                  | 표시        | 통계 카운터                                |
 | StatisticsObserver     | stateChangedEvents_     | int                                           | private | 값 소유                  | 표시        | 통계 카운터                                |
+<<<<<<< HEAD:presentation/UML/UML_Info_BE_kor.md
 | MachineMemento         | id_                     | MachineId                                     | private | 값 소유                  | 표시        | accessor `id()` 로만 노출 (public data member 금지 준수) |
 | MachineMemento         | health_                 | double                                        | private | 값 소유                  | 표시        | accessor `health()` 로만 노출            |
 | MachineMemento         | status_                 | MachineStatus                                 | private | 값 소유                  | 표시        | accessor `status()` 로만 노출           |
@@ -269,6 +270,20 @@
 | FactoryMemento         | lines_                  | std::vector\<LineMemento>                     | private | Memento 목록 소유         | 표시        | composition, accessor `lines()` + `addLine()` |
 | FactoryMemento         | nextLineId_             | LineId                                        | private | 값 소유                  | 표시        | 동적 라인 ID 복원, accessor `nextLineId()` |
 | FactoryMemento         | nextMachineId_          | MachineId                                     | private | 값 소유                  | 표시        | 동적 기계 ID 복원, accessor `nextMachineId()` |
+=======
+| MachineMemento         | id_                     | MachineId                                     | private | 값 소유                  | 표시        | `id()` getter로 조회                     |
+| MachineMemento         | health_                 | double                                        | private | 값 소유                  | 표시        | `health()` getter로 조회                 |
+| MachineMemento         | status_                 | MachineStatus                                 | private | 값 소유                  | 표시        | `status()` getter로 조회                 |
+| LineMemento            | id_                     | LineId                                        | private | 값 소유                  | 표시        | `id()` getter로 조회                     |
+| LineMemento            | queueProductIds_        | std::vector\<ProductId>                       | private | 값 목록 소유               | 표시        | `queueProductIds()` getter로 조회        |
+| LineMemento            | machines_               | std::vector\<MachineMemento>                  | private | Memento 목록 소유         | 표시        | `machines()` getter, composition       |
+| FactoryMemento         | simulationTime_         | SimulationTime                                | private | 값 소유                  | 표시        | `simulationTime()` getter로 조회         |
+| FactoryMemento         | items_                  | std::map\<ItemType, int>                      | private | 값 소유                  | 표시        | `items()` getter로 조회                  |
+| FactoryMemento         | products_               | std::map\<ProductId, int>                     | private | 값 소유                  | 표시        | `products()` getter로 조회               |
+| FactoryMemento         | lines_                  | std::vector\<LineMemento>                     | private | Memento 목록 소유         | 표시        | `lines()` getter, `addLine()`로 추가     |
+| FactoryMemento         | nextLineId_             | LineId                                        | private | 값 소유                  | 표시        | `nextLineId()`, `setNextIds()` 사용      |
+| FactoryMemento         | nextMachineId_          | MachineId                                     | private | 값 소유                  | 표시        | `nextMachineId()`, `setNextIds()` 사용   |
+>>>>>>> cf29394936dca50e27cc5b566355972fcc8aca96:presentation/UML/UML_Info_BE_KO.md
 # 4 : 메서드
 
 | 클래스명                                                                                                                | 메서드 시그니처                                                                                                                                                          | 접근 지정자            | virtual/override/const/static 여부 | 역할                                   | UML 표시 여부 |
@@ -336,7 +351,8 @@
 | EventLogObserver                                                                                                    | `onEvent(const Event&) override`, `events() const`                                                                                                                | public            | `override`, `const`              | 이벤트 로그 누적/조회                         | 표시        |
 | StatisticsObserver                                                                                                  | `onEvent(const Event&) override`                                                                                                                                  | public            | `override`                       | 이벤트 기반 통계 갱신                         | 표시        |
 | StatisticsObserver                                                                                                  | 각 카운터 getter `...Events() const`                                                                                                                                  | public            | `const`                          | 통계 조회                                | 선택        |
-| MachineMemento / LineMemento / FactoryMemento                                                                       | 없음                                                                                                                                                                | public fields     | -                                | Memento snapshot 데이터 구조              | 필드만 표시    |
+| MachineMemento / LineMemento                                                                                        | 생성자, getter 계열                                                                                                                                                     | public            | 대부분 `const`                    | Memento snapshot 값을 캡슐화해 조회           | 표시        |
+| FactoryMemento                                                                                                      | 생성자, getter 계열, `addLine(LineMemento)`, `setNextIds(LineId, MachineId)`                                                                                         | public            | getter는 `const`                  | Factory snapshot 값 구성/조회              | 표시        |
 # 5 : 상속 관계
 
 | 부모 클래스 | 자식 클래스 | 상속 접근 지정자 | 부모가 abstract인지 여부 | 관련 virtual/pure virtual 메서드 | UML 표기 방식 |
@@ -367,8 +383,8 @@
 | `FactoryController` | `CarbonationFactory` | `std::unique_ptr<CarbonationFactory>` | composition | `1` 또는 `0..1` | `include/controller/FactoryController.hpp`, `factory_` | `FactoryController ◆-- CarbonationFactory` |
 | `FactoryController` | `SimulationHistory` | `SimulationHistory` | composition | `1` | `include/controller/FactoryController.hpp`, `history_` | `FactoryController ◆-- SimulationHistory` |
 | `SimulationHistory` | `FactoryMemento` | `std::vector<FactoryMemento>` | composition | `0..*` | `include/controller/SimulationHistory.hpp`, `snapshots_` | `SimulationHistory ◆-- FactoryMemento` |
-| `FactoryMemento` | `LineMemento` | `std::vector<LineMemento>` | composition | `0..*` | `include/model/memento/FactoryMemento.hpp`, `lines` | `FactoryMemento ◆-- LineMemento` |
-| `LineMemento` | `MachineMemento` | `std::vector<MachineMemento>` | composition | `0..*` | `include/model/memento/FactoryMemento.hpp`, `machines` | `LineMemento ◆-- MachineMemento` |
+| `FactoryMemento` | `LineMemento` | `std::vector<LineMemento>` | composition | `0..*` | `include/model/memento/FactoryMemento.hpp`, `lines_` | `FactoryMemento ◆-- LineMemento` |
+| `LineMemento` | `MachineMemento` | `std::vector<MachineMemento>` | composition | `0..*` | `include/model/memento/FactoryMemento.hpp`, `machines_` | `LineMemento ◆-- MachineMemento` |
 | `CarbonationFactory` | `Recipe` | `std::vector<Recipe>` | composition | `0..*` | `include/model/CarbonationFactory.hpp`, `recipes_` | `CarbonationFactory ◆-- Recipe` |
 | `Factory` | `SimClock` | `SimClock` | composition | `1` | `include/model/Factory.hpp`, `clock_` | `Factory ◆-- SimClock` |
 | `Factory` | `Inventory` | `Inventory` | composition | `1` | `include/model/Factory.hpp`, `inventory_` | `Factory ◆-- Inventory` |
@@ -497,7 +513,7 @@
 | `Product` 및 제품 계층                                 | Model                          | 직접 외부 노출 아님                 | `ItemRequirement`, `ProcessStep`                                                     | 제품 도메인                             | `Model` 패키지. `Product` abstract로 표시                                                                                                                  |            |
 | `ProductCatalog` 함수군 / `ProductDefinition`        | Model                          | 직접 외부 노출 아님                 | `Product`, `ProductDefinition`                                                       | 제품 registry/factory                | `Model` 패키지 또는 `Catalog` 하위 그룹. `ProductCatalog ..> Product`                                                                                         |            |
 | `Event`, `EventBus`, `Observer` 계층                | Model                          | 직접 외부 노출 아님                 | `Machine`, `ProductionLine`, `Factory`                                               | Model 내부 event system              | `Model::Event` 하위 패키지. DTO와는 `FactoryController`가 변환                                                                                                 |            |
-| `FactoryMemento`, `LineMemento`, `MachineMemento` | Model / Memento                | 직접 외부 노출 아님                 | `Factory`, `SimulationHistory`                                                       | snapshot 값 구조                      | `Memento` 패키지. `Factory ..> FactoryMemento`, `SimulationHistory ◆-- FactoryMemento`                                                                  |            |
+| `FactoryMemento`, `LineMemento`, `MachineMemento` | Model / Memento                | 직접 외부 노출 아님                 | `Factory`, `SimulationHistory`                                                       | snapshot 값 class                    | `Memento` 패키지. `Factory ..> FactoryMemento`, `SimulationHistory ◆-- FactoryMemento`                                                                  |            |
 | `SimClock`                                        | Model / Common                 | 직접 외부 노출 아님                 | `Factory`                                                                            | 시뮬레이션 시간 값 객체                      | `Common` 또는 `Model` 보조 클래스로 배치                                                                                                                       |            |
 | `Types.hpp` enum들                                 | Common                         | 일부 API 타입으로 노출              | Controller/DTO/Model 전반                                                              | 공통 enum/value type                 | `Common` 패키지에 enum 박스 배치                                                                                                                             |            |
 
@@ -748,7 +764,7 @@ std::map<ProductId, int> products_;
 # 11 : Memento 패턴 구조
 ## 11-1 : 패턴 역할별 클래스 표
 
-| 역할 | 클래스/struct | 파일 | 설명 |
+| 역할 | 클래스 | 파일 | 설명 |
 |---|---|---|---|
 | Originator | `Factory` | `include/model/Factory.hpp`, `src/model/Factory.cpp` | 공장 상태를 `FactoryMemento`로 생성하고, 전달받은 memento로 상태를 복원 |
 | Originator subclass | `CarbonationFactory` | `include/model/CarbonationFactory.hpp`, `src/model/CarbonationFactory.cpp` | `Factory`의 Memento 기능을 확장해 `nextLineId`, `nextMachineId`까지 저장/복원 |
@@ -764,24 +780,24 @@ std::map<ProductId, int> products_;
 
 `exportState()`, `restoreState()`라는 이름의 메서드는 현재 BE 코드에서 발견되지 않았습니다. 실제 대응 메서드는 `createMemento()` / `restoreFromMemento()`입니다.
 
-## 11-2 : Memento struct 필드 표
+## 11-2 : Memento class 필드/접근자 표
 
-| struct | 필드 | 타입 | 의미 |
-|---|---|---|---|
-| `MachineMemento` | `id` | `MachineId` | 복원 대상 기계 식별자 |
-| `MachineMemento` | `health` | `double` | 저장 시점 HP |
-| `MachineMemento` | `status` | `MachineStatus` | 저장 시점 기계 상태 |
-| `LineMemento` | `id` | `LineId` | 생산라인 ID |
-| `LineMemento` | `queueProductIds` | `std::vector<ProductId>` | 대기 중인 제품 ID 목록 |
-| `LineMemento` | `machines` | `std::vector<MachineMemento>` | 라인에 속한 기계 snapshot 목록 |
-| `FactoryMemento` | `simulationTime` | `SimulationTime` | 저장 시점 시뮬레이션 시간 |
-| `FactoryMemento` | `items` | `std::map<ItemType, int>` | 원자재 재고 |
-| `FactoryMemento` | `products` | `std::map<ProductId, int>` | 완제품 재고 |
-| `FactoryMemento` | `lines` | `std::vector<LineMemento>` | 생산라인 snapshot 목록 |
-| `FactoryMemento` | `nextLineId` | `LineId` | `CarbonationFactory`의 다음 라인 ID |
-| `FactoryMemento` | `nextMachineId` | `MachineId` | `CarbonationFactory`의 다음 기계 ID |
+| class | private 필드 | public 접근자/구성 메서드 | 타입 | 의미 |
+|---|---|---|---|---|
+| `MachineMemento` | `id_` | `id() const` | `MachineId` | 복원 대상 기계 식별자 |
+| `MachineMemento` | `health_` | `health() const` | `double` | 저장 시점 HP |
+| `MachineMemento` | `status_` | `status() const` | `MachineStatus` | 저장 시점 기계 상태 |
+| `LineMemento` | `id_` | `id() const` | `LineId` | 생산라인 ID |
+| `LineMemento` | `queueProductIds_` | `queueProductIds() const` | `std::vector<ProductId>` | 대기 중인 제품 ID 목록 |
+| `LineMemento` | `machines_` | `machines() const` | `std::vector<MachineMemento>` | 라인에 속한 기계 snapshot 목록 |
+| `FactoryMemento` | `simulationTime_` | `simulationTime() const` | `SimulationTime` | 저장 시점 시뮬레이션 시간 |
+| `FactoryMemento` | `items_` | `items() const` | `std::map<ItemType, int>` | 원자재 재고 |
+| `FactoryMemento` | `products_` | `products() const` | `std::map<ProductId, int>` | 완제품 재고 |
+| `FactoryMemento` | `lines_` | `lines() const`, `addLine(LineMemento)` | `std::vector<LineMemento>` | 생산라인 snapshot 목록 |
+| `FactoryMemento` | `nextLineId_` | `nextLineId() const`, `setNextIds(...)` | `LineId` | `CarbonationFactory`의 다음 라인 ID |
+| `FactoryMemento` | `nextMachineId_` | `nextMachineId() const`, `setNextIds(...)` | `MachineId` | `CarbonationFactory`의 다음 기계 ID |
 
-현재 Memento 범위는 시간, 재고, 라인 큐, 기계 HP/status입니다. 주석상 **in-flight `ProductionTask`는 보존하지 않고**, 복원 시 기계는 task를 버리고 queue를 다시 채워 작업이 재개되도록 설계되어 있습니다. 통계와 이벤트 로그도 복원 대상이 아니라 “실제 지나온 기록”으로 유지됩니다.
+현재 Memento 범위는 시간, 재고, 라인 큐, 기계 HP/status입니다. Memento 타입은 값 snapshot이지만 공개 필드 `struct`가 아니라 private field와 public getter를 가진 `class`입니다. 주석상 **in-flight `ProductionTask`는 보존하지 않고**, 복원 시 기계는 task를 버리고 queue를 다시 채워 작업이 재개되도록 설계되어 있습니다. 통계와 이벤트 로그도 복원 대상이 아니라 “실제 지나온 기록”으로 유지됩니다.
 
 ## 11-3 : Memento 관련 메서드 표
 
