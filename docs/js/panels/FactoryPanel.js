@@ -12,8 +12,6 @@ import { esc } from '../util.js';
 const SCENARIO_OPTIONS = [
     { id: 'normal-flow', label: 'Normal Flow' },
     { id: 'random-breakdowns', label: 'Random Breakdowns' },
-    { id: 'bottleneck', label: 'Bottleneck' },
-    { id: 'overflow', label: 'Overflow' },
 ];
 
 export class FactoryPanel extends UIComponent {
@@ -118,13 +116,33 @@ export class FactoryPanel extends UIComponent {
 
             const slider = e.target.closest('.conveyor-slider');
             if (slider) {
+                e.preventDefault();
                 this.#holdLineInteraction();
+                const updateSlider = event => {
+                    const line = slider.closest('.line');
+                    const scroller = line?.querySelector('.conveyor-line');
+                    if (!scroller) return;
+
+                    const rect = slider.getBoundingClientRect();
+                    const ratio = rect.width <= 0
+                        ? 0
+                        : Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+                    const max = Number(slider.max || 0);
+                    const nextValue = Math.round(ratio * max);
+                    slider.value = String(nextValue);
+                    scroller.scrollLeft = nextValue;
+                    this.#rememberScroll(scroller);
+                    this.#syncDragbar(scroller);
+                };
                 const onRelease = () => {
                     this.#releaseLineInteractionSoon();
+                    window.removeEventListener('pointermove', updateSlider);
                     window.removeEventListener('pointerup', onRelease);
                     window.removeEventListener('pointercancel', onRelease);
                     window.removeEventListener('mouseup', onRelease);
                 };
+                updateSlider(e);
+                window.addEventListener('pointermove', updateSlider);
                 window.addEventListener('pointerup', onRelease);
                 window.addEventListener('pointercancel', onRelease);
                 window.addEventListener('mouseup', onRelease);

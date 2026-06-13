@@ -1,5 +1,5 @@
 // =============================================================================
-// InventoryPanel — raw items and finished products. (Right column.)
+// InventoryPanel - raw items and finished products. (Right column.)
 // =============================================================================
 
 import { UIComponent } from '../UIComponent.js';
@@ -14,12 +14,27 @@ export class InventoryPanel extends UIComponent {
     }
 
     bind() {
+        const restock = (btn) => {
+            const itemId = btn.dataset.restockItem;
+            console.log('[gactorio] restockItemById', itemId, '->', this.#ctrl.restockItemById(itemId));
+        };
+
         document.getElementById('inventory-content').addEventListener('pointerdown', e => {
             const btn = e.target.closest('button[data-restock-item]');
             if (!btn || btn.disabled) return;
+            e.preventDefault();
+            btn.dataset.pointerHandled = '1';
+            restock(btn);
+        });
 
-            const itemId = btn.dataset.restockItem;
-            console.log('[gactorio] restockItemById', itemId, '→', this.#ctrl.restockItemById(itemId));
+        document.getElementById('inventory-content').addEventListener('click', e => {
+            const btn = e.target.closest('button[data-restock-item]');
+            if (!btn || btn.disabled) return;
+            if (btn.dataset.pointerHandled === '1') {
+                delete btn.dataset.pointerHandled;
+                return;
+            }
+            restock(btn);
         });
     }
 
@@ -54,9 +69,6 @@ export class InventoryPanel extends UIComponent {
     }
 
     #restockButton(item) {
-        if (item.restockable === false) {
-            return '';
-        }
         const amount = item.restockAmount || 5;
         return `<button class="small restock" data-restock-item="${esc(item.id)}">+${amount}</button>`;
     }

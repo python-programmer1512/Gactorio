@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <exception>
 #include <random>
+#include <string>
 #include <utility>
 
 namespace gactorio {
@@ -209,12 +210,26 @@ void Machine::restoreForMemento(
 }
 
 void Machine::incrementalRepair() {
-    // Quick +X HP boost. Does not change state, does not revive a broken
-    // machine — use repair()/repairAll for that.
-    if (status_ == MachineStatus::Broken) {
+    const auto previous = status_;
+    health_ = std::min(config::kInitialHealth, health_ + config::kIncrementalRepairHp);
+    notify(EventType::MachineRepaired, name_ + " repaired by +" + std::to_string(static_cast<int>(config::kIncrementalRepairHp)) + " HP");
+
+    if (previous != MachineStatus::Broken || health_ <= 0.0) {
         return;
     }
-    health_ = std::min(100.0, health_ + config::kIncrementalRepairHp);
+
+    maintenanceElapsed_ = 0.0;
+    progress_ = 0.0;
+    if (task_ != nullptr) {
+        status_ = MachineStatus::Working;
+        setState(std::make_unique<WorkingState>());
+        onStateTransition(previous, status_, "incremental repair, resuming task");
+        return;
+    }
+
+    status_ = MachineStatus::Idle;
+    setState(std::make_unique<IdleState>());
+    onStateTransition(previous, status_, "incremental repair completed");
 }
 
 void Machine::instantRepair() {

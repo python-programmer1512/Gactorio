@@ -139,6 +139,6 @@
   ],
   "scenarios": [
     { "id": "normal-flow", "displayName": "Normal Flow", "description": "Default line behavior" },
-    { "id": "citrus-focus", "displayName": "Citrus Focus", "description": "Faster flavoring for Citrus Surge", "targetStationKinds": ["flavoring"], "speedMultiplier": 1.25 }
+    { "id": "random-breakdowns", "displayName": "Random Breakdowns", "description": "Raised machine breakdown probability", "breakdownProbabilityOverride": 0.06 }
   ]
 }

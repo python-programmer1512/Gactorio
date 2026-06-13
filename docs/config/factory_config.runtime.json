@@ -107,7 +107,6 @@
   ],
   "scenarios": [
     { "id": "normal-flow", "displayName": "Normal Flow", "description": "Default line behavior" },
-    { "id": "bottleneck", "displayName": "Bottleneck", "description": "Slow bottling station", "targetStationKinds": ["bottling"], "speedMultiplier": 0.5 },
-    { "id": "overflow", "displayName": "Overflow", "description": "Small queue capacity", "queueCapacity": 2 }
+    { "id": "random-breakdowns", "displayName": "Random Breakdowns", "description": "Raised machine breakdown probability", "breakdownProbabilityOverride": 0.06 }
   ]
 }

@@ -12,11 +12,7 @@ export class InspectorPanel extends UIComponent {
     }
 
     bind() {
-        document.getElementById('inspector-content').addEventListener('pointerdown', e => {
-            const btn = e.target.closest('button[data-act]');
-            if (!btn) return;
-            e.preventDefault();
-
+        const runAction = (btn) => {
             const id = parseInt(btn.dataset.machine, 10);
             switch (btn.dataset.act) {
             case 'forceBreak':
@@ -25,7 +21,28 @@ export class InspectorPanel extends UIComponent {
             case 'instantRepair':
                 this.#ctrl.instantRepair(id);
                 break;
+            case 'repair':
+                this.#ctrl.repair(id);
+                break;
             }
+        };
+
+        document.getElementById('inspector-content').addEventListener('pointerdown', e => {
+            const btn = e.target.closest('button[data-act]');
+            if (!btn) return;
+            e.preventDefault();
+            btn.dataset.pointerHandled = '1';
+            runAction(btn);
+        });
+
+        document.getElementById('inspector-content').addEventListener('click', e => {
+            const btn = e.target.closest('button[data-act]');
+            if (!btn) return;
+            if (btn.dataset.pointerHandled === '1') {
+                delete btn.dataset.pointerHandled;
+                return;
+            }
+            runAction(btn);
         });
     }
 
@@ -82,6 +99,7 @@ export class InspectorPanel extends UIComponent {
             <progress max="1" value="${progress.toFixed(3)}"></progress>
             <div class="inspector-actions">
                 <button class="small danger" data-act="forceBreak" data-machine="${machine.id}">Force Break</button>
+                <button class="small" data-act="repair" data-machine="${machine.id}">+5 HP</button>
                 <button class="small" data-act="instantRepair" data-machine="${machine.id}">Instant Repair</button>
             </div>
             </div>`;

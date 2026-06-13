@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Gactorio - Energy Drink Factory</title>
-    <link rel="stylesheet" href="style.css?v=20260614-hotfix-cleanup">
+    <link rel="stylesheet" href="style.css?v=20260614-hotfix-controls2">
 </head>
 <body>
     <header>
@@ -37,8 +37,6 @@
                     <select id="global-scenario">
                         <option value="normal-flow">Normal Flow</option>
                         <option value="random-breakdowns">Random Breakdowns</option>
-                        <option value="bottleneck">Bottleneck</option>
-                        <option value="overflow">Overflow</option>
                     </select>
                 </label>
             </div>
@@ -99,12 +97,12 @@
         var Module = {
             locateFile(path) {
                 return path.endsWith('.wasm')
-                    ? `${path}?v=20260614-hotfix-cleanup`
+                    ? `${path}?v=20260614-hotfix-controls2`
                     : path;
             }
         };
     </script>
-    <script src="gactorio.js?v=20260614-hotfix-cleanup"></script>
-    <script type="module" src="js/main.js?v=20260614-hotfix-cleanup"></script>
+    <script src="gactorio.js?v=20260614-hotfix-controls2"></script>
+    <script type="module" src="js/main.js?v=20260614-hotfix-controls2"></script>
 </body>
 </html>
