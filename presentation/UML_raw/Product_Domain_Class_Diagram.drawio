@@ -1,219 +1,397 @@
-<mxfile host="app.diagrams.net" modified="2026-06-14T13:12:00.000Z" agent="Codex" version="24.7.17" type="device">
+<mxfile host="Electron" agent="Codex">
   <diagram id="PRODUCT_DOMAIN_CLASS" name="Product Domain Class Diagram">
-    <mxGraphModel dx="2400" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1500" math="0" shadow="0">
+    <mxGraphModel dx="2531" dy="1480" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1500" math="0" shadow="0">
       <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-
-        <mxCell id="title" value="Product Domain Class Diagram&#xa;Product / ProductCatalog / Recipe / Inventory / Item / ProductionTask / ProductionLine&#xa;Focus: product definitions, raw item requirements, route steps, inventory consumption, queue execution." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="40" y="20" width="1180" height="90" as="geometry"/>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1" value="Product Domain Class Diagram&#xa;Product / ProductCatalog / Recipe / Inventory / Item / ProductionTask / ProductionLine&#xa;Focus: product definitions, raw item requirements, route steps, inventory consumption, queue execution." vertex="1">
+          <mxGeometry height="90" width="1180" x="40" y="20" as="geometry" />
         </mxCell>
-
-        <mxCell id="pkg_types" value="Common Domain Types" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="40" y="130" width="520" height="360" as="geometry"/>
+        <mxCell id="pkg_types" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" value="Common Domain Types" vertex="1">
+          <mxGeometry height="410" width="520" x="40" y="130" as="geometry" />
         </mxCell>
-        <mxCell id="type_aliases" value="Types.hpp aliases&#xa;--&#xa;SimulationTime = double&#xa;ItemId = uint64_t&#xa;ProductId = string&#xa;RecipeId = string&#xa;MachineId = uint64_t&#xa;LineId = uint64_t&#xa;ProductionLineId = LineId" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_types">
-          <mxGeometry x="25" y="55" width="220" height="170" as="geometry"/>
+        <mxCell id="type_aliases" parent="pkg_types" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Types.hpp aliases&#xa;--&#xa;SimulationTime = double&#xa;ItemId = uint64_t&#xa;ProductId = string&#xa;RecipeId = string&#xa;MachineId = uint64_t&#xa;LineId = uint64_t&#xa;ProductionLineId = LineId" vertex="1">
+          <mxGeometry height="155" width="220" x="25" y="55" as="geometry" />
         </mxCell>
-        <mxCell id="enums" value="Enums&#xa;--&#xa;ItemType&#xa;ProductType&#xa;ProcessType&#xa;MachineRole&#xa;MachineStatus&#xa;EventType&#xa;EnqueueResult" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_types">
-          <mxGeometry x="275" y="55" width="205" height="170" as="geometry"/>
+        <mxCell id="enums" parent="pkg_types" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Enums&#xa;--&#xa;ItemType&#xa;ProductType&#xa;ProcessType&#xa;MachineRole&#xa;MachineStatus&#xa;EventType&#xa;EnqueueResult" vertex="1">
+          <mxGeometry height="155" width="205" x="275" y="55" as="geometry" />
         </mxCell>
-        <mxCell id="scenario_config" value="LineScenarioConfig&#xa;&lt;&lt;struct&gt;&gt;&#xa;--&#xa;type : ScenarioType&#xa;bottleneckRole : optional&lt;MachineRole&gt;&#xa;bottleneckSpeedMultiplier : double&#xa;breakdownProbabilityOverride : optional&lt;double&gt;&#xa;queueCapacity : optional&lt;size_t&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_types">
-          <mxGeometry x="25" y="245" width="455" height="95" as="geometry"/>
+        <mxCell id="scenario_config" parent="pkg_types" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="LineScenarioConfig&#xa;&lt;&lt;struct&gt;&gt;&#xa;--&#xa;type : ScenarioType&#xa;bottleneckRole : optional&lt;MachineRole&gt;&#xa;bottleneckSpeedMultiplier : double&#xa;breakdownProbabilityOverride : optional&lt;double&gt;&#xa;queueCapacity : optional&lt;size_t&gt;" vertex="1">
+          <mxGeometry height="145" width="455" x="25" y="245" as="geometry" />
         </mxCell>
-
-        <mxCell id="pkg_catalog" value="Product Catalog / Definitions" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="610" y="130" width="720" height="520" as="geometry"/>
+        <mxCell id="pkg_catalog" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" value="Product Catalog / Definitions" vertex="1">
+          <mxGeometry height="540" width="720" x="610" y="130" as="geometry" />
         </mxCell>
-        <mxCell id="product_catalog" value="ProductCatalog.hpp functions&#xa;&lt;&lt;catalog module&gt;&gt;&#xa;--&#xa;+ productDefinitions() : vector&lt;ProductDefinition&gt;&amp;&#xa;+ findProductDefinition(id/type)&#xa;+ createProduct(id/type) : shared_ptr&lt;Product&gt;&#xa;+ productDefinitionsFromRegistry(registry)&#xa;+ makeProductDefinitionFromRegistry(registry,productId)&#xa;+ createProductFromRegistry(registry,productId)&#xa;--&#xa;central product registry and factory functions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_catalog">
-          <mxGeometry x="25" y="55" width="315" height="245" as="geometry"/>
+        <mxCell id="product_catalog" parent="pkg_catalog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="ProductCatalog.hpp functions&#xa;&lt;&lt;catalog module&gt;&gt;&#xa;--&#xa;+ productDefinitions() : vector&lt;ProductDefinition&gt;&amp;&#xa;+ findProductDefinition(id/type)&#xa;+ createProduct(id/type) : shared_ptr&lt;Product&gt;&#xa;+ productDefinitionsFromRegistry(registry)&#xa;+ makeProductDefinitionFromRegistry(registry,productId)&#xa;+ createProductFromRegistry(registry,productId)&#xa;--&#xa;central product registry and factory functions" vertex="1">
+          <mxGeometry height="205" width="315" x="25" y="55" as="geometry" />
         </mxCell>
-        <mxCell id="product_definition" value="ProductDefinition&#xa;&lt;&lt;struct&gt;&gt;&#xa;--&#xa;id : ProductId&#xa;type : ProductType&#xa;defaultRecipeId : RecipeId&#xa;key : string&#xa;name : string&#xa;tier : string&#xa;totalDurationSeconds : double&#xa;requirements : vector&lt;ItemRequirement&gt;&#xa;route : vector&lt;ProcessStep&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_catalog">
-          <mxGeometry x="380" y="55" width="285" height="240" as="geometry"/>
+        <mxCell id="product_definition" parent="pkg_catalog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="ProductDefinition&#xa;&lt;&lt;struct&gt;&gt;&#xa;--&#xa;id : ProductId&#xa;type : ProductType&#xa;defaultRecipeId : RecipeId&#xa;key : string&#xa;name : string&#xa;tier : string&#xa;totalDurationSeconds : double&#xa;requirements : vector&lt;ItemRequirement&gt;&#xa;route : vector&lt;ProcessStep&gt;" vertex="1">
+          <mxGeometry height="205" width="285" x="380" y="55" as="geometry" />
         </mxCell>
-        <mxCell id="definition_registry" value="config_model::DefinitionRegistry&#xa;--&#xa;findProduct(id)&#xa;findRecipe(id)&#xa;requireProduct(id)&#xa;requireRecipe(id)&#xa;lineCanProcessRecipe(...)&#xa;validate()&#xa;--&#xa;runtime JSON config source for dynamic product definitions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" vertex="1" parent="pkg_catalog">
-          <mxGeometry x="25" y="335" width="285" height="155" as="geometry"/>
+        <mxCell id="definition_registry" parent="pkg_catalog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" value="config_model::DefinitionRegistry&#xa;--&#xa;findProduct(id)&#xa;findRecipe(id)&#xa;requireProduct(id)&#xa;requireRecipe(id)&#xa;lineCanProcessRecipe(...)&#xa;validate()&#xa;--&#xa;runtime JSON config source for dynamic product definitions" vertex="1">
+          <mxGeometry height="185" width="285" x="25" y="335" as="geometry" />
         </mxCell>
-        <mxCell id="factory_config" value="FactoryConfig data structs&#xa;&lt;&lt;config DTO&gt;&gt;&#xa;--&#xa;config::ProductDefinition&#xa;RecipeDefinition&#xa;RecipeStepDefinition&#xa;RecipeOutputDefinition&#xa;InventorySeed&#xa;StartupTask&#xa;--&#xa;loaded from JSON and converted into model definitions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" vertex="1" parent="pkg_catalog">
-          <mxGeometry x="360" y="335" width="305" height="155" as="geometry"/>
+        <mxCell id="factory_config" parent="pkg_catalog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" value="FactoryConfig data structs&#xa;&lt;&lt;config DTO&gt;&gt;&#xa;--&#xa;config::ProductDefinition&#xa;RecipeDefinition&#xa;RecipeStepDefinition&#xa;RecipeOutputDefinition&#xa;InventorySeed&#xa;StartupTask&#xa;--&#xa;loaded from JSON and converted into model definitions" vertex="1">
+          <mxGeometry height="205" width="305" x="360" y="325" as="geometry" />
         </mxCell>
-
-        <mxCell id="pkg_product" value="Product Runtime Model" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#e1f5e6;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="40" y="700" width="1290" height="590" as="geometry"/>
+        <mxCell id="pkg_product" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#e1f5e6;strokeColor=#82b366;fontStyle=1" value="Product Runtime Model" vertex="1">
+          <mxGeometry height="610" width="1290" x="40" y="700" as="geometry" />
         </mxCell>
-        <mxCell id="product" value="&lt;&lt;abstract&gt;&gt;&#xa;Product&#xa;--&#xa;- id : ProductId&#xa;- defaultRecipeId : RecipeId&#xa;- name : string&#xa;- requirements : vector&lt;ItemRequirement&gt;&#xa;- route : vector&lt;ProcessStep&gt;&#xa;--&#xa;+ getProductId() : ProductId&#xa;+ productId() : ProductId&amp;&#xa;+ defaultRecipeId() : RecipeId&amp;&#xa;+ getName() : string&amp;&#xa;+ getRequirements() : vector&lt;ItemRequirement&gt;&amp;&#xa;+ getRoute() : vector&lt;ProcessStep&gt;&amp;&#xa;+ usesStepLevelIO() : bool&#xa;+ hasStepProductOutput() : bool" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;fontStyle=2" vertex="1" parent="pkg_product">
-          <mxGeometry x="25" y="55" width="300" height="285" as="geometry"/>
+        <mxCell id="product" parent="pkg_product" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;fontStyle=2" value="&lt;&lt;abstract&gt;&gt;&#xa;Product&#xa;--&#xa;- id : ProductId&#xa;- defaultRecipeId : RecipeId&#xa;- name : string&#xa;- requirements : vector&lt;ItemRequirement&gt;&#xa;- route : vector&lt;ProcessStep&gt;&#xa;--&#xa;+ getProductId() : ProductId&#xa;+ productId() : ProductId&amp;&#xa;+ defaultRecipeId() : RecipeId&amp;&#xa;+ getName() : string&amp;&#xa;+ getRequirements() : vector&lt;ItemRequirement&gt;&amp;&#xa;+ getRoute() : vector&lt;ProcessStep&gt;&amp;&#xa;+ usesStepLevelIO() : bool&#xa;+ hasStepProductOutput() : bool" vertex="1">
+          <mxGeometry height="285" width="300" x="25" y="55" as="geometry" />
         </mxCell>
-        <mxCell id="concrete_products" value="Concrete Products&#xa;--&#xa;VoltzClassic final&#xa;HyperBolt final&#xa;AuroraZero final&#xa;--&#xa;+ constructor()&#xa;+ productId() override&#xa;+ defaultRecipeId() override&#xa;+ getName() override&#xa;+ getRequirements() override&#xa;+ getRoute() override&#xa;--&#xa;built-in static energy drink products" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_product">
-          <mxGeometry x="25" y="385" width="300" height="165" as="geometry"/>
+        <mxCell id="concrete_products" parent="pkg_product" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Concrete Products&#xa;--&#xa;VoltzClassic final&#xa;HyperBolt final&#xa;AuroraZero final&#xa;--&#xa;+ constructor()&#xa;+ productId() override&#xa;+ defaultRecipeId() override&#xa;+ getName() override&#xa;+ getRequirements() override&#xa;+ getRoute() override&#xa;--&#xa;built-in static energy drink products" vertex="1">
+          <mxGeometry height="235" width="300" x="25" y="370" as="geometry" />
         </mxCell>
-        <mxCell id="catalog_product" value="CatalogProduct / ConfigProduct&#xa;&lt;&lt;implementation-local Product subclasses&gt;&gt;&#xa;--&#xa;constructed from ProductDefinition&#xa;used by ProductCatalog.cpp and ConfigurableFactory.cpp&#xa;--&#xa;not public headers, but important for runtime-config products" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" vertex="1" parent="pkg_product">
-          <mxGeometry x="365" y="385" width="285" height="145" as="geometry"/>
+        <mxCell id="catalog_product" parent="pkg_product" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" value="CatalogProduct / ConfigProduct&#xa;&lt;&lt;implementation-local Product subclasses&gt;&gt;&#xa;--&#xa;constructed from ProductDefinition&#xa;used by ProductCatalog.cpp and ConfigurableFactory.cpp&#xa;--&#xa;not public headers, but important for runtime-config products" vertex="1">
+          <mxGeometry height="155" width="285" x="365" y="385" as="geometry" />
         </mxCell>
-        <mxCell id="item_requirement" value="ItemRequirement&#xa;&lt;&lt;value object&gt;&gt;&#xa;--&#xa;- itemId : string&#xa;- quantity : int&#xa;--&#xa;+ itemId() : string&amp;&#xa;+ itemType() : ItemType&#xa;+ quantity() : int" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_product">
-          <mxGeometry x="365" y="55" width="225" height="145" as="geometry"/>
-        </mxCell>
-        <mxCell id="process_step" value="ProcessStep&#xa;&lt;&lt;value object&gt;&gt;&#xa;--&#xa;- id : string&#xa;- stepKind : string&#xa;- requiredRole : MachineRole&#xa;- baseDurationSeconds : SimulationTime&#xa;- inputs : vector&lt;ItemRequirement&gt;&#xa;- outputs : vector&lt;StepOutput&gt;&#xa;--&#xa;+ requiredRole() : MachineRole&#xa;+ durationSeconds() : SimulationTime&#xa;+ inputs() : vector&lt;ItemRequirement&gt;&amp;&#xa;+ outputs() : vector&lt;StepOutput&gt;&amp;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_product">
-          <mxGeometry x="645" y="55" width="285" height="230" as="geometry"/>
-        </mxCell>
-        <mxCell id="step_output" value="StepOutput&#xa;&lt;&lt;struct / value object&gt;&gt;&#xa;--&#xa;itemId : optional&lt;string&gt;&#xa;productId : optional&lt;ProductId&gt;&#xa;quantity : int&#xa;--&#xa;+ isItem() : bool&#xa;+ isProduct() : bool" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_product">
-          <mxGeometry x="970" y="55" width="250" height="145" as="geometry"/>
-        </mxCell>
-        <mxCell id="recipe" value="Recipe&#xa;--&#xa;- id : RecipeId&#xa;- name : string&#xa;- durationSeconds : double&#xa;- inputs : map&lt;string,int&gt;&#xa;- outputs : map&lt;ProductId,int&gt;&#xa;--&#xa;+ addInput(itemId/type, qty)&#xa;+ addOutput(productId, qty)&#xa;+ requiresItem(...) : bool&#xa;+ requiredQuantity(...) : int&#xa;+ inputs() / outputs()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_product">
-          <mxGeometry x="685" y="350" width="285" height="200" as="geometry"/>
-        </mxCell>
-        <mxCell id="production_task" value="ProductionTask&#xa;--&#xa;- ownedProduct : shared_ptr&lt;Product&gt;&#xa;- product : Product*&#xa;- currentStepIndex : size_t&#xa;- currentStepInputsConsumed : bool&#xa;- pendingStepOutputs : vector&lt;StepOutput&gt;&#xa;--&#xa;+ currentStep() : ProcessStep*&#xa;+ advanceStep()&#xa;+ isCompleted() : bool&#xa;+ currentStepInputs()&#xa;+ currentStepOutputs()&#xa;+ collectPendingStepOutputs()&#xa;+ createMemento() / restoreFromMemento()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_product">
-          <mxGeometry x="985" y="315" width="280" height="245" as="geometry"/>
-        </mxCell>
-
-        <mxCell id="pkg_inventory" value="Items / Inventory / Line Execution" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="1380" y="130" width="720" height="1160" as="geometry"/>
-        </mxCell>
-        <mxCell id="item" value="&lt;&lt;abstract&gt;&gt;&#xa;Item&#xa;--&#xa;- name : string&#xa;--&#xa;+ getTypeId() : ItemType&#xa;+ getName() : string&amp;&#xa;--&#xa;raw material abstraction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;fontStyle=2" vertex="1" parent="pkg_inventory">
-          <mxGeometry x="25" y="55" width="245" height="140" as="geometry"/>
-        </mxCell>
-        <mxCell id="concrete_items" value="Concrete Items&#xa;--&#xa;Ingredient&#xa;Water&#xa;EmptyBottle&#xa;Label&#xa;Package&#xa;--&#xa;+ getTypeId() override&#xa;+ getName() override" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_inventory">
-          <mxGeometry x="315" y="55" width="245" height="140" as="geometry"/>
-        </mxCell>
-        <mxCell id="item_type_name" value="ItemTypeName&#xa;--&#xa;+ static get(ItemType) : char*&#xa;--&#xa;display-name helper&#xa;not instantiated" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" vertex="1" parent="pkg_inventory">
-          <mxGeometry x="25" y="225" width="245" height="105" as="geometry"/>
-        </mxCell>
-        <mxCell id="inventory" value="Inventory&#xa;--&#xa;- items : map&lt;string,int&gt;&#xa;- products : map&lt;ProductId,int&gt;&#xa;--&#xa;+ addItem(itemId/type, amount)&#xa;+ addProduct(productId, qty)&#xa;+ hasItem(itemId, qty) : bool&#xa;+ consumeItem(itemId, qty) : bool&#xa;+ canConsume(inputs) : bool&#xa;+ consume(inputs) : bool&#xa;+ hasEnough(requirements) : bool&#xa;+ items() / products()&#xa;+ replaceContents(newItems,newProducts)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_inventory">
-          <mxGeometry x="315" y="235" width="315" height="245" as="geometry"/>
-        </mxCell>
-        <mxCell id="production_line" value="ProductionLine&#xa;--&#xa;- id : ProductionLineId&#xa;- name : string&#xa;- scenario : ScenarioType&#xa;- taskQueue : deque&lt;shared_ptr&lt;ProductionTask&gt;&gt;&#xa;- completedProducts : vector&lt;ProductId&gt;&#xa;- machines : vector&lt;unique_ptr&lt;Machine&gt;&gt;&#xa;- queueCapacity : optional&lt;size_t&gt;&#xa;- droppedTaskCount : size_t&#xa;--&#xa;+ enqueueProduct(shared_ptr&lt;Product&gt;) : EnqueueResult&#xa;+ assignAvailableTask(Inventory*)&#xa;+ collectPendingStepOutputs()&#xa;+ collectCompletedProducts()&#xa;+ addMachine(unique_ptr&lt;Machine&gt;)&#xa;+ update(deltaTime)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_inventory">
-          <mxGeometry x="25" y="530" width="320" height="310" as="geometry"/>
-        </mxCell>
-        <mxCell id="machine_ref" value="Machine&#xa;&lt;&lt;domain dependency&gt;&gt;&#xa;--&#xa;accepts ProductionTask&#xa;uses ProcessStep / MachineRole&#xa;may hold Recipe&#xa;--&#xa;details live in BE Overall and Machine State diagrams" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" vertex="1" parent="pkg_inventory">
-          <mxGeometry x="385" y="560" width="260" height="145" as="geometry"/>
-        </mxCell>
-        <mxCell id="factory_ref" value="Factory / CarbonationFactory / ConfigurableFactory&#xa;&lt;&lt;domain owner / orchestrator&gt;&gt;&#xa;--&#xa;Factory owns Inventory + ProductionLine[]&#xa;CarbonationFactory uses built-in ProductCatalog&#xa;ConfigurableFactory uses runtime ProductDefinition[] + Recipe[]&#xa;Factory applies StepOutput to Inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" vertex="1" parent="pkg_inventory">
-          <mxGeometry x="25" y="895" width="620" height="155" as="geometry"/>
-        </mxCell>
-
-        <mxCell id="pkg_fe_link" value="FE Product UI Link" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="40" y="1320" width="2060" height="140" as="geometry"/>
-        </mxCell>
-        <mxCell id="fe_products" value="ProductsPanel.js&#xa;--&#xa;ctrl.products() -> ProductOption[]&#xa;click product button -> enqueueAutoProductById(productId)&#xa;ProductOption fields mirror ProductDefinition summary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe_link">
-          <mxGeometry x="25" y="50" width="420" height="70" as="geometry"/>
-        </mxCell>
-        <mxCell id="fe_inventory" value="InventoryPanel.js&#xa;--&#xa;renders FactoryView.inventory : InventoryEntry[]&#xa;restock button -> restockItemById(itemId)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe_link">
-          <mxGeometry x="485" y="50" width="350" height="70" as="geometry"/>
-        </mxCell>
-        <mxCell id="fe_boundary_dto" value="Boundary DTOs&#xa;--&#xa;ProductOption&#xa;InventoryEntry&#xa;FactoryView.lines[].currentTaskName/progress&#xa;--&#xa;DTO values only, no direct Model access from JS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe_link">
-          <mxGeometry x="875" y="50" width="420" height="70" as="geometry"/>
-        </mxCell>
-        <mxCell id="legend" value="Legend: solid diamond = composition/value ownership, open diamond = aggregation/shared queue, dashed arrow = dependency/factory conversion, open triangle = inheritance/generalization." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=middle;fontSize=12" vertex="1" parent="pkg_fe_link">
-          <mxGeometry x="1340" y="50" width="650" height="70" as="geometry"/>
-        </mxCell>
-
-        <mxCell id="e_catalog_defs" value="owns immutable catalog data" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="product_catalog" target="product_definition">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_catalog_create" value="creates shared_ptr&lt;Product&gt;" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="product_catalog" target="product">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_registry_catalog" value="runtime config conversion" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="definition_registry" target="product_catalog">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_config_registry" value="loads / validates" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="factory_config" target="definition_registry">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-
-        <mxCell id="e_def_requirements" value="requirements[]" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="product_definition" target="item_requirement">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_def_route" value="route[]" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="product_definition" target="process_step">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_product_requirements" value="requirements[]" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="product" target="item_requirement">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_product_route" value="route[]" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="product" target="process_step">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_step_inputs" value="inputs[]" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="process_step" target="item_requirement">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_step_outputs" value="outputs[]" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="process_step" target="step_output">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_concrete_products" value="" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#82b366;" edge="1" parent="1" source="concrete_products" target="product">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_catalog_product" value="" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#82b366;dashed=1" edge="1" parent="1" source="catalog_product" target="product">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_product_recipeid" value="defaultRecipeId" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="product" target="recipe">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_recipe_inputs" value="inputs map" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="recipe" target="item_requirement">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_recipe_outputs" value="outputs map" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="recipe" target="product">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-
-        <mxCell id="e_item_extends" value="" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#b85450;" edge="1" parent="1" source="concrete_items" target="item">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_item_enum" value="uses ItemType" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" edge="1" parent="1" source="item" target="enums">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_req_enum" value="itemType compatibility" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" edge="1" parent="1" source="item_requirement" target="enums">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_step_role" value="requiredRole" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" edge="1" parent="1" source="process_step" target="enums">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_inventory_requirements" value="hasEnough/consume(requirements)" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="inventory" target="item_requirement">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_inventory_products" value="stores finished quantities" style="endArrow=open;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="inventory" target="product">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_line_task" value="taskQueue 0..*" style="endArrow=diamondThin;endFill=0;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="production_line" target="production_task">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_line_product" value="enqueueProduct(shared_ptr)" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="production_line" target="product">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_line_inventory" value="assignAvailableTask(Inventory*)" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="production_line" target="inventory">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_line_machine" value="owns Machine[]" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="production_line" target="machine_ref">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_task_product" value="owns/refs Product" style="endArrow=diamondThin;endFill=0;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="production_task" target="product">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_task_step" value="currentStep()" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="production_task" target="process_step">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_task_outputs" value="pendingStepOutputs[]" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="production_task" target="step_output">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_factory_inventory" value="owns / applies outputs" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="factory_ref" target="inventory">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_factory_line" value="owns lines[]" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="factory_ref" target="production_line">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_factory_catalog" value="createProductById()" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="factory_ref" target="product_catalog">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_factory_recipe" value="recipes[]" style="endArrow=diamondThin;endFill=0;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="factory_ref" target="recipe">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-
-        <mxCell id="e_fe_products_catalog" value="ProductOption from definitions" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" edge="1" parent="1" source="fe_products" target="product_definition">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_fe_inventory_inv" value="InventoryEntry from snapshot.inventory" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" edge="1" parent="1" source="fe_inventory" target="inventory">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_fe_dto_domain" value="DTO copy only" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" edge="1" parent="1" source="fe_boundary_dto" target="product">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="item_requirement" parent="pkg_product" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="ItemRequirement&#xa;&lt;&lt;value object&gt;&gt;&#xa;--&#xa;- itemId : string&#xa;- quantity : int&#xa;--&#xa;+ itemId() : string&amp;&#xa;+ itemType() : ItemType&#xa;+ quantity() : int" vertex="1">
+          <mxGeometry height="155" width="225" x="365" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="process_step" parent="pkg_product" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="ProcessStep&#xa;&lt;&lt;value object&gt;&gt;&#xa;--&#xa;- id : string&#xa;- stepKind : string&#xa;- requiredRole : MachineRole&#xa;- baseDurationSeconds : SimulationTime&#xa;- inputs : vector&lt;ItemRequirement&gt;&#xa;- outputs : vector&lt;StepOutput&gt;&#xa;--&#xa;+ requiredRole() : MachineRole&#xa;+ durationSeconds() : SimulationTime&#xa;+ inputs() : vector&lt;ItemRequirement&gt;&amp;&#xa;+ outputs() : vector&lt;StepOutput&gt;&amp;" vertex="1">
+          <mxGeometry height="230" width="285" x="645" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="step_output" parent="pkg_product" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="StepOutput&#xa;&lt;&lt;struct / value object&gt;&gt;&#xa;--&#xa;itemId : optional&lt;string&gt;&#xa;productId : optional&lt;ProductId&gt;&#xa;quantity : int&#xa;--&#xa;+ isItem() : bool&#xa;+ isProduct() : bool" vertex="1">
+          <mxGeometry height="155" width="250" x="970" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="recipe" parent="pkg_product" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Recipe&#xa;--&#xa;- id : RecipeId&#xa;- name : string&#xa;- durationSeconds : double&#xa;- inputs : map&lt;string,int&gt;&#xa;- outputs : map&lt;ProductId,int&gt;&#xa;--&#xa;+ addInput(itemId/type, qty)&#xa;+ addOutput(productId, qty)&#xa;+ requiresItem(...) : bool&#xa;+ requiredQuantity(...) : int&#xa;+ inputs() / outputs()" vertex="1">
+          <mxGeometry height="220" width="285" x="685" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="production_task" parent="pkg_product" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="ProductionTask&#xa;--&#xa;- ownedProduct : shared_ptr&lt;Product&gt;&#xa;- product : Product*&#xa;- currentStepIndex : size_t&#xa;- currentStepInputsConsumed : bool&#xa;- pendingStepOutputs : vector&lt;StepOutput&gt;&#xa;--&#xa;+ currentStep() : ProcessStep*&#xa;+ advanceStep()&#xa;+ isCompleted() : bool&#xa;+ currentStepInputs()&#xa;+ currentStepOutputs()&#xa;+ collectPendingStepOutputs()&#xa;+ createMemento() / restoreFromMemento()" vertex="1">
+          <mxGeometry height="255" width="280" x="985" y="315" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg_inventory" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" value="Items / Inventory / Line Execution" vertex="1">
+          <mxGeometry height="1160" width="720" x="1380" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="item" parent="pkg_inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;fontStyle=2" value="&lt;&lt;abstract&gt;&gt;&#xa;Item&#xa;--&#xa;- name : string&#xa;--&#xa;+ getTypeId() : ItemType&#xa;+ getName() : string&amp;&#xa;--&#xa;raw material abstraction" vertex="1">
+          <mxGeometry height="155" width="245" x="25" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="concrete_items" parent="pkg_inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Concrete Items&#xa;--&#xa;Ingredient&#xa;Water&#xa;EmptyBottle&#xa;Label&#xa;Package&#xa;--&#xa;+ getTypeId() override&#xa;+ getName() override" vertex="1">
+          <mxGeometry height="165" width="245" x="315" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="item_type_name" parent="pkg_inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" value="ItemTypeName&#xa;--&#xa;+ static get(ItemType) : char*&#xa;--&#xa;display-name helper&#xa;not instantiated" vertex="1">
+          <mxGeometry height="105" width="245" x="25" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory" parent="pkg_inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Inventory&#xa;--&#xa;- items : map&lt;string,int&gt;&#xa;- products : map&lt;ProductId,int&gt;&#xa;--&#xa;+ addItem(itemId/type, amount)&#xa;+ addProduct(productId, qty)&#xa;+ hasItem(itemId, qty) : bool&#xa;+ consumeItem(itemId, qty) : bool&#xa;+ canConsume(inputs) : bool&#xa;+ consume(inputs) : bool&#xa;+ hasEnough(requirements) : bool&#xa;+ items() / products()&#xa;+ replaceContents(newItems,newProducts)" vertex="1">
+          <mxGeometry height="245" width="315" x="315" y="235" as="geometry" />
+        </mxCell>
+        <mxCell id="production_line" parent="pkg_inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="ProductionLine&#xa;--&#xa;- id : ProductionLineId&#xa;- name : string&#xa;- scenario : ScenarioType&#xa;- taskQueue : deque&lt;shared_ptr&lt;ProductionTask&gt;&gt;&#xa;- completedProducts : vector&lt;ProductId&gt;&#xa;- machines : vector&lt;unique_ptr&lt;Machine&gt;&gt;&#xa;- queueCapacity : optional&lt;size_t&gt;&#xa;- droppedTaskCount : size_t&#xa;--&#xa;+ enqueueProduct(shared_ptr&lt;Product&gt;) : EnqueueResult&#xa;+ assignAvailableTask(Inventory*)&#xa;+ collectPendingStepOutputs()&#xa;+ collectCompletedProducts()&#xa;+ addMachine(unique_ptr&lt;Machine&gt;)&#xa;+ update(deltaTime)" vertex="1">
+          <mxGeometry height="290" width="320" x="25" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="machine_ref" parent="pkg_inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" value="Machine&#xa;&lt;&lt;domain dependency&gt;&gt;&#xa;--&#xa;accepts ProductionTask&#xa;uses ProcessStep / MachineRole&#xa;may hold Recipe&#xa;--&#xa;details live in BE Overall and Machine State diagrams" vertex="1">
+          <mxGeometry height="160" width="260" x="385" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="factory_ref" parent="pkg_inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" value="Factory / CarbonationFactory / ConfigurableFactory&#xa;&lt;&lt;domain owner / orchestrator&gt;&gt;&#xa;--&#xa;Factory owns Inventory + ProductionLine[]&#xa;CarbonationFactory uses built-in ProductCatalog&#xa;ConfigurableFactory uses runtime ProductDefinition[] + Recipe[]&#xa;Factory applies StepOutput to Inventory" vertex="1">
+          <mxGeometry height="125" width="620" x="25" y="895" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg_fe_link" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1" value="FE Product UI Link" vertex="1">
+          <mxGeometry height="170" width="2060" x="40" y="1320" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_products" parent="pkg_fe_link" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="ProductsPanel.js&#xa;--&#xa;ctrl.products() -&gt; ProductOption[]&#xa;click product button -&gt; enqueueAutoProductById(productId)&#xa;ProductOption fields mirror ProductDefinition summary" vertex="1">
+          <mxGeometry height="90" width="420" x="25" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_inventory" parent="pkg_fe_link" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="InventoryPanel.js&#xa;--&#xa;renders FactoryView.inventory : InventoryEntry[]&#xa;restock button -&gt; restockItemById(itemId)" vertex="1">
+          <mxGeometry height="70" width="350" x="485" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_boundary_dto" parent="pkg_fe_link" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Boundary DTOs&#xa;--&#xa;ProductOption&#xa;InventoryEntry&#xa;FactoryView.lines[].currentTaskName/progress&#xa;--&#xa;DTO values only, no direct Model access from JS" vertex="1">
+          <mxGeometry height="120" width="420" x="875" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="pkg_fe_link" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=middle;fontSize=12" value="Legend: solid diamond = composition/value ownership, open diamond = aggregation/shared queue, dashed arrow = dependency/factory conversion, open triangle = inheritance/generalization." vertex="1">
+          <mxGeometry height="70" width="650" x="1340" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_catalog_defs" edge="1" parent="1" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="product_definition" value="owns immutable catalog data">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="870" y="410" />
+              <mxPoint x="1061" y="410" />
+            </Array>
+            <mxPoint x="870" y="390" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_catalog_create" edge="1" parent="1" source="product_catalog" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12;exitX=0;exitY=0.413;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.716;entryY=0.003;entryDx=0;entryDy=0;entryPerimeter=0;" target="product" value="creates shared_ptr&lt;Product&gt;">
+          <mxGeometry relative="1" x="0.8434" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="620" y="270" />
+              <mxPoint x="620" y="750" />
+              <mxPoint x="280" y="750" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_registry_catalog" edge="1" parent="1" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12;entryX=0.554;entryY=1.004;entryDx=0;entryDy=0;entryPerimeter=0;" target="product_catalog" value="runtime config conversion">
+          <mxGeometry relative="1" x="-0.0802" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="650" y="440" />
+              <mxPoint x="810" y="440" />
+            </Array>
+            <mxPoint x="650" y="470" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_config_registry" edge="1" parent="1" source="factory_config" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12;entryX=0.719;entryY=0.005;entryDx=0;entryDy=0;entryPerimeter=0;" target="definition_registry" value="loads / validates">
+          <mxGeometry relative="1" x="-0.4258" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1120" y="440" />
+              <mxPoint x="840" y="440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_def_requirements" edge="1" parent="1" source="product_definition" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;exitX=0.314;exitY=1.002;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.992;entryY=0.101;entryDx=0;entryDy=0;entryPerimeter=0;" target="item_requirement" value="requirements[]">
+          <mxGeometry relative="1" x="-0.8348" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1079" y="420" />
+              <mxPoint x="930" y="420" />
+              <mxPoint x="930" y="750" />
+              <mxPoint x="650" y="750" />
+              <mxPoint x="650" y="770" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_def_route" edge="1" parent="1" source="product_definition" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;exitX=0.386;exitY=1.001;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.899;entryY=0.013;entryDx=0;entryDy=0;entryPerimeter=0;" target="process_step" value="route[]">
+          <mxGeometry relative="1" x="-0.3945" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1100" y="430" />
+              <mxPoint x="940" y="430" />
+              <mxPoint x="940" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_product_requirements" edge="1" parent="1" source="product" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;exitX=0.999;exitY=0.683;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.463;entryY=1.006;entryDx=0;entryDy=0;entryPerimeter=0;" target="item_requirement" value="requirements[]">
+          <mxGeometry relative="1" x="-0.2901" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="509" y="950" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_product_route" edge="1" parent="1" source="product" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;entryX=0.026;entryY=0.945;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.998;exitY=0.762;exitDx=0;exitDy=0;exitPerimeter=0;" target="process_step" value="route[]">
+          <mxGeometry relative="1" x="-0.8439" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_step_inputs" edge="1" parent="1" source="process_step" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;entryX=0.559;entryY=1.004;entryDx=0;entryDy=0;entryPerimeter=0;exitX=-0.002;exitY=0.841;exitDx=0;exitDy=0;exitPerimeter=0;" target="item_requirement" value="inputs[]">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="531" y="950" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_step_outputs" edge="1" parent="1" source="process_step" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" target="step_output" value="outputs[]">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_concrete_products" edge="1" parent="1" source="concrete_products" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#82b366;" target="product" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_catalog_product" edge="1" parent="1" source="catalog_product" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#82b366;dashed=1;entryX=0.963;entryY=0.961;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.122;exitY=0.006;exitDx=0;exitDy=0;exitPerimeter=0;" target="product" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="1030" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_product_recipeid" edge="1" parent="1" source="product" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;entryX=0.13;entryY=0.01;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.986;exitY=0.929;exitDx=0;exitDy=0;exitPerimeter=0;" target="recipe" value="defaultRecipeId">
+          <mxGeometry relative="1" x="-0.4011" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="760" y="1020" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_recipe_inputs" edge="1" parent="1" source="recipe" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;entryX=0.514;entryY=0.986;entryDx=0;entryDy=0;exitX=0;exitY=0.321;exitDx=0;exitDy=0;exitPerimeter=0;entryPerimeter=0;" target="item_requirement" value="inputs map">
+          <mxGeometry relative="1" x="0.4622" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="700" y="1120" />
+              <mxPoint x="700" y="980" />
+              <mxPoint x="520" y="980" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_recipe_outputs" edge="1" parent="1" source="recipe" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;exitX=0.825;exitY=0.006;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.893;entryDx=0;entryDy=0;entryPerimeter=0;" target="product" value="outputs map">
+          <mxGeometry relative="1" x="0.8586" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="960" y="1010" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_item_extends" edge="1" parent="1" source="concrete_items" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#b85450;" target="item" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_item_enum" edge="1" parent="1" source="item" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="enums" value="uses ItemType">
+          <mxGeometry relative="1" x="-0.7702" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1530" y="110" />
+              <mxPoint x="418" y="110" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_req_enum" edge="1" parent="1" source="item_requirement" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12;exitX=0.552;exitY=0.01;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.416;entryY=0.995;entryDx=0;entryDy=0;entryPerimeter=0;" target="enums" value="itemType compatibility">
+          <mxGeometry relative="1" x="0.6683" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="530" y="360" />
+              <mxPoint x="400" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_step_role" edge="1" parent="1" source="process_step" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12;exitX=0.265;exitY=0.002;exitDx=0;exitDy=0;exitPerimeter=0;" value="requiredRole">
+          <mxGeometry relative="1" x="-0.8471" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="760" y="740" />
+              <mxPoint x="540" y="740" />
+              <mxPoint x="540" y="270" />
+            </Array>
+            <mxPoint x="520" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inventory_requirements" edge="1" parent="1" source="inventory" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12;entryX=0.335;entryY=0.015;entryDx=0;entryDy=0;entryPerimeter=0;" target="item_requirement" value="hasEnough/consume(requirements)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1400" y="490" />
+              <mxPoint x="1400" y="690" />
+              <mxPoint x="480" y="690" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inventory_products" edge="1" parent="1" source="inventory" style="endArrow=open;html=1;rounded=0;strokeColor=#b85450;fontSize=12;exitX=0.003;exitY=0.463;exitDx=0;exitDy=0;exitPerimeter=0;" target="product" value="stores finished quantities">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1390" y="480" />
+              <mxPoint x="1390" y="680" />
+              <mxPoint x="220" y="680" />
+            </Array>
+            <mxPoint x="1690" y="480" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_line_task" edge="1" parent="1" source="production_line" style="endArrow=diamondThin;endFill=0;html=1;rounded=0;strokeColor=#b85450;fontSize=12;exitX=0.112;exitY=1.01;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.911;entryY=0.014;entryDx=0;entryDy=0;entryPerimeter=0;" target="production_task" value="taskQueue 0..*">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1441" y="1000" />
+              <mxPoint x="1280" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_line_product" edge="1" parent="1" source="production_line" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12;entryX=0.997;entryY=0.724;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.004;exitY=0.304;exitDx=0;exitDy=0;exitPerimeter=0;" target="product" value="enqueueProduct(shared_ptr)">
+          <mxGeometry relative="1" x="0.7989" y="1" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="670" y="750" />
+              <mxPoint x="670" y="960" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_line_inventory" edge="1" parent="1" source="production_line" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12;exitX=0.486;exitY=0.001;exitDx=0;exitDy=0;entryX=0.002;entryY=0.547;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" target="inventory" value="assignAvailableTask(Inventory*)">
+          <mxGeometry relative="1" x="-0.7953" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1560" y="500" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_line_machine" edge="1" parent="1" source="production_line" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12;exitX=0.358;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" target="machine_ref" value="owns Machine[]">
+          <mxGeometry relative="1" x="-0.5315" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1520" y="990" />
+              <mxPoint x="1895" y="990" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_task_product" edge="1" parent="1" source="production_task" style="endArrow=diamondThin;endFill=0;html=1;rounded=0;strokeColor=#82b366;fontSize=12;exitX=0.769;exitY=0.008;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.862;entryDx=0;entryDy=0;entryPerimeter=0;" target="product" value="owns/refs Product">
+          <mxGeometry relative="1" x="0.6749" y="-1" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1240" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_task_step" edge="1" parent="1" source="production_task" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.015;exitY=0.099;exitDx=0;exitDy=0;exitPerimeter=0;" target="process_step" value="currentStep()">
+          <mxGeometry relative="1" x="-0.1401" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="900" y="1040" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_task_outputs" edge="1" parent="1" source="production_task" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;exitX=0.479;exitY=0.002;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.113;entryY=1.003;entryDx=0;entryDy=0;entryPerimeter=0;" target="step_output" value="pendingStepOutputs[]">
+          <mxGeometry relative="1" x="0.0235" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1160" y="960" />
+              <mxPoint x="1038" y="960" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_factory_inventory" edge="1" parent="1" source="factory_ref" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12;exitX=0.999;exitY=0.355;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.795;entryDx=0;entryDy=0;entryPerimeter=0;" target="inventory" value="owns / applies outputs">
+          <mxGeometry relative="1" x="-0.3898" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="2050" y="1070" />
+              <mxPoint x="2050" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_factory_line" edge="1" parent="1" source="factory_ref" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12;entryX=0.238;entryY=1.003;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.315;exitY=0.021;exitDx=0;exitDy=0;exitPerimeter=0;" target="production_line" value="owns lines[]">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1600" y="1000" />
+              <mxPoint x="1481" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_factory_catalog" edge="1" parent="1" source="factory_ref" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12;entryX=0.694;entryY=1.012;entryDx=0;entryDy=0;entryPerimeter=0;" target="product_catalog" value="createProductById()">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2110" y="1090" />
+              <mxPoint x="2110" y="120" />
+              <mxPoint x="1290" y="120" />
+              <mxPoint x="1290" y="450" />
+              <mxPoint x="854" y="450" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_factory_recipe" edge="1" parent="1" source="factory_ref" style="endArrow=diamondThin;endFill=0;html=1;rounded=0;strokeColor=#82b366;fontSize=12;exitX=0.055;exitY=0.983;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.687;entryY=0.997;entryDx=0;entryDy=0;entryPerimeter=0;" target="recipe" value="recipes[]">
+          <mxGeometry relative="1" x="0.847" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1440" y="1280" />
+              <mxPoint x="920" y="1280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_fe_products_catalog" edge="1" parent="1" source="fe_products" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12;entryX=0.462;entryY=0.004;entryDx=0;entryDy=0;entryPerimeter=0;" target="product_definition" value="ProductOption from definitions">
+          <mxGeometry relative="1" x="0.1606" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="30" y="1420" />
+              <mxPoint x="30" y="120" />
+              <mxPoint x="1120" y="120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_fe_inventory_inv" edge="1" parent="1" source="fe_inventory" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12;exitX=0.442;exitY=0.02;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1.002;entryY=0.473;entryDx=0;entryDy=0;entryPerimeter=0;" target="inventory" value="InventoryEntry from snapshot.inventory">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="1360" />
+              <mxPoint x="2120" y="1360" />
+              <mxPoint x="2120" y="480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_fe_dto_domain" edge="1" parent="1" source="fe_boundary_dto" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12;exitX=0.969;exitY=0.018;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.999;entryY=0.828;entryDx=0;entryDy=0;entryPerimeter=0;" target="product" value="DTO copy only">
+          <mxGeometry relative="1" x="0.9173" y="-1" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1320" y="990" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>

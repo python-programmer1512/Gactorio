@@ -1,130 +1,160 @@
-<mxfile host="app.diagrams.net" modified="2026-06-14T13:18:00.000Z" agent="Codex" version="24.7.17" type="device">
+<mxfile host="Electron" agent="Codex">
   <diagram id="MEMENTO_PATTERN" name="Memento Pattern Diagram">
-    <mxGraphModel dx="2400" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1500" math="0" shadow="0">
+    <mxGraphModel dx="1935" dy="1132" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1500" math="0" shadow="0">
       <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-
-        <mxCell id="title" value="Memento Pattern Diagram&#xa;Originator: Factory / CarbonationFactory / ConfigurableFactory&#xa;Memento: FactoryMemento tree&#xa;Caretaker: SimulationHistory&#xa;External access: FE SimControlPanel -> Module.Controller -> ctrl::Controller -> FactoryController" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="40" y="20" width="1280" height="105" as="geometry"/>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1" value="Memento Pattern Diagram&#xa;Originator: Factory / CarbonationFactory / ConfigurableFactory&#xa;Memento: FactoryMemento tree&#xa;Caretaker: SimulationHistory&#xa;External access: FE SimControlPanel -&gt; Module.Controller -&gt; ctrl::Controller -&gt; FactoryController" vertex="1">
+          <mxGeometry height="105" width="1280" x="40" y="20" as="geometry" />
         </mxCell>
-
-        <mxCell id="pkg_external" value="External Save / Undo Flow" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#e1f5e6;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="40" y="150" width="560" height="570" as="geometry"/>
+        <mxCell id="pkg_external" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#e1f5e6;strokeColor=#82b366;fontStyle=1" value="External Save / Undo Flow" vertex="1">
+          <mxGeometry height="570" width="560" x="40" y="150" as="geometry" />
         </mxCell>
-        <mxCell id="sim_panel" value="SimControlPanel.js&#xa;&lt;&lt;FE View&gt;&gt;&#xa;--&#xa;#btn-save click -> ctrl.saveCheckpoint()&#xa;#btn-undo click -> ctrl.undo()&#xa;render():&#xa;  historySize()&#xa;  canUndo()&#xa;--&#xa;UI only sees Controller API, not memento internals." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_external">
-          <mxGeometry x="25" y="60" width="245" height="200" as="geometry"/>
+        <mxCell id="sim_panel" parent="pkg_external" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="SimControlPanel.js&#xa;&lt;&lt;FE View&gt;&gt;&#xa;--&#xa;#btn-save click -&gt; ctrl.saveCheckpoint()&#xa;#btn-undo click -&gt; ctrl.undo()&#xa;render():&#xa;  historySize()&#xa;  canUndo()&#xa;--&#xa;UI only sees Controller API, not memento internals." vertex="1">
+          <mxGeometry height="200" width="245" x="25" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="module_controller" value="Module.Controller&#xa;&lt;&lt;embind proxy&gt;&gt;&#xa;--&#xa;+ saveCheckpoint()&#xa;+ undo() : bool&#xa;+ canUndo() : bool&#xa;+ historySize() : size_t&#xa;--&#xa;bound in src/web/bindings.cpp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_external">
-          <mxGeometry x="300" y="75" width="225" height="165" as="geometry"/>
+        <mxCell id="module_controller" parent="pkg_external" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Module.Controller&#xa;&lt;&lt;embind proxy&gt;&gt;&#xa;--&#xa;+ saveCheckpoint()&#xa;+ undo() : bool&#xa;+ canUndo() : bool&#xa;+ historySize() : size_t&#xa;--&#xa;bound in src/web/bindings.cpp" vertex="1">
+          <mxGeometry height="165" width="225" x="300" y="75" as="geometry" />
         </mxCell>
-        <mxCell id="ctrl_controller" value="ctrl::Controller&#xa;&lt;&lt;boundary adapter&gt;&gt;&#xa;--&#xa;+ saveCheckpoint()&#xa;+ undo() : bool&#xa;+ canUndo() const : bool&#xa;+ historySize() const : size_t&#xa;--&#xa;delegates to Impl.backend&#xa;marks cached FactoryView dirty after undo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_external">
-          <mxGeometry x="165" y="330" width="255" height="165" as="geometry"/>
+        <mxCell id="ctrl_controller" parent="pkg_external" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="ctrl::Controller&#xa;&lt;&lt;boundary adapter&gt;&gt;&#xa;--&#xa;+ saveCheckpoint()&#xa;+ undo() : bool&#xa;+ canUndo() const : bool&#xa;+ historySize() const : size_t&#xa;--&#xa;delegates to Impl.backend&#xa;marks cached FactoryView dirty after undo" vertex="1">
+          <mxGeometry height="180" width="255" x="165" y="330" as="geometry" />
         </mxCell>
-
-        <mxCell id="pkg_controller" value="Controller / Caretaker" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#eef5ff;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="650" y="150" width="600" height="570" as="geometry"/>
+        <mxCell id="pkg_controller" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#eef5ff;strokeColor=#6c8ebf;fontStyle=1" value="Controller / Caretaker" vertex="1">
+          <mxGeometry height="570" width="600" x="650" y="150" as="geometry" />
         </mxCell>
-        <mxCell id="factory_controller" value="FactoryController&#xa;&lt;&lt;facade&gt;&gt;&#xa;--&#xa;- factory : unique_ptr&lt;Factory&gt;&#xa;- history : SimulationHistory&#xa;--&#xa;+ saveCheckpoint()&#xa;  history.push(factory.createMemento())&#xa;+ undo() : bool&#xa;  m = history.pop()&#xa;  factory.restoreFromMemento(m)&#xa;+ canUndo() : bool&#xa;+ historySize() : size_t&#xa;--&#xa;public BE controller surface for checkpoints" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_controller">
-          <mxGeometry x="25" y="60" width="285" height="260" as="geometry"/>
+        <mxCell id="factory_controller" parent="pkg_controller" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="FactoryController&#xa;&lt;&lt;facade&gt;&gt;&#xa;--&#xa;- factory : unique_ptr&lt;Factory&gt;&#xa;- history : SimulationHistory&#xa;--&#xa;+ saveCheckpoint()&#xa;  history.push(factory.createMemento())&#xa;+ undo() : bool&#xa;  m = history.pop()&#xa;  factory.restoreFromMemento(m)&#xa;+ canUndo() : bool&#xa;+ historySize() : size_t&#xa;--&#xa;public BE controller surface for checkpoints" vertex="1">
+          <mxGeometry height="260" width="285" x="25" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="history" value="SimulationHistory&#xa;&lt;&lt;Caretaker&gt;&gt;&#xa;--&#xa;- snapshots : vector&lt;FactoryMemento&gt;&#xa;--&#xa;+ push(m : FactoryMemento)&#xa;+ pop() : optional&lt;FactoryMemento&gt;&#xa;+ canUndo() const : bool&#xa;+ clear()&#xa;+ size() const : size_t&#xa;--&#xa;LIFO stack&#xa;does not inspect memento contents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_controller">
-          <mxGeometry x="350" y="85" width="220" height="220" as="geometry"/>
+        <mxCell id="history" parent="pkg_controller" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="SimulationHistory&#xa;&lt;&lt;Caretaker&gt;&gt;&#xa;--&#xa;- snapshots : vector&lt;FactoryMemento&gt;&#xa;--&#xa;+ push(m : FactoryMemento)&#xa;+ pop() : optional&lt;FactoryMemento&gt;&#xa;+ canUndo() const : bool&#xa;+ clear()&#xa;+ size() const : size_t&#xa;--&#xa;LIFO stack&#xa;does not inspect memento contents" vertex="1">
+          <mxGeometry height="220" width="220" x="350" y="85" as="geometry" />
         </mxCell>
-        <mxCell id="snapshot_note" value="Undo Semantics&#xa;--&#xa;saveCheckpoint pushes current FactoryMemento&#xa;undo pops latest checkpoint and restores it&#xa;no redo stack exists&#xa;statistics and event log are intentionally not restored" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_controller">
-          <mxGeometry x="95" y="385" width="385" height="115" as="geometry"/>
+        <mxCell id="snapshot_note" parent="pkg_controller" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Undo Semantics&#xa;--&#xa;saveCheckpoint pushes current FactoryMemento&#xa;undo pops latest checkpoint and restores it&#xa;no redo stack exists&#xa;statistics and event log are intentionally not restored" vertex="1">
+          <mxGeometry height="115" width="385" x="95" y="385" as="geometry" />
         </mxCell>
-
-        <mxCell id="pkg_originator" value="Originator / Restored Model Objects" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="1300" y="150" width="760" height="570" as="geometry"/>
+        <mxCell id="pkg_originator" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" value="Originator / Restored Model Objects" vertex="1">
+          <mxGeometry height="570" width="760" x="1300" y="150" as="geometry" />
         </mxCell>
-        <mxCell id="factory" value="Factory&#xa;&lt;&lt;Originator&gt;&gt;&#xa;--&#xa;- clock : SimClock&#xa;- inventory : Inventory&#xa;- productionLines : vector&lt;ProductionLine&gt;&#xa;--&#xa;+ createMemento() const : FactoryMemento&#xa;+ restoreFromMemento(m)&#xa;+ createProductById(id) : shared_ptr&lt;Product&gt;&#xa;+ createLineForMemento(line) : optional&lt;ProductionLine&gt;&#xa;--&#xa;captures time, inventory, lines, machines, queued tasks&#xa;restores topology and task/machine state" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_originator">
-          <mxGeometry x="25" y="55" width="305" height="255" as="geometry"/>
+        <mxCell id="factory" parent="pkg_originator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Factory&#xa;&lt;&lt;Originator&gt;&gt;&#xa;--&#xa;- clock : SimClock&#xa;- inventory : Inventory&#xa;- productionLines : vector&lt;ProductionLine&gt;&#xa;--&#xa;+ createMemento() const : FactoryMemento&#xa;+ restoreFromMemento(m)&#xa;+ createProductById(id) : shared_ptr&lt;Product&gt;&#xa;+ createLineForMemento(line) : optional&lt;ProductionLine&gt;&#xa;--&#xa;captures time, inventory, lines, machines, queued tasks&#xa;restores topology and task/machine state" vertex="1">
+          <mxGeometry height="255" width="305" x="25" y="55" as="geometry" />
         </mxCell>
-        <mxCell id="factory_subclasses" value="Factory subclasses&#xa;--&#xa;CarbonationFactory&#xa;ConfigurableFactory&#xa;--&#xa;+ createMemento() override&#xa;+ restoreFromMemento(m) override&#xa;+ createProductById(id) override&#xa;+ createLineForMemento(line) override&#xa;--&#xa;preserve concrete product/line recreation rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_originator">
-          <mxGeometry x="375" y="55" width="285" height="205" as="geometry"/>
+        <mxCell id="factory_subclasses" parent="pkg_originator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Factory subclasses&#xa;--&#xa;CarbonationFactory&#xa;ConfigurableFactory&#xa;--&#xa;+ createMemento() override&#xa;+ restoreFromMemento(m) override&#xa;+ createProductById(id) override&#xa;+ createLineForMemento(line) override&#xa;--&#xa;preserve concrete product/line recreation rules" vertex="1">
+          <mxGeometry height="205" width="285" x="375" y="55" as="geometry" />
         </mxCell>
-        <mxCell id="line_task_machine" value="Restored objects&#xa;--&#xa;ProductionLine&#xa;  clearQueue(), enqueueTask()&#xa;  setScenario(), setQueueCapacity()&#xa;Machine&#xa;  restoreForMemento(health,status,progress,task)&#xa;ProductionTask&#xa;  restoreFromMemento(taskMemento)&#xa;Inventory&#xa;  replaceContents(items,products)&#xa;SimClock&#xa;  setNow(simulationTime)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_originator">
-          <mxGeometry x="205" y="345" width="385" height="180" as="geometry"/>
+        <mxCell id="line_task_machine" parent="pkg_originator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Restored objects&#xa;--&#xa;ProductionLine&#xa;  clearQueue(), enqueueTask()&#xa;  setScenario(), setQueueCapacity()&#xa;Machine&#xa;  restoreForMemento(health,status,progress,task)&#xa;ProductionTask&#xa;  restoreFromMemento(taskMemento)&#xa;Inventory&#xa;  replaceContents(items,products)&#xa;SimClock&#xa;  setNow(simulationTime)" vertex="1">
+          <mxGeometry height="220" width="385" x="210" y="340" as="geometry" />
         </mxCell>
-
-        <mxCell id="pkg_memento" value="Memento Value Object Tree" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="40" y="770" width="2020" height="560" as="geometry"/>
+        <mxCell id="pkg_memento" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1" value="Memento Value Object Tree" vertex="1">
+          <mxGeometry height="560" width="2020" x="40" y="770" as="geometry" />
         </mxCell>
-        <mxCell id="factory_memento" value="FactoryMemento&#xa;&lt;&lt;Memento root&gt;&gt;&#xa;--&#xa;- simulationTime : SimulationTime&#xa;- items : map&lt;string,int&gt;&#xa;- products : map&lt;ProductId,int&gt;&#xa;- lines : vector&lt;LineMemento&gt;&#xa;- nextLineId : LineId&#xa;- nextMachineId : MachineId&#xa;--&#xa;+ addLine(line)&#xa;+ setNextIds(lineId,machineId)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_memento">
-          <mxGeometry x="30" y="60" width="275" height="225" as="geometry"/>
+        <mxCell id="factory_memento" parent="pkg_memento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="FactoryMemento&#xa;&lt;&lt;Memento root&gt;&gt;&#xa;--&#xa;- simulationTime : SimulationTime&#xa;- items : map&lt;string,int&gt;&#xa;- products : map&lt;ProductId,int&gt;&#xa;- lines : vector&lt;LineMemento&gt;&#xa;- nextLineId : LineId&#xa;- nextMachineId : MachineId&#xa;--&#xa;+ addLine(line)&#xa;+ setNextIds(lineId,machineId)" vertex="1">
+          <mxGeometry height="225" width="275" x="30" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="line_memento" value="LineMemento&#xa;--&#xa;- id : LineId&#xa;- queueProductIds : vector&lt;ProductId&gt;&#xa;- machines : vector&lt;MachineMemento&gt;&#xa;- scenario : ScenarioType&#xa;- queueCapacity : optional&lt;size_t&gt;&#xa;- droppedTaskCount : size_t&#xa;- tasks : vector&lt;ProductionTaskMemento&gt;&#xa;- definitionId : string&#xa;- displayName : string" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_memento">
-          <mxGeometry x="350" y="60" width="300" height="230" as="geometry"/>
+        <mxCell id="line_memento" parent="pkg_memento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="LineMemento&#xa;--&#xa;- id : LineId&#xa;- queueProductIds : vector&lt;ProductId&gt;&#xa;- machines : vector&lt;MachineMemento&gt;&#xa;- scenario : ScenarioType&#xa;- queueCapacity : optional&lt;size_t&gt;&#xa;- droppedTaskCount : size_t&#xa;- tasks : vector&lt;ProductionTaskMemento&gt;&#xa;- definitionId : string&#xa;- displayName : string" vertex="1">
+          <mxGeometry height="230" width="300" x="350" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="machine_memento" value="MachineMemento&#xa;--&#xa;- id : MachineId&#xa;- health : double&#xa;- status : MachineStatus&#xa;- progress : double&#xa;- stationDefinitionId : string&#xa;- stationKind : string&#xa;- displayName : string&#xa;- typeName : string&#xa;- processingSpeed : double&#xa;- breakdownProbability : double&#xa;- assignedTaskIndex : optional&lt;size_t&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_memento">
-          <mxGeometry x="705" y="60" width="285" height="245" as="geometry"/>
+        <mxCell id="machine_memento" parent="pkg_memento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="MachineMemento&#xa;--&#xa;- id : MachineId&#xa;- health : double&#xa;- status : MachineStatus&#xa;- progress : double&#xa;- stationDefinitionId : string&#xa;- stationKind : string&#xa;- displayName : string&#xa;- typeName : string&#xa;- processingSpeed : double&#xa;- breakdownProbability : double&#xa;- assignedTaskIndex : optional&lt;size_t&gt;" vertex="1">
+          <mxGeometry height="245" width="285" x="705" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="task_memento" value="ProductionTaskMemento&#xa;--&#xa;- productId : ProductId&#xa;- recipeId : RecipeId&#xa;- currentStepIndex : size_t&#xa;- currentStepInputsConsumed : bool&#xa;- pendingStepOutputs : vector&lt;StepOutputMemento&gt;&#xa;--&#xa;preserves route progress and uncollected outputs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_memento">
-          <mxGeometry x="1045" y="60" width="285" height="175" as="geometry"/>
+        <mxCell id="task_memento" parent="pkg_memento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="ProductionTaskMemento&#xa;--&#xa;- productId : ProductId&#xa;- recipeId : RecipeId&#xa;- currentStepIndex : size_t&#xa;- currentStepInputsConsumed : bool&#xa;- pendingStepOutputs : vector&lt;StepOutputMemento&gt;&#xa;--&#xa;preserves route progress and uncollected outputs" vertex="1">
+          <mxGeometry height="175" width="285" x="1045" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="step_output_memento" value="StepOutputMemento&#xa;--&#xa;- itemId : optional&lt;string&gt;&#xa;- productId : optional&lt;ProductId&gt;&#xa;- quantity : int&#xa;--&#xa;value copy of pending StepOutput" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_memento">
-          <mxGeometry x="1385" y="60" width="250" height="135" as="geometry"/>
+        <mxCell id="step_output_memento" parent="pkg_memento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="StepOutputMemento&#xa;--&#xa;- itemId : optional&lt;string&gt;&#xa;- productId : optional&lt;ProductId&gt;&#xa;- quantity : int&#xa;--&#xa;value copy of pending StepOutput" vertex="1">
+          <mxGeometry height="135" width="250" x="1385" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="memento_scope" value="Captured Scope&#xa;--&#xa;simulation time&#xa;inventory raw items and products&#xa;line queue/task snapshots&#xa;line scenario/capacity/dropped count&#xa;machine health/status/progress/config IDs&#xa;next line/machine IDs&#xa;--&#xa;Not captured: statistics counters and event log." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_memento">
-          <mxGeometry x="1680" y="60" width="285" height="185" as="geometry"/>
+        <mxCell id="memento_scope" parent="pkg_memento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Captured Scope&#xa;--&#xa;simulation time&#xa;inventory raw items and products&#xa;line queue/task snapshots&#xa;line scenario/capacity/dropped count&#xa;machine health/status/progress/config IDs&#xa;next line/machine IDs&#xa;--&#xa;Not captured: statistics counters and event log." vertex="1">
+          <mxGeometry height="185" width="285" x="1680" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="dto_separation" value="DTO vs Memento Separation&#xa;--&#xa;FactorySnapshot / FactoryView: read-only UI state&#xa;FactoryMemento: restore payload for undo&#xa;DTOs copy model values for rendering&#xa;Mementos copy enough state to reconstruct simulation&#xa;Neither stores model pointers/references." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_memento">
-          <mxGeometry x="745" y="355" width="530" height="120" as="geometry"/>
+        <mxCell id="dto_separation" parent="pkg_memento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="DTO vs Memento Separation&#xa;--&#xa;FactorySnapshot / FactoryView: read-only UI state&#xa;FactoryMemento: restore payload for undo&#xa;DTOs copy model values for rendering&#xa;Mementos copy enough state to reconstruct simulation&#xa;Neither stores model pointers/references." vertex="1">
+          <mxGeometry height="120" width="530" x="745" y="355" as="geometry" />
         </mxCell>
-
-        <mxCell id="legend" value="Legend&#xa;solid diamond: composition / value ownership&#xa;dashed arrow: facade/API call or create/restore dependency&#xa;open triangle: inheritance/generalization&#xa;Memento objects are value snapshots, treated as opaque by SimulationHistory." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=top;fontSize=12" vertex="1" parent="1">
-          <mxGeometry x="1320" y="1350" width="520" height="120" as="geometry"/>
+        <mxCell id="legend" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=top;fontSize=12" value="Legend&#xa;solid diamond: composition / value ownership&#xa;dashed arrow: facade/API call or create/restore dependency&#xa;open triangle: inheritance/generalization&#xa;Memento objects are value snapshots, treated as opaque by SimulationHistory." vertex="1">
+          <mxGeometry height="120" width="520" x="1320" y="1350" as="geometry" />
         </mxCell>
-
-        <mxCell id="e_fe_module" value="save/undo calls" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="sim_panel" target="module_controller">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_fe_module" edge="1" parent="1" source="sim_panel" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="module_controller" value="save/undo calls">
+          <mxGeometry relative="1" x="-0.439" y="-2" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="450" y="460" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e_module_ctrl" value="embind" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="module_controller" target="ctrl_controller">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_module_ctrl" edge="1" parent="1" source="module_controller" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" target="ctrl_controller" value="embind">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_ctrl_fc" value="delegates through Impl.backend" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="ctrl_controller" target="factory_controller">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_ctrl_fc" edge="1" parent="1" source="ctrl_controller" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" target="factory_controller" value="delegates through Impl.backend">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_fc_factory" value="Originator reference" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="factory_controller" target="factory">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_fc_factory" edge="1" parent="1" source="factory_controller" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" target="factory" value="Originator reference">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1030" y="200" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e_fc_history" value="owns Caretaker" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="factory_controller" target="history">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_fc_history" edge="1" parent="1" source="factory_controller" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="history" value="owns Caretaker">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="850" y="170" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e_factory_make" value="createMemento()" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" edge="1" parent="1" source="factory" target="factory_memento">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_factory_make" edge="1" parent="1" source="factory" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" target="factory_memento" value="createMemento()">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_factory_restore" value="restoreFromMemento(m)" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" edge="1" parent="1" source="factory_memento" target="factory">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_factory_restore" edge="1" parent="1" source="factory_memento" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" target="factory" value="restoreFromMemento(m)">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_history_memento" value="stack 0..*" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" edge="1" parent="1" source="history" target="factory_memento">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_history_memento" edge="1" parent="1" source="history" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" target="factory_memento" value="stack 0..*">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_subclasses_factory" value="" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#d6b656;" edge="1" parent="1" source="factory_subclasses" target="factory">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_subclasses_factory" edge="1" parent="1" source="factory_subclasses" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#d6b656;" target="factory" value="">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_factory_objects" value="restores members" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" edge="1" parent="1" source="factory" target="line_task_machine">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_factory_objects" edge="1" parent="1" source="factory" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" target="line_task_machine" value="restores members">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1370" y="520" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-
-        <mxCell id="e_fm_line" value="lines 0..*" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" edge="1" parent="1" source="factory_memento" target="line_memento">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_fm_line" edge="1" parent="1" source="factory_memento" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" target="line_memento" value="lines 0..*">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="250" y="1130" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e_line_machine" value="machines 0..*" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" edge="1" parent="1" source="line_memento" target="machine_memento">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_line_machine" edge="1" parent="1" source="line_memento" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" target="machine_memento" value="machines 0..*">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="590" y="1170" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e_line_task" value="tasks 0..*" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" edge="1" parent="1" source="line_memento" target="task_memento">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_line_task" edge="1" parent="1" source="line_memento" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" target="task_memento" value="tasks 0..*">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="770" y="740" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e_task_output" value="pending outputs 0..*" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" edge="1" parent="1" source="task_memento" target="step_output_memento">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_task_output" edge="1" parent="1" source="task_memento" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" target="step_output_memento" value="pending outputs 0..*">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1410" y="1090" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e_objects_task" value="ProductionTask create/restore" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#999999;fontSize=12" edge="1" parent="1" source="line_task_machine" target="task_memento">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_objects_task" edge="1" parent="1" source="line_task_machine" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#999999;fontSize=12" target="task_memento" value="ProductionTask create/restore">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_scope_memento" value="documents captured fields" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#999999;fontSize=12" edge="1" parent="1" source="memento_scope" target="factory_memento">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="e_scope_memento" edge="1" parent="1" source="memento_scope" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#999999;fontSize=12" target="factory_memento" value="documents captured fields">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1790" y="1090" />
+              <mxPoint x="650" y="1130" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
