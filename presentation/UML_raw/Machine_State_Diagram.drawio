@@ -1,133 +1,184 @@
 <mxfile host="Electron" agent="Codex">
-  <diagram id="machine-state-diagram" name="Machine State Diagram">
-    <mxGraphModel dx="1316" dy="770" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1000" math="0" shadow="0">
+  <diagram id="MACHINE_STATE" name="Machine State Diagram">
+    <mxGraphModel dx="2350" dy="1374" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1500" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=24;fontStyle=1;align=left;verticalAlign=middle;" value="Gactorio Machine State Diagram" vertex="1">
-          <mxGeometry height="40" width="500" x="40" y="25" as="geometry" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1" value="Machine State Diagram&#xa;Runtime State Pattern + MachineStatus transitions&#xa;Machine owns one MachineState object and mirrors it with MachineStatus enum for snapshots/DTOs." vertex="1">
+          <mxGeometry height="90" width="1120" x="40" y="20" as="geometry" />
         </mxCell>
-        <mxCell id="note" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacing=8;" value="Machine uses both State Pattern objects and MachineStatus enum.&#xa;State object: unique_ptr&lt;MachineState&gt; controls update behavior.&#xa;MachineStatus enum: stored for queries, DTO snapshots, memento restore, and guards." vertex="1">
-          <mxGeometry height="115" width="430" x="30" y="670" as="geometry" />
+        <mxCell id="pkg_state_pattern" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#eef5ff;strokeColor=#6c8ebf;fontStyle=1" value="State Pattern Class Structure" vertex="1">
+          <mxGeometry height="790" width="780" x="40" y="130" as="geometry" />
         </mxCell>
-        <mxCell id="Idle" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#eaf7ea;strokeColor=#82b366;align=left;spacing=8;" value="&lt;b&gt;Idle&lt;/b&gt;&lt;hr&gt;State object: IdleState&lt;br&gt;Enum: MachineStatus::Idle&lt;br&gt;&lt;br&gt;update(): if task or recipe exists, transitionToWorking(&quot;task available&quot;)&lt;br&gt;&lt;br&gt;canAcceptTask(): true only when task_ == null, status_ == Idle, health_ &gt; 0" vertex="1">
-          <mxGeometry height="190" width="310" x="30" y="382.5" as="geometry" />
+        <mxCell id="machine" parent="pkg_state_pattern" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Machine&#xa;&lt;&lt;Context&gt;&gt;&#xa;--&#xa;- state : unique_ptr&lt;MachineState&gt;&#xa;- status : MachineStatus&#xa;- task : shared_ptr&lt;ProductionTask&gt;&#xa;- eventBus : EventBus*&#xa;- progress : double&#xa;- health : double&#xa;- maintenanceElapsed : double&#xa;--&#xa;+ assignTask(task)&#xa;+ update(deltaTime)&#xa;+ forceBreak()&#xa;+ repair()&#xa;+ incrementalRepair()&#xa;+ instantRepair()&#xa;+ pause()&#xa;+ resume()&#xa;- transitionToIdle(reason)&#xa;- transitionToWorking(reason)&#xa;- transitionToBroken(reason)&#xa;- transitionToMaintenance(reason)&#xa;- advanceProduction(dt)&#xa;- advanceMaintenance(dt)" vertex="1">
+          <mxGeometry height="405" width="305" x="25" y="55" as="geometry" />
         </mxCell>
-        <mxCell id="Working" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacing=8;" value="&lt;b&gt;Working&lt;/b&gt;&lt;hr&gt;State object: WorkingState&lt;br&gt;Enum: MachineStatus::Working&lt;br&gt;&lt;br&gt;update(): advanceProduction(deltaTime)&lt;br&gt;&lt;br&gt;Progresses current ProductionTask step, emits StepCompleted/ProductCompleted events, may break from HP damage." vertex="1">
-          <mxGeometry height="210" width="330" x="615" y="120" as="geometry" />
+        <mxCell id="machine_state" parent="pkg_state_pattern" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;fontStyle=2" value="&lt;&lt;abstract&gt;&gt;&#xa;MachineState&#xa;--&#xa;+ enter(machine)&#xa;+ update(machine, deltaTime) = 0&#xa;+ exit(machine)&#xa;+ name() = 0&#xa;--&#xa;State role" vertex="1">
+          <mxGeometry height="145" width="230" x="440" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="Maintenance" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;spacing=8;" value="&lt;b&gt;Maintenance&lt;/b&gt;&lt;hr&gt;State object: MaintenanceState&lt;br&gt;Enum: MachineStatus::Maintenance&lt;br&gt;&lt;br&gt;update(): advanceMaintenance(deltaTime)&lt;br&gt;&lt;br&gt;When elapsed &gt;= duration, HP restores to initial health." vertex="1">
-          <mxGeometry height="175" width="310" x="625" y="390" as="geometry" />
+        <mxCell id="concrete_states" parent="pkg_state_pattern" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Concrete MachineState classes&#xa;--&#xa;IdleState&#xa;  update(): if task/recipe -&gt; Working&#xa;WorkingState&#xa;  update(): advanceProduction(dt)&#xa;BrokenState&#xa;  update(): no-op&#xa;MaintenanceState&#xa;  update(): advanceMaintenance(dt)&#xa;--&#xa;all override name()" vertex="1">
+          <mxGeometry height="210" width="300" x="395" y="300" as="geometry" />
         </mxCell>
-        <mxCell id="Restore" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacing=8;dashed=1;" value="&lt;b&gt;Memento Restore&lt;/b&gt;&lt;hr&gt;resetForRestore(health, status)&lt;br&gt;- drops in-flight task&lt;br&gt;- progress = 0&lt;br&gt;- maintenanceElapsed = 0&lt;br&gt;- restores health&lt;br&gt;- maps Working/Idle/default to Idle" vertex="1">
-          <mxGeometry height="155" width="270" x="645" y="640" as="geometry" />
+        <mxCell id="status_enum" parent="pkg_state_pattern" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="MachineStatus&#xa;&lt;&lt;enum&gt;&gt;&#xa;--&#xa;Idle&#xa;Running&#xa;Working = Running&#xa;Paused&#xa;Blocked&#xa;Error&#xa;Broken = Error&#xa;Maintenance&#xa;--&#xa;Actual State classes exist for Idle, Working, Broken, Maintenance.&#xa;Paused/Blocked/Error are compatibility/status values, not separate State classes." vertex="1">
+          <mxGeometry height="245" width="670" x="30" y="540" as="geometry" />
         </mxCell>
-        <mxCell id="legend" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=13;align=left;" value="Legend: solid arrow = normal runtime transition, dashed arrow = restore/debug transition, labels name the Machine method or condition that triggers transition." vertex="1">
-          <mxGeometry height="25" width="980" x="30" y="890" as="geometry" />
+        <mxCell id="pkg_runtime" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#e1f5e6;strokeColor=#82b366;fontStyle=1" value="Runtime State Transitions" vertex="1">
+          <mxGeometry height="760" width="1190" x="870" y="130" as="geometry" />
         </mxCell>
-        <mxCell id="init-state" parent="1" style="ellipse;html=1;shape=startState;fillColor=#000000;strokeColor=#000000;" vertex="1" value="">
-          <mxGeometry height="20" width="20" x="170" y="320" as="geometry" />
+        <mxCell id="initial" parent="pkg_runtime" style="ellipse;html=1;shape=startState;fillColor=#000000;strokeColor=#000000" value="" vertex="1">
+          <mxGeometry height="30" width="30" x="10" y="290" as="geometry" />
         </mxCell>
-        <mxCell id="e-initial-idle" edge="1" parent="1" source="init-state" style="endArrow=block;html=1;rounded=0;strokeColor=#000000;" target="Idle" value="Machine(...) [health &gt; 0]">
+        <mxCell id="idle" parent="pkg_runtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Idle&#xa;--&#xa;state = IdleState&#xa;status = MachineStatus::Idle&#xa;--&#xa;No production progress.&#xa;canAcceptTask() when no task and health &gt; 0.&#xa;IdleState.update() starts work if task/recipe exists." vertex="1">
+          <mxGeometry height="150" width="250" x="90" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="working" parent="pkg_runtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Working&#xa;--&#xa;state = WorkingState&#xa;status = MachineStatus::Working&#xa;--&#xa;advanceProduction(dt)&#xa;random HP damage&#xa;step/product completion&#xa;publishes StepCompleted / ProductCompleted / MachineBroken / StateChanged" vertex="1">
+          <mxGeometry height="170" width="275" x="830" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="broken" parent="pkg_runtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Broken&#xa;--&#xa;state = BrokenState&#xa;status = MachineStatus::Broken&#xa;health = 0&#xa;progress = 0&#xa;--&#xa;update() no-op&#xa;must repair before normal Working transition&#xa;publishes MachineBroken / StateChanged" vertex="1">
+          <mxGeometry height="210" width="245" x="475" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="maintenance" parent="pkg_runtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Maintenance&#xa;--&#xa;state = MaintenanceState&#xa;status = MachineStatus::Maintenance&#xa;progress = 0&#xa;maintenanceElapsed += dt&#xa;--&#xa;when elapsed &gt;= duration:&#xa;health = initial health&#xa;if task exists -&gt; Working&#xa;else -&gt; Idle" vertex="1">
+          <mxGeometry height="175" width="275" x="460" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="restore_note" parent="pkg_runtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Memento restore path&#xa;--&#xa;restoreForMemento(status, progress, task) directly sets the matching state object:&#xa;Broken -&gt; BrokenState&#xa;Maintenance -&gt; MaintenanceState&#xa;Working with task -&gt; WorkingState&#xa;otherwise -&gt; IdleState" vertex="1">
+          <mxGeometry height="135" width="330" x="50" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="event_note" parent="pkg_runtime" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="State transition side effects&#xa;--&#xa;onStateTransition(from,to,reason) publishes EventType::StateChanged when status changes.&#xa;transitionToBroken also publishes MachineBroken.&#xa;repair completion publishes MachineRepaired.&#xa;pause() publishes MachinePaused; resume() publishes TaskStarted." vertex="1">
+          <mxGeometry height="135" width="300" x="850" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg_control" parent="1" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1" value="Controller / FE Machine Control" vertex="1">
+          <mxGeometry height="340" width="2020" x="40" y="940" as="geometry" />
+        </mxCell>
+        <mxCell id="controller_api" parent="pkg_control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="Controller APIs&#xa;--&#xa;FactoryController::forceBreak(id)&#xa;FactoryController::incrementalRepairMachine(id)&#xa;FactoryController::instantRepairMachine(id)&#xa;FactoryController::repairMachine(id)&#xa;FactoryController::pauseMachine(id)&#xa;FactoryController::resumeMachine(id)&#xa;--&#xa;ctrl::Controller exposes breakMachine(), repair(), instantRepair(), repairAll() through WASM." vertex="1">
+          <mxGeometry height="195" width="390" x="25" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="inspector_panel" parent="pkg_control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="InspectorPanel.js&#xa;--&#xa;button[data-act=&#39;forceBreak&#39;] -&gt; ctrl.breakMachine(id)&#xa;button[data-act=&#39;repair&#39;] -&gt; ctrl.repair(id)&#xa;button[data-act=&#39;instantRepair&#39;] -&gt; ctrl.instantRepair(id)&#xa;--&#xa;renders selected MachineView state, health, progress." vertex="1">
+          <mxGeometry height="145" width="380" x="465" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="factory_panel" parent="pkg_control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="FactoryPanel.js&#xa;--&#xa;renders machine-card classes:&#xa;machine-${state.toLowerCase()}&#xa;state-${state.toLowerCase()}&#xa;--&#xa;click machine card updates shared selection for InspectorPanel." vertex="1">
+          <mxGeometry height="125" width="350" x="905" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="machine_view" parent="pkg_control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#666666;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" value="MachineView / FactoryView DTO&#xa;--&#xa;MachineView fields:&#xa;id, name, type, state, progress, health&#xa;--&#xa;state is string from ctrl::stateName(MachineStatus).&#xa;No JS access to Machine or MachineState objects." vertex="1">
+          <mxGeometry height="145" width="350" x="1315" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="pkg_control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=top;fontSize=12" value="Legend&#xa;solid diamond: Machine owns current MachineState&#xa;open triangle: concrete state generalizes MachineState&#xa;green boxes: runtime states&#xa;dashed arrows: method-triggered transitions or DTO/render dependency&#xa;Paused/Blocked/Error are enum compatibility values, not concrete State classes." vertex="1">
+          <mxGeometry height="150" width="285" x="1700" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="e_machine_state" edge="1" parent="1" source="machine" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" target="machine_state" value="owns current state">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-initial-broken" edge="1" parent="1" source="init-state" style="endArrow=block;html=1;rounded=0;dashed=1;strokeColor=#000000;" target="Broken" value="Machine(...) [health &lt;= 0]">
+        <mxCell id="e_states_generalize" edge="1" parent="1" source="concrete_states" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#6c8ebf;" target="machine_state" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_machine_status" edge="1" parent="1" source="machine" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" target="status_enum" value="mirrors state as enum">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_machine_runtime" edge="1" parent="1" source="machine" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" target="idle" value="setState(...)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_initial_idle" edge="1" parent="1" source="initial" style="endArrow=block;html=1;rounded=0;strokeColor=#82b366;fontSize=12" target="idle" value="constructor health &gt; 0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_initial_broken" edge="1" parent="1" source="initial" style="endArrow=block;html=1;rounded=0;strokeColor=#b85450;fontSize=12" target="broken" value="constructor health &lt;= 0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_idle_working" edge="1" parent="1" source="idle" style="endArrow=block;html=1;rounded=0;strokeColor=#82b366;fontSize=12" target="working" value="assignTask() / IdleState.update(): hasTask or recipe">
+          <mxGeometry relative="1" x="-0.0011" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_working_idle_complete" edge="1" parent="1" source="working" style="endArrow=block;html=1;rounded=0;strokeColor=#82b366;fontSize=12" target="idle" value="step completed or product completed / no current task">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="180" y="120" />
-              <mxPoint x="1315" y="120" />
+              <mxPoint x="1460" y="310" />
             </Array>
+            <mxPoint x="520" y="310" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-idle-working-assign" edge="1" parent="1" source="Idle" style="endArrow=block;html=1;rounded=0;strokeColor=#000000;exitX=0.367;exitY=0.007;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.002;entryY=0.394;entryDx=0;entryDy=0;entryPerimeter=0;" target="Working" value="assignTask(task) / role matches&#xa;or IdleState::update(): task available">
-          <mxGeometry relative="1" x="-0.0952" y="-2" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="140" y="210" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="e_working_broken" edge="1" parent="1" source="working" style="endArrow=block;html=1;rounded=0;strokeColor=#b85450;fontSize=12" target="broken" value="HP depleted while working">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-working-idle-step" edge="1" parent="1" source="Working" style="endArrow=block;html=1;rounded=0;strokeColor=#000000;exitX=0.002;exitY=0.119;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.107;entryY=0.005;entryDx=0;entryDy=0;entryPerimeter=0;" target="Idle" value="advanceProduction(): step completed&#xa;task_.reset(); transitionToIdle(&quot;step completed&quot;)">
-          <mxGeometry relative="1" x="0.0279" y="-9" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="60" y="150" />
-            </Array>
-            <mxPoint x="-110" y="380" as="targetPoint" />
-          </mxGeometry>
+        <mxCell id="e_idle_broken" edge="1" parent="1" source="idle" style="endArrow=block;html=1;rounded=0;strokeColor=#b85450;fontSize=12" target="broken" value="forceBreak(): task reset, health=0">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-working-idle-product" edge="1" parent="1" source="Working" style="endArrow=block;html=1;rounded=0;strokeColor=#000000;exitX=-0.001;exitY=0.7;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.711;entryY=0.003;entryDx=0;entryDy=0;entryPerimeter=0;" target="Idle" value="advanceProduction(): product completed&#xa;publish ProductCompleted; transitionToIdle(&quot;task completed&quot;)">
-          <mxGeometry relative="1" x="-0.1293" y="4" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="250" y="280" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-working-broken-hp" edge="1" parent="1" source="Working" style="endArrow=block;html=1;rounded=0;strokeColor=#000000;exitX=0.989;exitY=0.812;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.147;entryY=0.005;entryDx=0;entryDy=0;entryPerimeter=0;" target="Broken" value="advanceProduction(): HP depleted&#xa;transitionToBroken(&quot;HP depleted while working&quot;)">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-idle-broken-force" edge="1" parent="1" source="Idle" style="endArrow=block;html=1;rounded=0;dashed=1;strokeColor=#000000;exitX=0.98;exitY=0.04;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.014;entryY=0.056;entryDx=0;entryDy=0;entryPerimeter=0;" target="Broken" value="forceBreak()&#xa;task_.reset(); transitionToBroken(&quot;forced breakdown&quot;)">
-          <mxGeometry relative="1" x="0.1001" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="780" y="360" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-working-broken-force" edge="1" parent="1" source="Working" style="endArrow=block;html=1;rounded=0;dashed=1;strokeColor=#000000;exitX=0.996;exitY=0.179;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.882;entryY=0.017;entryDx=0;entryDy=0;entryPerimeter=0;" target="Broken" value="forceBreak()">
+        <mxCell id="e_working_broken_force" edge="1" parent="1" source="working" style="endArrow=block;html=1;rounded=0;strokeColor=#b85450;fontSize=12" target="broken" value="forceBreak(): task reset, health=0">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1441" y="158" />
+              <mxPoint x="1620" y="380" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-broken-maintenance" edge="1" parent="1" source="Broken" style="endArrow=block;html=1;rounded=0;strokeColor=#000000;entryX=1.003;entryY=0.333;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.012;exitY=0.334;exitDx=0;exitDy=0;exitPerimeter=0;" target="Maintenance" value="repair()&#xa;transitionToMaintenance(&quot;repair requested&quot;)">
+        <mxCell id="e_broken_maintenance" edge="1" parent="1" source="broken" style="endArrow=block;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" target="maintenance" value="repair() / repairAll(): long maintenance">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-maintenance-working" edge="1" parent="1" source="Maintenance" style="endArrow=block;html=1;rounded=0;strokeColor=#000000;" target="Working" value="advanceMaintenance(): repair complete + task_ != null&#xa;publish MachineRepaired/TaskStarted&#xa;transitionToWorking(&quot;repair complete, resuming task&quot;)">
+        <mxCell id="e_maintenance_working" edge="1" parent="1" source="maintenance" style="endArrow=block;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" target="working" value="maintenance done and task preserved">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-maintenance-idle" edge="1" parent="1" source="Maintenance" style="endArrow=block;html=1;rounded=0;strokeColor=#000000;" target="Idle" value="advanceMaintenance(): repair complete + no task&#xa;publish MachineRepaired&#xa;transitionToIdle(&quot;maintenance completed&quot;)">
+        <mxCell id="e_maintenance_idle" edge="1" parent="1" source="maintenance" style="endArrow=block;html=1;rounded=0;strokeColor=#d6b656;fontSize=12" target="idle" value="maintenance done with no task">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-idle-idle-pause" edge="1" parent="1" source="Idle" style="endArrow=block;html=1;rounded=1;strokeColor=#000000;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="Idle" value="pause(): transitionToIdle(&quot;paused&quot;)&#xa;publish MachinePaused">
+        <mxCell id="e_broken_instant_working" edge="1" parent="1" source="broken" style="endArrow=block;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" target="working" value="instantRepair() or incrementalRepair() when task exists">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="180" y="620" />
+              <mxPoint x="1580" y="350" />
             </Array>
-            <mxPoint x="1200" y="-125" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-working-idle-pause" edge="1" parent="1" source="Working" style="endArrow=block;html=1;rounded=0;strokeColor=#000000;exitX=0.008;exitY=0.815;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.819;entryY=0.005;entryDx=0;entryDy=0;entryPerimeter=0;" target="Idle" value="pause(): transitionToIdle(&quot;paused&quot;)">
+        <mxCell id="e_broken_instant_idle" edge="1" parent="1" source="broken" style="endArrow=block;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" target="idle" value="instantRepair() or incrementalRepair() with no task">
           <mxGeometry relative="1" as="geometry">
-            <Array as="points" />
+            <Array as="points">
+              <mxPoint x="1350" y="340" />
+            </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-idle-working-resume" edge="1" parent="1" source="Idle" style="endArrow=block;html=1;rounded=0;strokeColor=#000000;entryX=0;entryY=0.25;entryDx=0;entryDy=0;exitX=0.232;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" target="Working" value="resume(): transitionToWorking(&quot;resumed&quot;)&#xa;ignored if Broken/Maintenance">
-          <mxGeometry relative="1" x="-0.1011" y="-2" as="geometry">
+        <mxCell id="e_working_pause" edge="1" parent="1" source="working" style="endArrow=block;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" target="idle" value="pause(): transitionToIdle(&#39;paused&#39;)">
+          <mxGeometry relative="1" x="-0.0011" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
-              <mxPoint x="100" y="180" />
+              <mxPoint x="1450" y="250" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-restore-idle" edge="1" parent="1" source="Restore" style="endArrow=block;html=1;rounded=0;dashed=1;strokeColor=#666666;" target="Idle" value="resetForRestore(Idle/Working/default)">
+        <mxCell id="e_idle_resume" edge="1" parent="1" source="idle" style="endArrow=block;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" target="working" value="resume(): transitionToWorking(&#39;resumed&#39;)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1450" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_controller_machine" edge="1" parent="1" source="controller_api" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" target="machine" value="commands call FactoryController -&gt; Factory -&gt; Machine">
+          <mxGeometry relative="1" x="-0.3275" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="440" y="930" />
+              <mxPoint x="20" y="930" />
+              <mxPoint x="20" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inspector_controller" edge="1" parent="1" source="inspector_panel" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" target="controller_api" value="WASM calls">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="1200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_factory_panel_dto" edge="1" parent="1" source="factory_panel" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" target="machine_view" value="renders machine cards from MachineView">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1330" y="1190" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_inspector_dto" edge="1" parent="1" source="inspector_panel" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" target="machine_view" value="renders selected machine state/control">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="920" y="1210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_machine_dto" edge="1" parent="1" source="machine" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#666666;fontSize=12" target="machine_view" value="status/progress/health copied to DTO">
           <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e-restore-broken" edge="1" parent="1" source="Restore" style="endArrow=block;html=1;rounded=0;dashed=1;strokeColor=#666666;" target="Broken" value="resetForRestore(Broken)">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e-restore-maintenance" edge="1" parent="1" source="Restore" style="endArrow=block;html=1;rounded=0;dashed=1;strokeColor=#666666;" target="Maintenance" value="resetForRestore(Maintenance)">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="stop-note" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacing=8;" value="stopSimulation() is not a Machine transition.&#xa;It calls Factory::stopClock() / SimClock::stop(), so Machine states remain unchanged." vertex="1">
-          <mxGeometry height="95" width="330" x="1110" y="670" as="geometry" />
-        </mxCell>
-        <mxCell id="Broken" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacing=8;" value="&lt;b&gt;Broken&lt;/b&gt;&lt;hr&gt;State object: BrokenState&lt;br&gt;Enum: MachineStatus::Broken&lt;br&gt;&lt;br&gt;update(): no-op&lt;br&gt;&lt;br&gt;Cannot resume directly. repair() moves to Maintenance. incrementalRepair() does not revive a broken machine." vertex="1">
-          <mxGeometry height="190" width="330" x="1150" y="382.5" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
