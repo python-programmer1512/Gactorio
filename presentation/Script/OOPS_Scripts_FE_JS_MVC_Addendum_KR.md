@@ -12,6 +12,8 @@ View 구조는 수업 자료의 composable UI 구조와 유사합니다. 가장 
 
 각 화면 영역은 별도 panel class로 나뉘어 있습니다. `SimControlPanel`은 pause, reset, speed, checkpoint, undo를 담당합니다. `FactoryPanel`은 conveyor 형태의 production line과 machine card를 렌더링합니다. `ProductsPanel`은 제품 목록과 enqueue button을 담당합니다. `InventoryPanel`은 원재료와 완성품 재고를 보여주고, 원재료 restock command를 controller로 전달합니다. `EventLogPanel`은 Observer pattern으로 수집된 event log를 화면에 보여줍니다.
 
+레이아웃 관점에서는 `InspectorPanel`을 독립된 기계 상세 영역으로 두고, `ProductsPanel`과 `InventoryPanel`은 하나의 catalog stack 안에서 위아래로 배치했습니다. 이는 화면 사용성을 위한 DOM/CSS 배치 변경이며, 각 panel class의 책임과 Controller 의존 관계는 바뀌지 않기 때문에 FE class UML의 화살표 구조는 그대로 유지됩니다.
+
 이 구조의 장점은 View를 확장하기 쉽다는 점입니다. 새로운 panel이 필요하면 `UIComponent`를 상속한 class를 만들고, `main.js`에서 `app.addPanel()`로 추가하면 됩니다. 기존 `AppUI`나 다른 panel의 코드는 변경할 필요가 없습니다. 이것은 Open-Closed Principle에 잘 맞습니다.
 
 또한 View와 Backend 사이의 데이터 흐름도 명확합니다. 사용자 입력은 Panel에서 `Module.Controller` command로 전달됩니다. 반대로 Backend 상태는 `FactoryView` snapshot으로 복사되어 View에 전달됩니다. 따라서 View는 Model 객체를 직접 수정할 수 없고, Model의 내부 상태도 외부로 노출되지 않습니다.

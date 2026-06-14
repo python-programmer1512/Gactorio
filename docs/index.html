@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Gactorio - Energy Drink Factory</title>
-    <link rel="stylesheet" href="style.css?v=20260614-hotfix-controls2">
+    <link rel="stylesheet" href="style.css?v=20260614-hotfix-layout2">
 </head>
 <body>
     <header>
@@ -81,28 +81,30 @@
             <div id="inspector-content">Select a machine.</div>
         </section>
 
-        <section id="products">
-            <h2>Products</h2>
-            <p class="hint">Click to enqueue on the shortest line.</p>
-            <div class="product-list"></div>
-        </section>
+        <div id="catalog-stack">
+            <section id="products">
+                <h2>Products</h2>
+                <p class="hint">Click to enqueue on the shortest line.</p>
+                <div class="product-list"></div>
+            </section>
 
-        <section id="inventory">
-            <h2>Inventory</h2>
-            <div id="inventory-content"></div>
-        </section>
+            <section id="inventory">
+                <h2>Inventory</h2>
+                <div id="inventory-content"></div>
+            </section>
+        </div>
     </main>
 
     <script>
         var Module = {
             locateFile(path) {
                 return path.endsWith('.wasm')
-                    ? `${path}?v=20260614-hotfix-controls2`
+                    ? `${path}?v=20260614-hotfix-layout2`
                     : path;
             }
         };
     </script>
-    <script src="gactorio.js?v=20260614-hotfix-controls2"></script>
-    <script type="module" src="js/main.js?v=20260614-hotfix-controls2"></script>
+    <script src="gactorio.js?v=20260614-hotfix-layout2"></script>
+    <script type="module" src="js/main.js?v=20260614-hotfix-layout2"></script>
 </body>
 </html>
