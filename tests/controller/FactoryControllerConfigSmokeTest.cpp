@@ -79,13 +79,17 @@ int main() {
     snapshot = controller.getFactorySnapshot();
     assert(snapshot.productionLines().front().currentTaskProgress() >= 0.0);
 
+    // After config load, line A already holds a queued Voltz Classic whose
+    // mixing step consumes ingredient x2 (5 → 3) once the first tick assigns it.
+    // Enqueuing hyper_bolt only queues it (no tick yet), so it has not consumed.
     assert(controller.enqueueProductById(1, "hyper_bolt")
            == gactorio::FactoryCommandResult::Success);
-    assert(inventoryQty(controller.getFactorySnapshot(), "ingredient") == 2);
+    assert(inventoryQty(controller.getFactorySnapshot(), "ingredient") == 3);
 
+    // restockItemById adds restockAmount (5): 3 → 8.
     assert(controller.restockItemById("ingredient")
            == gactorio::FactoryCommandResult::Success);
-    assert(inventoryQty(controller.getFactorySnapshot(), "ingredient") == 7);
+    assert(inventoryQty(controller.getFactorySnapshot(), "ingredient") == 8);
     assert(controller.restockItemById("not_an_item")
            == gactorio::FactoryCommandResult::InvalidRequest);
 

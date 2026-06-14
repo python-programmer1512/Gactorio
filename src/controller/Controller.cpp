@@ -76,7 +76,7 @@ bool isProductInventoryEntry(const gactorio::InventoryEntrySnapshot& entry) {
     return entry.kind() == "product" || gactorio::findProductDefinition(entry.id()) != nullptr;
 }
 
-std::string humanizeInventoryId(const gactorio::InventoryEntrySnapshot& entry, ItemId parsedId) {
+std::string humanizeInventoryId(const gactorio::InventoryEntrySnapshot& entry) {
     if (!entry.displayName().empty()) {
         return entry.displayName();
     }
@@ -187,7 +187,7 @@ struct Controller::Impl {
 
         for (const auto& entry : snap.inventory().items()) {
             const auto legacyId = parseInventoryId(entry.id());
-            const auto displayName = humanizeInventoryId(entry, legacyId);
+            const auto displayName = humanizeInventoryId(entry);
             cached.inventory.push_back({
                 entry.id(),
                 legacyId,
@@ -217,10 +217,6 @@ void Controller::resume()                      { m_impl->backend.resumeSimulatio
 void Controller::reset()                       { m_impl->backend.resetSimulation();      m_impl->dirty = true; }
 void Controller::setSpeed(double mult)         { m_impl->backend.setSimulationSpeed(mult); }
 
-bool Controller::enqueue(LineId line, ProductKind p) {
-    return enqueueProduct(line, static_cast<ProductId>(p));
-}
-
 bool Controller::enqueueProduct(LineId line, ProductId p) {
     const auto productId = toModelProductId(p);
     if (!productId.has_value()) {
@@ -233,16 +229,6 @@ bool Controller::enqueueProductById(LineId line, const std::string& productId) {
     m_impl->dirty = true;
     return m_impl->backend.enqueueProductById(line, productId)
         == gactorio::FactoryCommandResult::Success;
-}
-LineId Controller::enqueueAuto(ProductKind p) {
-    return enqueueAutoProduct(static_cast<ProductId>(p));
-}
-LineId Controller::enqueueAutoProduct(ProductId p) {
-    const auto productId = toModelProductId(p);
-    if (!productId.has_value()) {
-        return 0;
-    }
-    return enqueueAutoProductById(*productId);
 }
 LineId Controller::enqueueAutoProductById(const std::string& productId) {
     m_impl->dirty = true;

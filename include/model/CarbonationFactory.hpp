@@ -1,5 +1,15 @@
 #pragma once
 
+// =============================================================================
+// CarbonationFactory — the project's concrete Factory (is-a Factory, ▷).
+//
+// UML references (BE_Overall_Class_Diagram, Memento_Pattern_Diagram):
+//   * Overrides createMemento()/restoreFromMemento() (Memento Originator) and
+//     the createProductById()/createLineForMemento() hooks so snapshots can be
+//     rebuilt from ProductId/recipe data.
+//   * Seeds one 4-station beverage line and can spawn more via addDynamicLine().
+// =============================================================================
+
 #include "model/Factory.hpp"
 #include "model/Recipe.hpp"
 

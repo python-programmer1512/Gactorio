@@ -10,6 +10,10 @@
 //
 // Model code likewise never includes this header — communication is one-way
 // from View through Controller into Model, and back as immutable FactoryView.
+//
+// UML: BE_Overall_Class_Diagram (ctrl::Controller --▷ delegates to
+// gactorio::FactoryController via PImpl) and FE_JS_View_Class_Diagram (the JS
+// View only ever talks to Module.Controller, the embind projection of this).
 // =============================================================================
 
 #include <cstdint>
@@ -122,12 +126,11 @@ public:
     void resume();
     void reset();
     void setSpeed(double multiplier);
-    bool enqueue      (LineId line,    ProductKind product);
+    // Numeric-id enqueue (kept because the smoke tests pin the ProductId↔string
+    // mapping); the View itself only ever calls the *ById string overloads.
     bool enqueueProduct(LineId line, ProductId product);
     bool enqueueProductById(LineId line, const std::string& productId);
     // Enqueue to whichever line currently has the smallest queue.
-    LineId enqueueAuto(ProductKind product);
-    LineId enqueueAutoProduct(ProductId product);
     LineId enqueueAutoProductById(const std::string& productId);
     // Spawn a new beverage line. Returns its LineId (0 on failure).
     LineId addLine();

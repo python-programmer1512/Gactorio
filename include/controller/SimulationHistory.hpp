@@ -10,6 +10,8 @@
 // Caretaker rules:
 //   - Never inspects the contents of the memento (treats it as opaque).
 //   - Has no knowledge of how snapshots are produced or applied.
+//
+// UML: Memento_Pattern_Diagram (Caretaker ──▷ holds ◆ stack of FactoryMemento).
 // =============================================================================
 
 #include "model/memento/FactoryMemento.hpp"

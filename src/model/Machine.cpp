@@ -337,8 +337,11 @@ void Machine::resume() {
 void Machine::advanceProduction(double deltaTime) {
     // ----- Random wear-and-tear -------------------------------------------
     // While a machine has a task and is working, every tick there is a small
-    // chance of taking random HP damage. Probability + damage range come from
-    // data/factory_config.json via the generated gactorio::config:: constants.
+    // chance of taking random HP damage. The per-tick probability is this
+    // machine's own breakdown rate (effectiveBreakdownProbability() =
+    // scenario override, else the per-station breakdownProbability_ set in the
+    // constructor / config). Only the damage MAGNITUDE range is global
+    // (config::kDamageMinHp..kDamageMaxHp, generated from factory_config.json).
     // If HP reaches zero the task is preserved so Repair-All can resume it
     // from progress 0.
     if (task_ != nullptr) {

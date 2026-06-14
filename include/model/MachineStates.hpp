@@ -1,5 +1,11 @@
 #pragma once
 
+// =============================================================================
+// Concrete States of the State pattern — each is-a MachineState (▷) and is a
+// friend of Machine so update() can call the private transitionTo*() helpers.
+// See Machine_State_Diagram and BE_Overall_Class_Diagram.
+// =============================================================================
+
 #include "model/MachineState.hpp"
 
 namespace gactorio {

@@ -5,7 +5,6 @@
   "globals": {
     "_note": "Runtime hyperparameters loaded into gactorio::config::* at build time.",
     "initialHealth":           100.0,
-    "damageChancePerSecond":   0.5,
     "damageMinHp":             5.0,
     "damageMaxHp":             10.0,
     "incrementalRepairHp":     5.0,

@@ -6,11 +6,11 @@
 //   - gactorio.js    (JS glue: loads .wasm, defines Module.Controller, ...)
 //   - gactorio.wasm  (the compiled C++ binary)
 //
-// JS usage (see web/app.js):
+// JS usage (see docs/js/):
 //   const ctrl = new Module.Controller();
 //   ctrl.tick(0.016);
 //   const snap = ctrl.snapshot();
-//   ctrl.enqueue(1, Module.ProductKind.VoltzClassic);
+//   ctrl.enqueueAutoProductById("voltz_classic");
 // =============================================================================
 
 #include <emscripten/bind.h>
@@ -21,13 +21,6 @@ using namespace emscripten;
 using namespace ctrl;
 
 EMSCRIPTEN_BINDINGS(gactorio_module) {
-    // ---- Enum --------------------------------------------------------------
-    enum_<ProductKind>("ProductKind")
-        .value("Unknown",      ProductKind::Unknown)
-        .value("VoltzClassic", ProductKind::VoltzClassic)
-        .value("HyperBolt",    ProductKind::HyperBolt)
-        .value("AuroraZero",   ProductKind::AuroraZero);
-
     // ---- Leaf structs ------------------------------------------------------
     value_object<MachineView>("MachineView")
         .field("id",       &MachineView::id)
@@ -109,11 +102,8 @@ EMSCRIPTEN_BINDINGS(gactorio_module) {
         .function("resume",       &Controller::resume)
         .function("reset",        &Controller::reset)
         .function("setSpeed",     &Controller::setSpeed)
-        .function("enqueue",      &Controller::enqueue)
         .function("enqueueProduct", &Controller::enqueueProduct)
         .function("enqueueProductById", &Controller::enqueueProductById)
-        .function("enqueueAuto",  &Controller::enqueueAuto)
-        .function("enqueueAutoProduct", &Controller::enqueueAutoProduct)
         .function("enqueueAutoProductById", &Controller::enqueueAutoProductById)
         .function("addLine",      &Controller::addLine)
         .function("removeLine",   &Controller::removeLine)

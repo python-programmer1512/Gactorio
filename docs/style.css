@@ -21,13 +21,13 @@ header p  { margin: 0; color: #888; font-size: 13px; }
    catalog stack where Products and Inventory share one vertical column. */
 main {
     display: grid;
-    grid-template-columns: 225px minmax(0, 1fr) 240px 200px;
+    grid-template-columns: 330px minmax(0, 1fr) 230px 220px;
     grid-template-areas:
         "simctl factory inspector catalog";
     gap: 12px;
     padding: 12px;
     /* viewport minus header (~75 px) minus our padding (28 px) */
-    height: calc(100vh - 99px);
+    height: calc(100vh - 90px);
 }
 section {
     background: #2a2a2e;
@@ -47,7 +47,7 @@ section {
 #catalog-stack {
     grid-area: catalog;
     display: grid;
-    grid-template-rows: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    grid-template-rows: minmax(0, 1.08fr) minmax(0, 0.92fr);
     gap: 12px;
     min-width: 0;
     min-height: 0;
@@ -62,7 +62,7 @@ section h3 { margin: 14px 0 7px; color: #aaa; font-size: 12px; }
    vertical room is left after the headers/buttons/stats above it.   */
 #sim-control #event-log {
     flex: 1 1 auto;
-    min-height: 120px;
+    min-height: 150px;
     overflow-y: auto;
     background: #1f1f22;
     border: 1px solid #333;
@@ -120,13 +120,16 @@ section h3 { margin: 14px 0 7px; color: #aaa; font-size: 12px; }
     overflow-y: auto;
     min-height: 0;
 }
+#inventory table { font-size: 13px; }
+#inventory th,
+#inventory td { padding: 5px 8px; }
 
 /* ---------- Products (catalog stack top) -------------------- */
 #products .hint { margin: 0 0 7px; color: #888; font-size: 11px; }
 .product-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
     flex: 1 1 auto;
     overflow-y: auto;
     min-height: 0;
@@ -136,7 +139,7 @@ section h3 { margin: 14px 0 7px; color: #aaa; font-size: 12px; }
     border: 1px solid #3a86ff;
     color: #e8e8e8;
     border-radius: 4px;
-    padding: 7px 9px;
+    padding: 6px 8px;
     cursor: pointer;
     text-align: left;
     display: flex;
@@ -146,7 +149,7 @@ section h3 { margin: 14px 0 7px; color: #aaa; font-size: 12px; }
 .product-btn:hover  { background: #25304a; border-color: #6cb6ff; }
 .product-btn b      { color: #f4c430; font-size: 12px; }
 .product-btn span   { color: #888; font-size: 10px; }
-.product-btn .requirements { color: #c8c8c8; line-height: 1.25; font-size: 11px; }
+.product-btn .requirements { color: #c8c8c8; line-height: 1.2; font-size: 10px; }
 
 /* ---------- Factory header (h2 + Add Line button) ------------ */
 .factory-header {

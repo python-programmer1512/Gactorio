@@ -140,20 +140,8 @@
         <mxCell id="e-product-catalog-def" edge="1" parent="pkg-model" source="ProductCatalog" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="ProductDefinition" value="definitions">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="WzirCm4KdUMkaXm0kx3n-1" edge="1" parent="pkg-model" source="Machine" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" target="ProductCatalog" value="">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1814" y="670" as="sourcePoint" />
-            <mxPoint x="2118" y="1060" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="e-inherit-stations-machine" edge="1" parent="pkg-model" source="MachineStations" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#000000;" target="Machine" value="">
           <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="WzirCm4KdUMkaXm0kx3n-2" edge="1" parent="pkg-model" source="ProductCatalog" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="EventBus" value="">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="609" y="295" as="sourcePoint" />
-            <mxPoint x="2052" y="1060" as="targetPoint" />
-          </mxGeometry>
         </mxCell>
         <mxCell id="e-machine-eventbus" edge="1" parent="pkg-model" source="Machine" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;entryX=0.325;entryY=0.019;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" target="EventBus" value="eventBus_*">
           <mxGeometry relative="1" as="geometry" />
@@ -161,7 +149,7 @@
         <mxCell id="e-factory-eventbus" edge="1" parent="pkg-model" source="Factory" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;entryX=0.655;entryY=-0.001;entryDx=0;entryDy=0;entryPerimeter=0;" target="EventBus" value="eventBus_">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-machine-state" edge="1" parent="pkg-model" source="EventBus" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="MachineState" value="state_">
+        <mxCell id="e-machine-state" edge="1" parent="pkg-model" source="Machine" style="startArrow=diamond;startFill=1;endArrow=none;html=1;rounded=0;strokeColor=#000000;" target="MachineState" value="state_">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e-inherit-states" edge="1" parent="pkg-model" source="MachineStateConcrete" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#000000;" target="MachineState" value="">

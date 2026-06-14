@@ -1,5 +1,15 @@
 #pragma once
 
+// =============================================================================
+// Product domain — abstract Product plus the three concrete energy drinks.
+//
+// UML references (Product_Domain_Class_Diagram):
+//   is-a  : VoltzClassic / HyperBolt / AuroraZero generalize Product (▷).
+//   has-a : a Product OWNS its ingredient list (vector<ItemRequirement>) and
+//           its route (vector<ProcessStep>); each ProcessStep owns its inputs
+//           (ItemRequirement) and outputs (StepOutput) — composition ◆.
+// =============================================================================
+
 #include "common/Types.hpp"
 
 #include <optional>

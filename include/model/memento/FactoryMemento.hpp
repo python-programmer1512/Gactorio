@@ -18,6 +18,10 @@
 //     queued task snapshots re-feed them naturally)
 //   - statistics counters and event log (carry forward — they describe
 //     real history, not state)
+//
+// UML: Memento_Pattern_Diagram. FactoryMemento ◆ owns LineMemento, which ◆
+// owns MachineMemento + ProductionTaskMemento (which ◆ owns StepOutputMemento).
+// Factory is the Originator; SimulationHistory is the Caretaker.
 // =============================================================================
 
 #include "common/ScenarioType.hpp"

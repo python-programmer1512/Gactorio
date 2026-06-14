@@ -1,5 +1,24 @@
 #pragma once
 
+// =============================================================================
+// Factory — the simulation aggregate root, and the Originator of the Memento
+// pattern.
+//
+// UML references:
+//   * BE_Overall_Class_Diagram  — Factory OWNS (composition ◆): Inventory,
+//     the ProductionLines (by-value vector), the EventBus, the two Observers
+//     (EventLogObserver, StatisticsObserver) and the SimClock. It also keeps a
+//     non-owning Machine* cache (aggregation ◇) flattened from the lines.
+//     CarbonationFactory generalizes Factory (▷).
+//   * Memento_Pattern_Diagram   — createMemento()/restoreFromMemento() make
+//     Factory the Originator; FactoryMemento is the Memento product.
+//
+// Relationships:
+//   has-a : Inventory, vector<ProductionLine>, EventBus, two Observers,
+//           SimClock (all owned); vector<Machine*> cache (non-owning)
+//   is-a  : CarbonationFactory is-a Factory
+// =============================================================================
+
 #include "common/SimClock.hpp"
 #include "common/Types.hpp"
 #include "model/Inventory.hpp"

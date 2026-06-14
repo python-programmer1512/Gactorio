@@ -238,7 +238,7 @@ SimulationTime Factory::update(double realDeltaTime) {
 
     for (auto& line : productionLines_) {
         applyStepOutputs(inventory_, line.collectPendingStepOutputs());
-        for (const auto productId : line.collectCompletedProducts()) {
+        for (const auto& productId : line.collectCompletedProducts()) {
             inventory_.addProduct(productId, 1);
         }
     }

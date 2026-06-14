@@ -44,7 +44,6 @@ public:
     FactoryCommandResult enqueueProductById(LineId lineId, ProductId productId);
     // Enqueue to whichever line currently has the smallest queue.
     // Returns the chosen LineId, or 0 if no line accepted the product.
-    LineId               enqueueAuto(ProductType productType);
     LineId               enqueueAutoById(ProductId productId);
     // Add a brand-new beverage line and return its LineId.
     LineId               addLine();

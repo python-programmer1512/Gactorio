@@ -9,6 +9,9 @@
 //
 // The View never touches the Model: every command and query goes through the
 // controller proxy (Module.Controller ⇒ ctrl::Controller ⇒ gactorio::*).
+//
+// UML: FE_JS_View_Class_Diagram — Application owns the AppUI compositor and the
+// Module.Controller proxy; it is the JS counterpart of the C++ main loop.
 // =============================================================================
 
 import { AppUI } from './AppUI.js';

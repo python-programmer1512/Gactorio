@@ -10,6 +10,9 @@
 //
 // JS panels additionally get a one-time bind() hook for DOM event wiring,
 // since (unlike ImGui) the DOM separates "declare handlers" from "draw".
+//
+// UML: FE_JS_View_Class_Diagram — UIComponent is the abstract base; every
+// panel is-a UIComponent (▷) and AppUI holds them (composition ◆).
 // =============================================================================
 
 export class UIComponent {

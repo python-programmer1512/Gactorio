@@ -245,13 +245,6 @@ FactoryCommandResult FactoryController::enqueueProductById(LineId lineId, Produc
     }
 }
 
-LineId FactoryController::enqueueAuto(ProductType productType) {
-    if (productType == ProductType::Unknown) {
-        return 0;
-    }
-    return enqueueAutoById(config_model::toProductId(productType));
-}
-
 LineId FactoryController::enqueueAutoById(ProductId productId) {
     if (!factory_) return 0;
     const auto& lines = factory_->productionLines();

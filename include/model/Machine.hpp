@@ -1,5 +1,25 @@
 #pragma once
 
+// =============================================================================
+// Machine — abstract base for the four production stations, and the live
+// holder of the State pattern.
+//
+// UML references:
+//   * BE_Overall_Class_Diagram  — Machine is abstract; MixingStation /
+//     QualityStation / BottlingStation / PackagingStation generalize it
+//     (hollow triangle ▷). A ProductionLine OWNS its Machines (composition ◆).
+//     Machine OWNS one MachineState (composition ◆) and references an EventBus
+//     (association →, non-owning pointer).
+//   * Machine_State_Diagram     — the runtime states Idle / Working / Broken /
+//     Maintenance and the transitions this class fires via transitionTo*().
+//
+// Relationships:
+//   has-a  : MachineState (owned), Recipe (optional), ProductionTask (shared),
+//            EventBus* (non-owning association)
+//   is-a   : the four concrete stations are-a Machine
+//   friend : the four State classes mutate Machine through transitionTo*()
+// =============================================================================
+
 #include "common/Types.hpp"
 #include "model/ProductionTask.hpp"
 #include "model/Recipe.hpp"

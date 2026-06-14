@@ -1,5 +1,15 @@
 #pragma once
 
+// =============================================================================
+// ProductionLine — one conveyor of four stations plus its task queue.
+//
+// UML references (BE_Overall_Class_Diagram, Core_Simulation_Class_Diagram):
+//   has-a : OWNS its Machines as vector<unique_ptr<Machine>> (composition ◆);
+//           holds a deque of ProductionTask (shared_ptr) as its work queue;
+//           references an EventBus (association →, non-owning).
+//   Move-only (copy deleted) because it uniquely owns its Machines.
+// =============================================================================
+
 #include "common/ScenarioType.hpp"
 #include "common/Types.hpp"
 #include "model/Machine.hpp"
