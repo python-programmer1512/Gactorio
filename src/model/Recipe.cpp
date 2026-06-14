@@ -4,6 +4,10 @@
 
 #include <utility>
 
+// =============================================================================
+// Recipe.cpp — Recipe 데이터 조작 구현. addInput/addOutput 은 같은 키에 누적된다.
+// =============================================================================
+
 namespace gactorio {
 
 Recipe::Recipe(RecipeId id, std::string name, double durationSeconds)

@@ -2,6 +2,10 @@
 
 #include <utility>
 
+// =============================================================================
+// EventSnapshot.cpp — 이벤트 로그 항목 DTO 구현(시각/종류/메시지).
+// =============================================================================
+
 namespace gactorio {
 
 EventSnapshot::EventSnapshot(SimulationTime simulationTime, EventType type, std::string message)

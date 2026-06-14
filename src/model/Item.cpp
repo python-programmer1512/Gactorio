@@ -2,15 +2,20 @@
 
 #include <utility>
 
+// =============================================================================
+// Item.cpp — Item 계층 구현. 각 구체 아이템은 생성자에서 이름을 base 에 넘기고,
+// getTypeId()/getName() 만 override 한다. 데이터(이름)는 base 가 캡슐화.
+// =============================================================================
+
 namespace gactorio {
 
 Item::Item(std::string name) : name_(std::move(name)) {}
 Item::~Item() = default;
 
-const std::string& Item::storedName() const { return name_; }
+const std::string& Item::storedName() const { return name_; }   // 파생이 이름 읽는 통로
 
 // -----------------------------------------------------------------------------
-// Concrete items for the energy-drink factory
+// 에너지 드링크 공장의 구체 원자재 5종 (이름과 ItemType 만 제공)
 // -----------------------------------------------------------------------------
 Ingredient::Ingredient() : Item("Ingredient") {}
 ItemType Ingredient::getTypeId() const           { return ItemType::Ingredient; }
@@ -33,6 +38,7 @@ ItemType Package::getTypeId() const              { return ItemType::Package; }
 const std::string& Package::getName() const      { return storedName(); }
 
 // -----------------------------------------------------------------------------
+// ItemType enum → 표시 이름 변환(View/Controller 가 재고 라벨 만들 때 사용).
 const char* ItemTypeName::get(ItemType type) {
     switch (type) {
     case ItemType::Ingredient:  return "Ingredient";
