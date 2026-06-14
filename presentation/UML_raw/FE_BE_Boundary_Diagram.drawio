@@ -1,0 +1,173 @@
+<mxfile host="app.diagrams.net" modified="2026-06-14T13:04:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="FE_BE_BOUNDARY" name="FE-BE Boundary Diagram">
+    <mxGraphModel dx="2400" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1500" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="FE-BE Boundary Diagram&#xa;JS View -> Module.Controller -> embind bindings -> ctrl::Controller -> gactorio::FactoryController&#xa;src/web/bindings.cpp is included here as Boundary, not in the BE class diagram body." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1180" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="pkg_fe" value="Frontend JS View Call Sites" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#e1f5e6;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="130" width="560" height="1070" as="geometry"/>
+        </mxCell>
+        <mxCell id="main_js" value="main.js&#xa;--&#xa;new Module.Controller()&#xa;creates one controller proxy&#xa;passes it to Application and panels" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe">
+          <mxGeometry x="25" y="55" width="235" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="application_js" value="Application.js&#xa;--&#xa;ctrl.tick(dt)&#xa;ctrl.snapshot()&#xa;toPlainSnapshot(snapshot)&#xa;ui.renderAll(snapshot)&#xa;--&#xa;main simulation loop and snapshot pull" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe">
+          <mxGeometry x="295" y="55" width="235" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="sim_panel" value="SimControlPanel.js&#xa;--&#xa;pause() / resume() / reset()&#xa;setSpeed(v)&#xa;setLineScenario(lineId,id)&#xa;saveCheckpoint() / undo()&#xa;canUndo() / historySize()&#xa;--&#xa;simulation, scenario, memento controls" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe">
+          <mxGeometry x="25" y="230" width="235" height="190" as="geometry"/>
+        </mxCell>
+        <mxCell id="factory_panel" value="FactoryPanel.js&#xa;--&#xa;addLine()&#xa;removeLine(id)&#xa;setLineScenario(lineId,id)&#xa;--&#xa;line topology and per-line scenario commands" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe">
+          <mxGeometry x="295" y="250" width="235" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="products_panel" value="ProductsPanel.js&#xa;--&#xa;products() : VectorProductOption&#xa;enqueueAutoProductById(productId)&#xa;vecToArray(products)&#xa;--&#xa;catalog read and product enqueue command" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe">
+          <mxGeometry x="25" y="465" width="235" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="inventory_panel" value="InventoryPanel.js&#xa;--&#xa;restockItemById(itemId)&#xa;render snapshot.inventory&#xa;--&#xa;raw item restock command and inventory DTO rendering" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe">
+          <mxGeometry x="295" y="465" width="235" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="inspector_panel" value="InspectorPanel.js&#xa;--&#xa;breakMachine(id)&#xa;repair(id)&#xa;instantRepair(id)&#xa;render selected MachineView&#xa;--&#xa;machine state command UI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe">
+          <mxGeometry x="25" y="660" width="235" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="event_panel" value="EventLogPanel.js&#xa;--&#xa;clearEventLog()&#xa;render snapshot.events&#xa;--&#xa;observer event DTO rendering" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe">
+          <mxGeometry x="295" y="670" width="235" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="runtime_panel" value="RuntimeConfigPanel.js&#xa;--&#xa;fetch config JSON&#xa;loadFactoryConfigFromString(jsonText)&#xa;onLoaded(): products.refresh(), app.renderNow()&#xa;--&#xa;runtime factory rebuild from JSON" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe">
+          <mxGeometry x="25" y="845" width="235" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="util_js" value="util.js&#xa;--&#xa;vecToArray(vec)&#xa;toPlainSnapshot(FactoryView)&#xa;esc(s)&#xa;--&#xa;converts embind value/vector results into plain JS data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_fe">
+          <mxGeometry x="295" y="850" width="235" height="145" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="pkg_wasm" value="WASM / Embind Boundary" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="660" y="130" width="700" height="1070" as="geometry"/>
+        </mxCell>
+        <mxCell id="generated_runtime" value="docs/gactorio.js + docs/gactorio.wasm&#xa;&lt;&lt;generated runtime&gt;&gt;&#xa;--&#xa;defines global Module&#xa;loads wasm binary&#xa;constructs embind proxies&#xa;--&#xa;excluded from authored FE UML body" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" vertex="1" parent="pkg_wasm">
+          <mxGeometry x="25" y="55" width="270" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="module_controller" value="Module.Controller&#xa;&lt;&lt;JS embind proxy&gt;&gt;&#xa;--&#xa;constructor()&#xa;tick(dt) / snapshot()&#xa;pause() / resume() / reset()&#xa;setSpeed(multiplier)&#xa;enqueueProduct(line,id)&#xa;enqueueProductById(line,productId)&#xa;enqueueAutoProductById(productId)&#xa;addLine() / removeLine(id)&#xa;breakMachine(id) / repair(id) / instantRepair(id) / repairAll(id)&#xa;restockItem(id) / restockItemById(itemId)&#xa;setLineScenario(line,scenarioId) / getLineScenario(line)&#xa;loadFactoryConfigFromString(jsonText)&#xa;clearEventLog()&#xa;saveCheckpoint() / undo() / canUndo() / historySize()&#xa;products()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_wasm">
+          <mxGeometry x="355" y="55" width="310" height="330" as="geometry"/>
+        </mxCell>
+        <mxCell id="bindings_cpp" value="src/web/bindings.cpp&#xa;&lt;&lt;EMSCRIPTEN_BINDINGS&gt;&gt;&#xa;--&#xa;class_&lt;Controller&gt;(&quot;Controller&quot;)&#xa;value_object&lt;MachineView&gt;&#xa;value_object&lt;LineView&gt;&#xa;value_object&lt;EventView&gt;&#xa;value_object&lt;InventoryEntry&gt;&#xa;value_object&lt;ProductOption&gt;&#xa;value_object&lt;Statistics&gt;&#xa;value_object&lt;FactoryView&gt;&#xa;register_vector&lt;...&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_wasm">
+          <mxGeometry x="25" y="250" width="300" height="250" as="geometry"/>
+        </mxCell>
+        <mxCell id="factory_view" value="FactoryView DTO&#xa;--&#xa;simulationTime : double&#xa;stats : Statistics&#xa;lines : VectorLineView&#xa;events : VectorEventView&#xa;inventory : VectorInventoryEntry&#xa;--&#xa;returned by snapshot() as value copy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_wasm">
+          <mxGeometry x="355" y="430" width="280" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="dto_leaf" value="Leaf DTOs exposed to JS&#xa;--&#xa;MachineView&#xa;LineView&#xa;EventView&#xa;InventoryEntry&#xa;ProductOption&#xa;Statistics&#xa;--&#xa;plain fields only&#xa;no model pointers or references" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_wasm">
+          <mxGeometry x="25" y="550" width="270" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="vector_handles" value="Embind vectors&#xa;--&#xa;VectorMachineView&#xa;VectorLineView&#xa;VectorEventView&#xa;VectorInventoryEntry&#xa;VectorProductOption&#xa;--&#xa;JS must iterate and delete handles via vecToArray()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_wasm">
+          <mxGeometry x="355" y="650" width="280" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="product_kind" value="ctrl::ProductKind&#xa;&lt;&lt;enum class&gt;&gt;&#xa;--&#xa;Unknown = 0&#xa;VoltzClassic = 101&#xa;HyperBolt = 102&#xa;AuroraZero = 103&#xa;--&#xa;defined in Controller.h&#xa;not directly bound as JS enum" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" vertex="1" parent="pkg_wasm">
+          <mxGeometry x="25" y="785" width="270" height="155" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="pkg_be_adapter" value="C++ Boundary Adapter / Backend Facade" style="swimlane;html=1;startSize=34;rounded=1;whiteSpace=wrap;fillColor=#eef5ff;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1420" y="130" width="700" height="1070" as="geometry"/>
+        </mxCell>
+        <mxCell id="ctrl_controller" value="ctrl::Controller&#xa;&lt;&lt;View-facing C++ adapter&gt;&gt;&#xa;--&#xa;- m_impl : unique_ptr&lt;Impl&gt;&#xa;--&#xa;+ tick(dt)&#xa;+ pause() / resume() / reset()&#xa;+ setSpeed(multiplier)&#xa;+ enqueueProduct*()&#xa;+ addLine() / removeLine(id)&#xa;+ breakMachine(id) / repair(id) / instantRepair(id) / repairAll(id)&#xa;+ restockItem*()&#xa;+ setLineScenario(...) / getLineScenario(...)&#xa;+ loadFactoryConfigFromString(jsonText)&#xa;+ clearEventLog()&#xa;+ saveCheckpoint() / undo() / canUndo() / historySize()&#xa;+ products() const&#xa;+ snapshot() const" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_be_adapter">
+          <mxGeometry x="25" y="55" width="315" height="345" as="geometry"/>
+        </mxCell>
+        <mxCell id="impl" value="Controller::Impl&#xa;&lt;&lt;PImpl translation layer&gt;&gt;&#xa;--&#xa;backend : gactorio::FactoryController&#xa;cached : ctrl::FactoryView&#xa;products : vector&lt;ProductOption&gt;&#xa;dirty : bool&#xa;--&#xa;rebuildProducts()&#xa;rebuild() const&#xa;--&#xa;maps gactorio snapshots to ctrl DTOs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_be_adapter">
+          <mxGeometry x="375" y="70" width="285" height="220" as="geometry"/>
+        </mxCell>
+        <mxCell id="factory_controller" value="gactorio::FactoryController&#xa;&lt;&lt;BE controller facade&gt;&gt;&#xa;--&#xa;snapshot() : FactorySnapshot&#xa;tick(dt)&#xa;pauseSimulation()/resumeSimulation()/resetSimulation()&#xa;setSimulationSpeed(multiplier)&#xa;enqueueProductById(...) / enqueueAutoById(...)&#xa;addLine() / removeLine(id)&#xa;forceBreak(id) / incrementalRepairMachine(id) / instantRepairMachine(id) / repairMachine(id)&#xa;restockItemById(itemId)&#xa;setLineScenarioById(...)&#xa;createFromConfigString(jsonText)&#xa;clearEventLog()&#xa;saveCheckpoint() / undo() / canUndo() / historySize()&#xa;availableProductDefinitions()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_be_adapter">
+          <mxGeometry x="25" y="470" width="335" height="310" as="geometry"/>
+        </mxCell>
+        <mxCell id="factory_snapshot" value="gactorio::FactorySnapshot&#xa;&lt;&lt;BE DTO&gt;&gt;&#xa;--&#xa;timeSeconds()&#xa;statistics()&#xa;productionLines()&#xa;events()&#xa;inventory()&#xa;--&#xa;source data copied into ctrl::FactoryView" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13" vertex="1" parent="pkg_be_adapter">
+          <mxGeometry x="395" y="470" width="255" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="model_hidden" value="gactorio Model&#xa;&lt;&lt;hidden behind controller&gt;&gt;&#xa;--&#xa;Factory&#xa;ProductionLine&#xa;Machine&#xa;Inventory&#xa;ProductCatalog&#xa;EventBus / Observers&#xa;SimulationHistory / Memento&#xa;--&#xa;not directly reachable from JS View" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;verticalAlign=top;fontSize=13;dashed=1" vertex="1" parent="pkg_be_adapter">
+          <mxGeometry x="395" y="710" width="255" height="190" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="legend" value="Legend&#xa;green: authored FE JS modules&#xa;red: generated WASM/embind boundary and JS-visible DTOs&#xa;blue: C++ adapter/backend facade&#xa;dashed arrow: API call or data conversion dependency&#xa;solid diamond: owning composition&#xa;src/web/bindings.cpp belongs here, not BE Overall class body" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;verticalAlign=top;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="40" y="1240" width="520" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_main_module" value="creates" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="main_js" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_runtime_module" value="defines Module.Controller" style="endArrow=open;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="generated_runtime" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_bind_module" value="class_&lt;Controller&gt;(&quot;Controller&quot;)" style="endArrow=open;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="bindings_cpp" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_bind_ctrl" value="binds methods 1:1" style="endArrow=open;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="bindings_cpp" target="ctrl_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_module_ctrl" value="embind invokes" style="endArrow=open;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="module_controller" target="ctrl_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_ctrl_impl" value="owns" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="ctrl_controller" target="impl">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_impl_backend" value="owns / delegates commands" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="impl" target="factory_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_backend_model" value="facade controls" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="factory_controller" target="model_hidden">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_backend_snapshot" value="snapshot()" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="factory_controller" target="factory_snapshot">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_snapshot_impl" value="rebuild() copies fields" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#6c8ebf;fontSize=12" edge="1" parent="1" source="factory_snapshot" target="impl">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_impl_factory_view" value="cached FactoryView" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="impl" target="factory_view">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_factory_view_leaf" value="contains vectors of" style="endArrow=diamondThin;endFill=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="factory_view" target="dto_leaf">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_leaf_vectors" value="registered as" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="dto_leaf" target="vector_handles">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_snapshot_js" value="snapshot() return" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="module_controller" target="factory_view">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_util_factory_view" value="toPlainSnapshot()" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="util_js" target="factory_view">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_util_vectors" value="vecToArray() + delete()" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="util_js" target="vector_handles">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_app_call" value="tick / snapshot" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="application_js" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_sim_call" value="simulation + memento APIs" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="sim_panel" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_factory_call" value="line APIs" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="factory_panel" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_products_call" value="catalog + enqueue APIs" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="products_panel" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_inventory_call" value="restock API" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="inventory_panel" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_inspector_call" value="machine control APIs" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="inspector_panel" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_event_call" value="clear log API" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="event_panel" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_runtime_call" value="config load API" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#82b366;fontSize=12" edge="1" parent="1" source="runtime_panel" target="module_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_product_kind" value="numeric compatibility path" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#b85450;fontSize=12" edge="1" parent="1" source="product_kind" target="ctrl_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
