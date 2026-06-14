@@ -2,439 +2,476 @@
 
 ## Scope
 
-This project implements only the C++ backend for a factory simulation.
+Gactorio is a C++ backend for an energy-drink factory simulation.
 
-The backend owns the Model and Controller layers of MVC. It does not implement
-Dear ImGui, rendering, widgets, view classes, or any other UI code. The UI team
-will communicate with the backend through controller APIs and read-only
-snapshot/DTO structures.
+The backend owns the simulation Model, the command/snapshot Controller, and the
+DTO types used by the UI boundary. UI implementation details such as Dear ImGui,
+JavaScript views, rendering, widgets, and Emscripten bindings are outside the
+core backend architecture. The UI should talk to the backend through
+`FactoryController` and read-only snapshot DTOs.
 
-## Folder Structure
+## Current Folder Structure
 
 ```text
 Gactorio/
   include/
+    common/
+      Config.h
+      ScenarioType.hpp
+      SimClock.hpp
+      Types.hpp
+    controller/
+      Controller.h                  # web-facing compatibility facade
+      ControllerConfigIdAdapters.hpp
+      FactoryCommand.hpp
+      FactoryController.hpp         # core backend controller
+      SimulationHistory.hpp
+    dto/
+      EventSnapshot.hpp
+      FactorySnapshot.hpp
+      InventorySnapshot.hpp
+      MachineSnapshot.hpp
+      ProductionLineSnapshot.hpp
+      StatisticsSnapshot.hpp
     model/
-      Item.hpp
-      Product.hpp
-      Recipe.hpp
+      CarbonationFactory.hpp
+      ConfigurableFactory.hpp
+      ConfiguredStation.hpp
+      Factory.hpp
+      FactoryBuilder.hpp
       Inventory.hpp
+      Item.hpp
       Machine.hpp
       MachineState.hpp
       MachineStates.hpp
+      Product.hpp
+      ProductCatalog.hpp
       ProductionLine.hpp
-      Factory.hpp
-      CarbonationFactory.hpp
+      ProductionTask.hpp
+      Recipe.hpp
+      StationFactory.hpp
+      config/
+        ConfigIdAdapters.hpp
+        DefinitionRegistry.hpp
+        FactoryConfig.hpp
+        FactoryConfigLoader.hpp
+        FactoryRuntimeContext.hpp
       events/
-        IFactoryObserver.hpp
-        FactoryEvent.hpp
-        EventLog.hpp
-        Statistics.hpp
-    controller/
-      FactoryController.hpp
-      FactoryCommand.hpp
-    dto/
-      FactorySnapshot.hpp
-      MachineSnapshot.hpp
-      ProductionLineSnapshot.hpp
-      InventorySnapshot.hpp
-      EventSnapshot.hpp
-      StatisticsSnapshot.hpp
+        Event.hpp
+        EventBus.hpp
+        EventLogObserver.hpp
+        Observer.hpp
+        StatisticsObserver.hpp
+      memento/
+        FactoryMemento.hpp
   src/
+    common/
+    controller/
+    dto/
     model/
-      Item.cpp
-      Product.cpp
-      Recipe.cpp
-      Inventory.cpp
-      Machine.cpp
-      MachineState.cpp
-      MachineStates.cpp
-      ProductionLine.cpp
-      Factory.cpp
-      CarbonationFactory.cpp
+      config/
       events/
-        EventLog.cpp
-        Statistics.cpp
-    controller/
-      FactoryController.cpp
+    web/
+      bindings.cpp                  # web binding layer, not BE model core
   tests/
-    model/
     controller/
-  docs/
-    ...
+    model/
+  data/
+    factory_config.json
   architecture.md
 ```
 
-The exact file list may be adjusted during implementation, but the dependency
-direction should stay the same.
+The important dependency direction is:
+
+```text
+UI / bindings
+  -> controller
+    -> dto
+    -> model
+      -> common
+
+model/config
+  -> model/common value definitions
+
+model/events
+  -> event value types and observer interfaces
+```
 
 ## Layer Boundaries
+
+### Common
+
+`include/common` contains shared primitive types and simulation-wide constants:
+
+- ids and enums in `Types.hpp`
+- scenario identifiers in `ScenarioType.hpp`
+- simulation clock behavior in `SimClock.hpp`
+- tuning constants in `Config.h`
+
+Common types must stay lightweight. They should not depend on Controller, DTO,
+or UI code.
 
 ### Model
 
 The Model contains simulation state and behavior:
 
-- factory topology
-- production lines
-- machines
-- recipes
-- inventories
-- machine state transitions
-- domain events
-- statistics
+- factory aggregate state
+- production lines and task queues
+- machines, machine states, and machine health/progress
+- product recipes and process steps
+- inventory quantities
+- event publication and observers
+- config-driven factory definitions
+- memento capture and restore
 
-The Model must not depend on Controller, DTO, or UI code.
+The Model must not depend on Controller, DTO, web bindings, or UI code.
 
 ### Controller
 
-The Controller exposes use-case-oriented methods for the UI:
+`FactoryController` is the main backend API. It validates commands, owns the
+active `Factory`, maintains undo history through `SimulationHistory`, and
+translates Model state into DTO snapshots.
 
-- create or reset a factory
-- add, remove, or configure machines
-- assign recipes
-- start, stop, pause, or resume simulation entities
-- advance simulation time
-- retrieve read-only snapshots
+The Controller may depend on Model and DTO types. It should not expose mutable
+Model objects to UI callers.
 
-The Controller depends on Model and DTO types. It should not expose mutable
-Model objects directly.
+`controller/Controller.h` and `src/web/bindings.cpp` are compatibility/web
+boundary pieces. They may adapt the backend for JavaScript, but they are not the
+core backend simulation model.
 
 ### DTO / Snapshot
 
-Snapshots are read-only data structures intended for UI consumption.
+DTOs are read-only value objects for UI consumption:
 
-They contain plain values such as ids, names, counts, state names, progress,
-event messages, and aggregate statistics. They do not contain pointers or
-mutable references to Model objects.
+- `FactorySnapshot`
+- `ProductionLineSnapshot`
+- `MachineSnapshot`
+- `InventorySnapshot`
+- `EventSnapshot`
+- `StatisticsSnapshot`
 
-The UI may cache snapshots for rendering, but it must request a new snapshot
-after commands or simulation ticks.
+Snapshots copy values from the Model. They do not contain raw pointers,
+ownership handles, or mutable references to Model internals.
 
 ### View / UI
 
-Not implemented in this repository scope.
+The View may depend on Controller and DTO types. The backend must not depend on
+View types.
 
-The View may depend on Controller and DTO types, but the backend must not depend
-on View types.
-
-## Dependency Direction
+## Major Runtime Flow
 
 ```text
-UI/View
-  -> controller
-    -> dto
-    -> model
-
-model
-  -> model/events
-
-dto
-  -> standard library value types only
+UI calls FactoryController::tick(deltaTime)
+  -> FactoryController validates the command
+  -> Factory::update(realDeltaTime)
+    -> SimClock advances simulation time
+    -> ProductionLine::update(deltaTime)
+      -> queued ProductionTask is assigned to available Machine
+      -> Machine::update(deltaTime)
+        -> current MachineState::update(machine, deltaTime)
+        -> Machine advances step progress or transitions state
+        -> EventBus publishes domain events
+    -> ProductionLine collects completed step outputs and products
+    -> Inventory receives produced items/products
+    -> EventLogObserver and StatisticsObserver receive events
+  -> UI requests FactoryController::snapshot()
+  -> Controller returns DTO copies
 ```
 
-Rules:
+The update loop is intentionally polymorphic. Factory and ProductionLine should
+not branch on concrete machine classes to process work.
 
-- Model classes do not include controller headers.
-- Model classes do not include DTO headers unless a later implementation has a
-  strong reason and keeps conversion one-way.
-- Controller translates Model state into DTO snapshots.
-- UI never receives non-const access to Model entities.
-- Simulation update loops operate through base-class pointers or references.
-
-## Major Classes
-
-### Item
-
-Represents a raw or intermediate material that can exist in inventory.
-
-Responsibilities:
-
-- store item id and display name
-- provide value semantics
-- act as a recipe input or inventory entry
-
-`Item` is intentionally small. It does not simulate behavior.
-
-### Product
-
-Represents an output produced by a recipe or machine.
-
-Responsibilities:
-
-- store product id and display name
-- optionally store category or metadata needed by the simulation
-- act as a recipe output
-
-`Product` can be separate from `Item` to satisfy the project structure and to
-make the domain distinction explicit. If implementation later benefits from a
-shared abstraction, both may derive from a common `Material` interface or value
-base, but the public domain names should remain clear.
-
-### Recipe
-
-Defines how inputs are converted into outputs.
-
-Responsibilities:
-
-- store input requirements
-- store output products
-- store production duration
-- expose read-only recipe metadata
-
-`Recipe` is data-oriented and should not know which concrete machine executes
-it.
-
-### Inventory
-
-Stores quantities of items and products.
-
-Responsibilities:
-
-- check whether required inputs are available
-- consume inputs atomically
-- add outputs
-- expose read-only inventory contents
-
-Inventory mutation is encapsulated behind methods such as `canConsume`,
-`consume`, and `add`.
-
-### Machine
-
-Abstract base class for all machine types.
-
-Responsibilities:
-
-- expose a polymorphic simulation API such as `update(double deltaTime)`
-- own or reference a `MachineState`
-- hold machine id, name, assigned recipe, progress, and local inventory rules
-- publish domain events through an observer interface
-- provide virtual hooks for machine-specific production behavior
-
-Expected interface shape:
-
-```cpp
-class Machine {
-public:
-    virtual ~Machine() = default;
-    virtual void update(double deltaTime) = 0;
-    virtual std::string typeName() const = 0;
-    virtual bool canAcceptRecipe(const Recipe& recipe) const = 0;
-};
-```
-
-Factory and ProductionLine must store machines as base-class pointers:
-
-```cpp
-std::vector<std::unique_ptr<Machine>> machines;
-```
-
-The simulation loop must call virtual functions on `Machine`. It must not branch
-on concrete machine types with `if/else`, `switch`, or `dynamic_cast`.
-
-### Concrete Machine Types
-
-Examples:
-
-- `Assembler`
-- `Furnace`
-- `Carbonator`
-- `Packager`
-
-Responsibilities:
-
-- implement machine-specific recipe compatibility
-- implement machine-specific production rules through overridden methods
-- provide machine-specific display/type metadata
-
-Adding a new machine type should require adding a new class and registering it
-with construction code, not modifying the factory update loop.
-
-### MachineState
-
-Abstract base class for machine states.
-
-Responsibilities:
-
-- define state behavior for update, enter, and exit
-- encapsulate transitions between states
-- avoid state checks spread across `Machine`
-
-Expected states:
-
-- `IdleState`
-- `RunningState`
-- `PausedState`
-- `BlockedState`
-- `ErrorState`
-- `MaintenanceState` if needed
-
-Expected interface shape:
-
-```cpp
-class MachineState {
-public:
-    virtual ~MachineState() = default;
-    virtual void enter(Machine& machine) {}
-    virtual void update(Machine& machine, double deltaTime) = 0;
-    virtual void exit(Machine& machine) {}
-    virtual std::string name() const = 0;
-};
-```
-
-The machine delegates state-dependent behavior to the current state object.
-
-### ProductionLine
-
-Owns and updates a group of machines.
-
-Responsibilities:
-
-- preserve machine ordering
-- add or remove machines
-- update all machines through `Machine*` or `std::unique_ptr<Machine>`
-- coordinate shared line inventory if the design uses one
-- publish or forward events from machines to the factory-level observers
-
-The update loop must be polymorphic:
-
-```cpp
-for (auto& machine : machines) {
-    machine->update(deltaTime);
-}
-```
-
-No concrete machine type branching belongs here.
+## Core Domain Classes
 
 ### Factory
 
-Top-level simulation aggregate.
+`Factory` is the simulation aggregate root.
 
 Responsibilities:
 
-- own production lines
-- own global inventory if needed
-- own observer registration
-- advance the simulation clock
-- update production lines
-- publish factory-level events
+- own `Inventory`
+- own `ProductionLine` instances
+- own `EventBus`, `EventLogObserver`, and `StatisticsObserver`
+- own `SimClock`
+- keep a flattened non-owning `std::vector<Machine*>` cache for lookup
+- enqueue products onto lines
+- update the simulation
+- publish or route events
+- create and restore `FactoryMemento`
 
-`Factory` should operate on abstractions. It does not need to know whether a
-line contains an `Assembler`, `Carbonator`, or future machine type.
+`Factory` exposes virtual hooks such as `createProductById` and
+`createLineForMemento` so specialized factories can rebuild products and line
+topologies from ids.
 
 ### CarbonationFactory
 
-Concrete factory specialization.
+`CarbonationFactory` is the built-in energy-drink factory specialization.
 
 Responsibilities:
 
-- configure the default carbonation-oriented recipes, products, and machines
-- provide project-specific setup while reusing the base `Factory` behavior
+- seed the default beverage production line
+- create Voltz Classic, Hyper Bolt, and Aurora Zero products through the catalog
+- add/remove beverage lines
+- preserve next line/machine ids across memento restore
+- rebuild the default line topology for restore
 
-This demonstrates inheritance at the factory level without making the base
-simulation loop depend on the concrete subclass.
+### ConfigurableFactory
 
-### IFactoryObserver
+`ConfigurableFactory` supports JSON/config-driven factories.
 
-Observer interface for simulation events.
+It works with `FactoryRuntimeContext`, `FactoryConfig`, `DefinitionRegistry`,
+`FactoryBuilder`, `StationFactory`, and config id adapters to build runtime
+factories from data rather than hard-coded product and station definitions.
+
+### FactoryBuilder
+
+`FactoryBuilder` converts a validated `FactoryConfig` into a runtime factory.
 
 Responsibilities:
 
-- receive immutable event data
-- allow multiple observers to react to the same event
+- create initial inventory
+- create configured production lines
+- create stations through `StationFactory`
+- seed startup tasks
+- apply default scenarios/settings
 
-Expected interface shape:
+### DefinitionRegistry
+
+`DefinitionRegistry` indexes config definitions by id and validates references.
+
+It is the lookup boundary for config-defined items, products, stations, recipes,
+lines, and scenarios.
+
+### Product / Recipe / ProcessStep
+
+`Product` is the abstract finished-good type. Built-in concrete products are:
+
+- `VoltzClassic`
+- `HyperBolt`
+- `AuroraZero`
+
+Each product has a default recipe id, display name, requirements, and route.
+Routes are made of `ProcessStep` values. A process step has:
+
+- a step id
+- a string `stepKind`
+- an optional legacy `MachineRole`
+- a base duration
+- step-level inputs
+- step-level outputs
+
+`Recipe` is the config-facing recipe value object. Config recipes are converted
+into product/process-step runtime objects through the catalog and builder path.
+
+### ProductionTask
+
+`ProductionTask` is one unit of work moving through a product route.
+
+Responsibilities:
+
+- track the current process step
+- expose current inputs and outputs
+- mark step inputs as consumed
+- collect pending step outputs
+- report route progress
+- create and restore `ProductionTaskMemento`
+
+### Inventory
+
+`Inventory` stores raw items and completed products.
+
+Responsibilities:
+
+- check and consume required inputs
+- add item/product outputs
+- restock configured or legacy items
+- expose read-only quantity maps
+- restore item/product maps for memento loading
+
+### ProductionLine
+
+`ProductionLine` owns an ordered set of machines and a queue of production
+tasks.
+
+Responsibilities:
+
+- enqueue product tasks
+- enforce optional queue capacity
+- assign available tasks to machines
+- update machines
+- collect completed step outputs and completed products
+- apply line scenarios such as bottlenecks or breakdown overrides
+- create queue/task/machine memento data
+
+Machines are owned as:
 
 ```cpp
-class IFactoryObserver {
-public:
-    virtual ~IFactoryObserver() = default;
-    virtual void onFactoryEvent(const FactoryEvent& event) = 0;
-};
+std::vector<std::unique_ptr<Machine>> machines_;
 ```
 
-### FactoryEvent
+### Machine
 
-Value object describing something that happened in the simulation.
+`Machine` is the abstract base class for runtime stations.
 
-Examples:
+Responsibilities:
 
-- machine started
-- machine paused
-- inputs consumed
-- product completed
-- output blocked
-- error occurred
+- store id, name, health, progress, status, assigned task, and optional recipe
+- own the current `MachineState`
+- update by delegating state behavior
+- emit events through a non-owning `EventBus*`
+- expose station compatibility through `role`, `stationKind`, and accepted steps
+- support memento restore
 
-Fields may include:
+Current concrete machine classes:
+
+- `MixingStation`
+- `QualityStation`
+- `BottlingStation`
+- `PackagingStation`
+- `ConfiguredStation`
+
+Adding a station should require adding a station class or config definition and
+registering construction logic, not changing `Factory::update`.
+
+### MachineState
+
+`MachineState` is the abstract State-pattern role.
+
+Concrete states:
+
+- `IdleState`
+- `WorkingState`
+- `BrokenState`
+- `MaintenanceState`
+
+The state object decides what happens during `Machine::update`. State-specific
+logic is kept out of large status-condition blocks in the factory update loop.
+
+## Event / Observer Architecture
+
+Events use a small Observer pattern:
+
+```text
+Machine / ProductionLine / Factory
+  -> EventBus::publish(Event)
+    -> EventLogObserver::onEvent
+    -> StatisticsObserver::onEvent
+```
+
+### Event
+
+`Event` is the immutable domain event value.
+
+Events include types such as:
+
+- `TaskEnqueued`
+- `TaskStarted`
+- `StepCompleted`
+- `ProductCompleted`
+- `MachineBroken`
+- `MachineRepaired`
+- `StateChanged`
+- `InputsConsumed`
+- `MachinePaused`
+
+### EventBus
+
+`EventBus` is the subject. It stores non-owning `Observer*` subscribers and
+publishes each event to all subscribers.
+
+### EventLogObserver
+
+`EventLogObserver` records recent events for snapshots and UI display.
+
+### StatisticsObserver
+
+`StatisticsObserver` aggregates event-derived counters such as completed
+products, started tasks, completed steps, broken machines, repaired machines,
+and state changes.
+
+Statistics should be derived from events rather than recomputed by the UI from
+mutable model state.
+
+## Memento / Undo Architecture
+
+Memento support is split by GoF role:
+
+```text
+Factory
+  -> createMemento()
+  -> restoreFromMemento()
+
+FactoryMemento
+  -> owns LineMemento
+    -> owns MachineMemento
+    -> owns ProductionTaskMemento
+      -> owns StepOutputMemento
+
+FactoryController
+  -> SimulationHistory
+    -> stack of FactoryMemento
+```
+
+### Originator
+
+`Factory` is the Originator. It captures and restores simulation state.
+
+`CarbonationFactory` extends the memento behavior by preserving next line and
+machine ids.
+
+### Memento
+
+`FactoryMemento` stores:
 
 - simulation time
-- event type
-- source id
-- source name
-- message
-- related item or product quantities
+- inventory item quantities
+- inventory product quantities
+- line snapshots
+- machine health/status/progress and station metadata
+- queued and assigned production task state
+- scenario and queue capacity data
+- next line/machine ids when provided by the concrete factory
 
-### EventLog
+### Caretaker
 
-Observer that stores recent events.
+`SimulationHistory` is the Caretaker. It owns a stack of `FactoryMemento`
+objects but does not inspect their contents.
 
-Responsibilities:
+`FactoryController::saveCheckpoint`, `undo`, `canUndo`, and `historySize` are
+the public API for this feature.
 
-- implement `IFactoryObserver`
-- append incoming events
-- optionally limit retained history
-- expose events to snapshots
+## Config Architecture
 
-### Statistics
+Config support lives under `model/config`.
 
-Observer that aggregates metrics from events.
+Important types:
 
-Responsibilities:
+- `FactoryConfig`: parsed configuration data
+- `FactoryConfigLoader`: JSON loading and parsing
+- `DefinitionRegistry`: indexed, validated lookup layer
+- `FactoryRuntimeContext`: owns config and registry for runtime access
+- `ConfigIdAdapters`: maps config string ids to legacy enum/value ids
 
-- implement `IFactoryObserver`
-- count produced products
-- count consumed inputs
-- track machine state changes
-- track uptime, blocked time, or throughput if needed
-- expose aggregate values to snapshots
+The config schema describes:
 
-Statistics should be updated from events, not by the UI polling machines and
-recomputing values.
+- factory settings
+- item definitions
+- product definitions
+- station definitions
+- recipe definitions
+- production line topology
+- initial inventory
+- startup tasks
+- scenario definitions
 
-### FactoryController
-
-Main backend API for the UI team.
-
-Responsibilities:
-
-- own or reference the active `Factory`
-- expose commands as stable public methods
-- validate user requests
-- translate backend state into snapshots
-- hide mutable Model internals
-
-Example API surface:
+The controller can create factories from config via:
 
 ```cpp
-class FactoryController {
-public:
-    void createDefaultCarbonationFactory();
-    void reset();
-
-    void tick(double deltaTime);
-    void pauseMachine(MachineId id);
-    void resumeMachine(MachineId id);
-    void assignRecipe(MachineId machineId, RecipeId recipeId);
-    void addMachine(ProductionLineId lineId, MachineTypeId typeId);
-    void removeMachine(MachineId id);
-
-    FactorySnapshot snapshot() const;
-};
+FactoryController::createFromConfigFile(path);
+FactoryController::createFromConfigString(jsonText);
 ```
 
-The exact id types may be aliases or small value classes.
-
-## Snapshot / DTO Boundary
+## Snapshot Boundary
 
 Snapshots are the only data shape the UI should use for rendering.
 
@@ -443,226 +480,173 @@ Snapshots are the only data shape the UI should use for rendering.
 Contains:
 
 - simulation time
-- list of production line snapshots
-- global inventory snapshot
-- event log snapshot
+- inventory snapshot
 - statistics snapshot
-- available recipes and machine types if the UI needs menus
+- production line snapshots
+- event snapshots
 
 ### ProductionLineSnapshot
 
-Contains:
-
-- line id
-- line name
-- ordered machine snapshots
-- optional line-level throughput or blocked status
+Contains line-level display and queue information plus ordered machine
+snapshots.
 
 ### MachineSnapshot
 
-Contains:
-
-- machine id
-- machine name
-- machine type name
-- current state name
-- assigned recipe name or id
-- progress from `0.0` to `1.0`
-- input/output inventory summaries
-- last error message if any
+Contains machine id, display name, type/station kind, state/status, progress,
+health, and other UI-facing machine values.
 
 ### InventorySnapshot
 
-Contains:
-
-- item/product id
-- display name
-- quantity
+Contains item and product quantities by id/name.
 
 ### EventSnapshot
 
-Contains:
-
-- simulation timestamp
-- event type
-- source name
-- message
+Contains event time, type, source, and message data.
 
 ### StatisticsSnapshot
 
-Contains:
+Contains copied aggregate counters from `StatisticsObserver`.
 
-- total products produced by product id
-- total items consumed by item id
-- machine state counts
-- throughput metrics if implemented
+## Controller Contract
 
-## Design Patterns
-
-### Abstraction
-
-The simulation loop depends on abstract interfaces and base classes:
-
-- `Machine`
-- `MachineState`
-- `IFactoryObserver`
-- optionally `Factory`
-
-### Encapsulation
-
-Mutable simulation details are hidden:
-
-- Inventory changes go through inventory methods.
-- Machine state changes go through machine/state methods.
-- Factory internals are not exposed to UI.
-- Controller returns snapshots instead of mutable references.
-
-### Inheritance
-
-Used where the domain has substitutable behavior:
-
-- concrete machines inherit from `Machine`
-- concrete states inherit from `MachineState`
-- `CarbonationFactory` inherits from `Factory`
-- observers inherit from `IFactoryObserver`
-
-### Polymorphism
-
-Factory and production lines update machines through base-class pointers.
-
-State-specific behavior is executed through the `MachineState` interface.
-
-Observer updates are dispatched through the `IFactoryObserver` interface.
-
-### State Pattern
-
-Each machine owns a current `MachineState`.
-
-State objects decide how a machine behaves during `update` and when transitions
-occur. This prevents `Machine` from becoming a large conditional block based on
-state enum values.
-
-### Observer Pattern
-
-`Factory`, `ProductionLine`, or `Machine` publishes `FactoryEvent` values to
-registered `IFactoryObserver` instances.
-
-`EventLog` and `Statistics` subscribe to these events:
-
-```text
-Machine / ProductionLine / Factory
-  -> notify FactoryEvent
-    -> EventLog::onFactoryEvent
-    -> Statistics::onFactoryEvent
-```
-
-The event publisher does not know how logs or statistics are stored.
-
-### MVC
-
-Backend scope:
-
-- Model: simulation domain classes
-- Controller: command API and snapshot API
-
-Out of scope:
-
-- View
-- Dear ImGui
-- rendering
-- input widgets
-
-## Simulation Update Flow
-
-```text
-UI calls FactoryController::tick(deltaTime)
-  -> FactoryController validates deltaTime
-  -> Factory::update(deltaTime)
-    -> ProductionLine::update(deltaTime)
-      -> Machine::update(deltaTime)
-        -> current MachineState::update(machine, deltaTime)
-          -> machine-specific virtual production hooks
-          -> events are emitted when meaningful changes occur
-    -> EventLog observer receives events
-    -> Statistics observer receives events
-  -> UI calls FactoryController::snapshot()
-```
-
-Important rule:
-
-The update flow must not contain concrete machine branches such as:
-
-```cpp
-if (machine->typeName() == "Carbonator") { ... }
-dynamic_cast<Carbonator*>(machine.get());
-```
-
-Machine-specific behavior belongs inside virtual methods of concrete machine
-classes.
-
-## Adding a New Machine Type
-
-To add a new machine:
-
-1. Create a class deriving from `Machine`.
-2. Implement recipe compatibility and production behavior.
-3. Add construction support in a factory method or machine registry used by the
-   controller.
-4. Add optional DTO display metadata.
-
-Do not modify:
-
-- `Factory::update`
-- `ProductionLine::update`
-- state dispatch logic
-- observer dispatch logic
-
-## Controller Contract for UI Team
-
-The UI team should treat the backend as a command/query API.
+The UI should treat `FactoryController` as a command/query API.
 
 Commands mutate simulation state:
 
 - `tick`
-- `reset`
-- `addMachine`
-- `removeMachine`
-- `assignRecipe`
+- `startSimulation`
+- `pauseSimulation`
+- `resumeSimulation`
+- `stopSimulation`
+- `resetSimulation`
+- `setSpeed`
+- `enqueueProductById`
+- `enqueueAutoById`
+- `addLine`
+- `removeLine`
+- `forceBreak`
+- `repairMachine`
+- `instantRepairMachine`
+- `incrementalRepairMachine`
+- `restockItemById`
 - `pauseMachine`
 - `resumeMachine`
+- `setLineScenarioById`
+- `saveCheckpoint`
+- `undo`
 
-Queries return read-only DTOs:
+Queries return read-only data:
 
 - `snapshot`
-- optional `availableRecipes`
-- optional `availableMachineTypes`
+- `getFactorySnapshot`
+- `getEventLogs`
+- `getStatistics`
+- `availableProductDefinitions`
+- `getLineScenario`
+- `canUndo`
+- `historySize`
+- `runtimeContext`
+- `config`
+- `registry`
 
 The UI should not:
 
-- hold raw `Machine*`, `Factory*`, or `Inventory*`
+- hold raw `Factory*`, `Machine*`, `Inventory*`, or `ProductionLine*`
 - mutate Model objects directly
-- infer statistics by scanning internal Model state
-- depend on concrete machine classes
+- infer statistics by scanning mutable Model internals
+- depend on concrete machine subclasses
+- depend on `src/web/bindings.cpp` as a model-layer contract
 
 The backend guarantees:
 
-- stable ids in snapshots
+- stable snapshot value objects
 - no mutable references exposed through DTOs
-- update loop remains polymorphic
-- adding a new machine type does not change factory update logic
+- event-driven log/statistics updates
+- memento-based undo through the controller
+- config-driven factory construction for data-defined scenarios
+- polymorphic machine and state dispatch in the simulation loop
 
-## Initial Implementation Order
+## Design Patterns Used
 
-Recommended order:
+### MVC Boundary
 
-1. Define ids, `Item`, `Product`, `Recipe`, and `Inventory`.
-2. Define `FactoryEvent` and `IFactoryObserver`.
-3. Implement `EventLog` and `Statistics`.
-4. Define `MachineState` and basic states.
-5. Define abstract `Machine` and one or two concrete machines.
-6. Implement `ProductionLine` and `Factory` update loops.
-7. Implement `CarbonationFactory` setup.
-8. Implement DTO snapshots.
-9. Implement `FactoryController`.
-10. Add focused tests for polymorphic update, state transitions, observers, and
-    snapshot immutability.
+- Model: `model/*`, `model/config/*`, `model/events/*`, `model/memento/*`
+- Controller: `FactoryController`, command result types, simulation history
+- View: external UI/web layer using DTO snapshots
+
+### Abstraction and Polymorphism
+
+The update path depends on abstract/base roles:
+
+- `Factory`
+- `Machine`
+- `MachineState`
+- `Observer`
+
+Concrete stations and states are substituted through virtual calls.
+
+### Encapsulation
+
+Mutable state is hidden behind domain methods:
+
+- inventory mutation goes through `Inventory`
+- machine state changes go through `Machine` and `MachineState`
+- event delivery goes through `EventBus`
+- UI reads DTO copies rather than Model objects
+
+### State Pattern
+
+`Machine` owns a `MachineState`. The current state handles update behavior and
+transitions.
+
+### Observer Pattern
+
+`EventBus` publishes `Event` values to observers. `EventLogObserver` and
+`StatisticsObserver` subscribe without changing the publisher.
+
+### Memento Pattern
+
+`Factory` captures and restores `FactoryMemento`. `SimulationHistory` stores
+mementos as opaque checkpoints for controller-level undo.
+
+### Factory / Builder
+
+`FactoryBuilder` and `StationFactory` construct runtime objects from validated
+config definitions. `CarbonationFactory` provides the built-in specialized
+factory.
+
+## Adding a New Config-Defined Product
+
+For data-driven products, update `data/factory_config.json`:
+
+1. Add item definitions if new inputs are needed.
+2. Add a product definition.
+3. Add a recipe with ordered step definitions.
+4. Ensure station definitions accept the recipe step kinds.
+5. Add the recipe to one or more production lines.
+6. Add tests around config loading and production flow.
+
+No `Factory::update` or `ProductionLine::update` change should be needed.
+
+## Adding a New Built-In Station Class
+
+For code-defined stations:
+
+1. Derive a new class from `Machine`.
+2. Implement `role()` and station metadata/compatibility behavior.
+3. Register construction in `StationFactory` or the concrete factory setup.
+4. Add snapshot/display mapping only if the existing metadata is insufficient.
+5. Add focused tests for assignment, update behavior, and snapshots.
+
+Do not modify the factory update loop for concrete station behavior.
+
+## Test Coverage Map
+
+The current tests are organized around:
+
+- model smoke tests for products, recipes, inventory, machines, states, lines,
+  factories, config, memento, observers, and scenarios
+- controller smoke tests for command APIs, config loading, string ids, JSON-only
+  extension behavior, and memento undo
+
+New architecture-affecting work should add tests near the affected layer.
