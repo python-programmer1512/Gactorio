@@ -1,33 +1,61 @@
 #include "controller/FactoryController.hpp"
 
+#include "common/ScenarioType.hpp"
+#include "model/CarbonationFactory.hpp"
+#include "model/FactoryBuilder.hpp"
 #include "model/Machine.hpp"
-#include "model/ProductCatalog.hpp"
+#include "model/config/ConfigIdAdapters.hpp"
+#include "model/config/FactoryConfigLoader.hpp"
 
 #include <algorithm>
 #include <memory>
 #include <string>
 
-// =============================================================================
-// FactoryController.cpp — 백엔드 유스케이스 컨트롤러 구현
-// (1) 명령: 인자 검증 후 Factory/Machine 으로 위임, 결과를 FactoryCommandResult 로.
-// (2) 조회: Model 상태를 읽기 전용 DTO 스냅샷으로 "복사"해 반환(가변 객체 노출 금지).
-// (3) Memento 파사드: createMemento→push / pop→restore.
-// =============================================================================
-
 namespace gactorio {
 
 namespace {
 
-// ---- Model → DTO 스냅샷 변환 헬퍼들 (값 복사) -------------------------------
+std::string fallbackDisplayName(const std::string& id) {
+    return id.empty() ? std::string("Unknown") : id;
+}
 
-// 재고를 스냅샷으로: 원자재/완제품을 모두 (숫자 문자열 ID, 수량)으로 담는다.
-InventorySnapshot makeInventorySnapshot(const Inventory& inventory) {
+InventorySnapshot makeInventorySnapshot(
+    const Inventory& inventory,
+    const config_model::DefinitionRegistry* registry) {
     InventorySnapshot snapshot;
     for (const auto& item : inventory.items()) {
-        snapshot.addItem(std::to_string(static_cast<std::uint64_t>(item.first)), item.second);
+        if (registry != nullptr) {
+            if (const auto* definition = registry->findItem(item.first)) {
+                snapshot.addItem(
+                    item.first,
+                    item.second,
+                    definition->displayName.empty() ? item.first : definition->displayName,
+                    definition->category,
+                    definition->restockable,
+                    definition->restockAmount);
+                continue;
+            }
+        }
+        snapshot.addItem(item.first, item.second, fallbackDisplayName(item.first), "item", false, 0);
     }
     for (const auto& product : inventory.products()) {
-        snapshot.addItem(std::to_string(product.first), product.second);
+        if (registry != nullptr) {
+            if (const auto* definition = registry->findProduct(product.first)) {
+                snapshot.addItem(
+                    product.first,
+                    product.second,
+                    definition->displayName.empty() ? product.first : definition->displayName,
+                    "product",
+                    false,
+                    0);
+                continue;
+            }
+        }
+        if (const auto* definition = findProductDefinition(product.first)) {
+            snapshot.addItem(product.first, product.second, definition->name, definition->tier, false, 0);
+            continue;
+        }
+        snapshot.addItem(product.first, product.second, fallbackDisplayName(product.first), "product", false, 0);
     }
     return snapshot;
 }
@@ -53,8 +81,6 @@ MachineSnapshot makeMachineSnapshot(const Machine& machine) {
         machine.getHealth());
 }
 
-// 라인 스냅샷: 현재 작업명/진행률 + 소속 기계 스냅샷들. 진행률은 라인 작업과 기계
-// 진행 중 더 큰 값을 채택해 UI 막대가 자연스럽게 차오르게 한다.
 ProductionLineSnapshot makeProductionLineSnapshot(const ProductionLine& line) {
     std::string currentName;
     double currentProgress = 0.0;
@@ -63,7 +89,16 @@ ProductionLineSnapshot makeProductionLineSnapshot(const ProductionLine& line) {
         currentProgress = task->getProgressInRoute();
     }
 
-    ProductionLineSnapshot snapshot(line.id(), line.name(), line.queueLength(), currentName, currentProgress);
+    ProductionLineSnapshot snapshot(
+        line.id(),
+        line.name(),
+        line.queueLength(),
+        currentName,
+        currentProgress,
+        scenarioTypeToString(line.scenario()),
+        scenarioTypeToDisplayName(line.scenario()),
+        line.queueCapacityValueOrZero(),
+        line.droppedTaskCount());
     for (const auto& machine : line.machines()) {
         if (machine->hasTask()) {
             currentProgress = std::max(currentProgress, machine->getProgress());
@@ -76,17 +111,56 @@ ProductionLineSnapshot makeProductionLineSnapshot(const ProductionLine& line) {
 
 } // namespace
 
-// 생성 시 기본 음료 공장을 구성(GUI가 켜지면 바로 시뮬레이션 가능).
 FactoryController::FactoryController() {
     createDefaultCarbonationFactory();
 }
 
+FactoryController::FactoryController(std::unique_ptr<Factory> factory) {
+    replaceFactory(std::move(factory));
+}
+
+FactoryController::FactoryController(
+    std::unique_ptr<Factory> factory,
+    std::unique_ptr<config_model::FactoryRuntimeContext> runtimeContext) {
+    replaceFactory(std::move(factory), std::move(runtimeContext));
+}
+
+FactoryController FactoryController::createFromConfigFile(const std::filesystem::path& path) {
+    auto runtimeContext = std::make_unique<config_model::FactoryRuntimeContext>(
+        config_model::FactoryConfigLoader::loadFromFile(path));
+    auto factory = FactoryBuilder::createFactory(*runtimeContext);
+    return FactoryController(std::move(factory), std::move(runtimeContext));
+}
+
+FactoryController FactoryController::createFromConfigString(std::string_view jsonText) {
+    auto runtimeContext = std::make_unique<config_model::FactoryRuntimeContext>(
+        config_model::FactoryConfigLoader::loadFromString(jsonText));
+    auto factory = FactoryBuilder::createFactory(*runtimeContext);
+    return FactoryController(std::move(factory), std::move(runtimeContext));
+}
+
 void FactoryController::createDefaultCarbonationFactory() {
-    factory_ = std::make_unique<CarbonationFactory>();
+    replaceFactory(std::make_unique<CarbonationFactory>(), nullptr);
+}
+
+void FactoryController::replaceFactory(std::unique_ptr<Factory> factory) {
+    replaceFactory(std::move(factory), nullptr);
+}
+
+void FactoryController::replaceFactory(
+    std::unique_ptr<Factory> factory,
+    std::unique_ptr<config_model::FactoryRuntimeContext> runtimeContext) {
+    factory_ = std::move(factory);
+    runtimeContext_ = std::move(runtimeContext);
     history_.clear();
 }
 
 void FactoryController::reset() {
+    if (runtimeContext_) {
+        factory_ = FactoryBuilder::createFactory(*runtimeContext_);
+        history_.clear();
+        return;
+    }
     createDefaultCarbonationFactory();
 }
 
@@ -139,11 +213,12 @@ void FactoryController::setSimulationSpeed(double speedMultiplier) {
 }
 
 FactoryCommandResult FactoryController::enqueueProduct(LineId lineId, ProductType productType) {
-    return enqueueProductById(lineId, static_cast<ProductId>(productType));
+    if (productType == ProductType::Unknown) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+    return enqueueProductById(lineId, config_model::toProductId(productType));
 }
 
-// 특정 라인에 제품 enqueue: 라인 존재 확인 → 카탈로그로 Product 생성 → 재료 소비+큐 등록.
-// 각 실패 지점을 NotFound/InvalidRequest 로 구분해 반환(전형적 명령 처리 패턴).
 FactoryCommandResult FactoryController::enqueueProductById(LineId lineId, ProductId productId) {
     if (!factory_) {
         return FactoryCommandResult::InvalidRequest;
@@ -154,26 +229,28 @@ FactoryCommandResult FactoryController::enqueueProductById(LineId lineId, Produc
         return FactoryCommandResult::NotFound;
     }
 
-    auto product = createProduct(productId);
+    auto product = factory_->createProductForQueue(productId);
     if (product == nullptr) {
         return FactoryCommandResult::InvalidRequest;
     }
-    return factory_->enqueueProduct(line->id(), std::move(product))
-        ? FactoryCommandResult::Success    // 재료 충분 → 성공
-        : FactoryCommandResult::InvalidRequest;  // 재료 부족 등
+
+    switch (factory_->enqueueProduct(line->id(), std::move(product))) {
+    case EnqueueResult::Accepted:
+        return FactoryCommandResult::Success;
+    case EnqueueResult::LostOverflow:
+        return FactoryCommandResult::OverflowDropped;
+    case EnqueueResult::RejectedFull:
+    default:
+        return FactoryCommandResult::InvalidRequest;
+    }
 }
 
-LineId FactoryController::enqueueAuto(ProductType productType) {
-    return enqueueAutoById(static_cast<ProductId>(productType));
-}
-
-// 자동 enqueue: 큐가 가장 짧은 라인을 골라 그 라인에 enqueue. 부하 분산용.
 LineId FactoryController::enqueueAutoById(ProductId productId) {
     if (!factory_) return 0;
     const auto& lines = factory_->productionLines();
     if (lines.empty()) return 0;
 
-    // 큐가 가장 짧은 라인을 선택. 동률이면 먼저 나온 라인이 이김.
+    // Pick the line with the smallest queue. Ties broken by order (first wins).
     const ProductionLine* best = nullptr;
     std::size_t bestQ = 0;
     for (const auto& l : lines) {
@@ -191,7 +268,11 @@ LineId FactoryController::enqueueAutoById(ProductId productId) {
 
 LineId FactoryController::addLine() {
     if (!factory_) return 0;
-    return factory_->addDynamicLine();
+    auto* carbonationFactory = dynamic_cast<CarbonationFactory*>(factory_.get());
+    if (carbonationFactory == nullptr) {
+        return 0;
+    }
+    return carbonationFactory->addDynamicLine();
 }
 
 FactoryCommandResult FactoryController::removeLine(LineId id) {
@@ -201,8 +282,6 @@ FactoryCommandResult FactoryController::removeLine(LineId id) {
         : FactoryCommandResult::InvalidRequest;
 }
 
-// 기계 대상 명령들의 공통 패턴: 공장 확인 → 기계 찾기(없으면 NotFound) → 기계에 위임.
-// (forceBreak/repairMachine/incrementalRepairMachine/pause/resumeMachine 모두 동일 형태.)
 FactoryCommandResult FactoryController::forceBreak(MachineId id) {
     if (!factory_) {
         return FactoryCommandResult::InvalidRequest;
@@ -269,20 +348,25 @@ FactoryCommandResult FactoryController::restockItem(ItemType itemType, int amoun
         : FactoryCommandResult::InvalidRequest;
 }
 
-void FactoryController::setRandomBreakdownsEnabled(bool enabled) {
-    if (factory_) {
-        factory_->setRandomBreakdownsEnabled(enabled);
+FactoryCommandResult FactoryController::restockItemById(const std::string& itemId) {
+    if (!factory_) {
+        return FactoryCommandResult::InvalidRequest;
     }
-}
 
-bool FactoryController::randomBreakdownsEnabled() const {
-    return factory_ != nullptr && factory_->randomBreakdownsEnabled();
-}
-
-void FactoryController::clearEventLog() {
-    if (factory_) {
-        factory_->clearEventLog();
+    if (const auto* currentRegistry = registry()) {
+        const auto* item = currentRegistry->findItem(itemId);
+        if (item == nullptr || !item->restockable || item->restockAmount <= 0) {
+            return FactoryCommandResult::InvalidRequest;
+        }
+        factory_->inventory().addItem(itemId, item->restockAmount);
+        return FactoryCommandResult::Success;
     }
+
+    const auto itemType = config_model::itemTypeFromId(itemId);
+    if (!itemType.has_value()) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+    return restockItem(*itemType, 5);
 }
 
 FactoryCommandResult FactoryController::pauseMachine(MachineId id) {
@@ -313,6 +397,30 @@ FactoryCommandResult FactoryController::resumeMachine(MachineId id) {
     return FactoryCommandResult::Success;
 }
 
+FactoryCommandResult FactoryController::setLineScenario(LineId lineId, ScenarioType scenario) {
+    if (!factory_) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+    return factory_->setLineScenario(lineId, scenario)
+        ? FactoryCommandResult::Success
+        : FactoryCommandResult::NotFound;
+}
+
+FactoryCommandResult FactoryController::setLineScenarioById(LineId lineId, const std::string& scenarioId) {
+    const auto scenario = scenarioTypeFromString(scenarioId);
+    if (!scenario.has_value()) {
+        return FactoryCommandResult::InvalidRequest;
+    }
+    return setLineScenario(lineId, *scenario);
+}
+
+std::optional<ScenarioType> FactoryController::getLineScenario(LineId lineId) const {
+    if (!factory_) {
+        return std::nullopt;
+    }
+    return factory_->getLineScenario(lineId);
+}
+
 FactorySnapshot FactoryController::getFactorySnapshot() const {
     return snapshot();
 }
@@ -336,8 +444,6 @@ StatisticsSnapshot FactoryController::getStatistics() const {
     return makeStatisticsSnapshot(factory_->statistics());
 }
 
-// 전체 공장 스냅샷: 시간/재고/통계 + 라인별 스냅샷 + 이벤트 로그를 값 복사로 구성.
-// 공장이 없으면 빈 스냅샷. (가변 Model 객체는 절대 반환하지 않음 = 캡슐화 경계.)
 FactorySnapshot FactoryController::snapshot() const {
     if (!factory_) {
         return FactorySnapshot(0.0, InventorySnapshot(), StatisticsSnapshot(0));
@@ -345,7 +451,7 @@ FactorySnapshot FactoryController::snapshot() const {
 
     FactorySnapshot snapshot(
         factory_->simulationTime(),
-        makeInventorySnapshot(factory_->inventory()),
+        makeInventorySnapshot(factory_->inventory(), registry()),
         makeStatisticsSnapshot(factory_->statistics()));
 
     for (const auto& line : factory_->productionLines()) {
@@ -360,16 +466,43 @@ FactorySnapshot FactoryController::snapshot() const {
     return snapshot;
 }
 
+void FactoryController::clearEventLog() {
+    if (factory_) {
+        factory_->clearEventLog();
+    }
+}
+
+std::vector<ProductDefinition> FactoryController::availableProductDefinitions() const {
+    if (const auto* currentRegistry = registry()) {
+        return productDefinitionsFromRegistry(*currentRegistry);
+    }
+    return productDefinitions();
+}
+
+bool FactoryController::hasRuntimeContext() const noexcept {
+    return runtimeContext_ != nullptr;
+}
+
+const config_model::FactoryRuntimeContext* FactoryController::runtimeContext() const noexcept {
+    return runtimeContext_.get();
+}
+
+const config_model::FactoryConfig* FactoryController::config() const noexcept {
+    return runtimeContext_ == nullptr ? nullptr : &runtimeContext_->config();
+}
+
+const config_model::DefinitionRegistry* FactoryController::registry() const noexcept {
+    return runtimeContext_ == nullptr ? nullptr : &runtimeContext_->registry();
+}
+
 // =============================================================================
-// Memento 파사드 — Originator(factory_)와 Caretaker(history_)를 잇는 얇은 층.
+// Memento façade — Caretaker access from the public Controller surface.
 // =============================================================================
-// 체크포인트 저장: 공장에게 메멘토를 만들게 해 히스토리 스택에 push.
 void FactoryController::saveCheckpoint() {
     if (!factory_) return;
     history_.push(factory_->createMemento());
 }
 
-// 되돌리기: 히스토리에서 최근 메멘토를 pop 해 공장에 복원 요청.
 bool FactoryController::undo() {
     if (!factory_) return false;
     auto m = history_.pop();

@@ -1,20 +1,30 @@
 #include "model/ProductionLine.hpp"
 
-#include <algorithm>
-#include <utility>
+#include "model/Inventory.hpp"
 
-// =============================================================================
-// ProductionLine.cpp — 라인의 작업 큐 운영과 기계 배정 구현
-// 핵심: assignAvailableTask() 는 "유휴 기계 × 큐의 작업" 을 역할(role)로만 매칭한다.
-//       구체 기계 타입을 절대 보지 않는다(다형성/OCP 유지).
-// =============================================================================
+#include <algorithm>
+#include <iterator>
+#include <string>
+#include <utility>
 
 namespace gactorio {
 
 namespace {
 
-// 어떤 작업이 이미 (이 라인의) 어떤 기계에 배정돼 있는지 검사. 같은 작업이 두 기계에
-// 동시에 배정되는 것을 막기 위함.
+LineScenarioConfig lineScenarioConfigFor(ScenarioType scenario) {
+    switch (scenario) {
+    case ScenarioType::NormalFlow:
+        return {scenario, std::nullopt, 1.0, std::nullopt, std::nullopt};
+    case ScenarioType::RandomBreakdowns:
+        return {scenario, std::nullopt, 1.0, 0.06, std::nullopt};
+    case ScenarioType::Bottleneck:
+        return {scenario, MachineRole::Bottling, 0.5, std::nullopt, std::nullopt};
+    case ScenarioType::Overflow:
+        return {scenario, std::nullopt, 1.0, std::nullopt, 2};
+    }
+    return {ScenarioType::NormalFlow, std::nullopt, 1.0, std::nullopt, std::nullopt};
+}
+
 bool isAssignedToMachine(
     const std::vector<std::unique_ptr<Machine>>& machines,
     const ProductionTask* task) {
@@ -24,6 +34,12 @@ bool isAssignedToMachine(
         [task](const std::unique_ptr<Machine>& machine) {
             return machine->currentTask() == task;
         });
+}
+
+void rollbackInputs(Inventory& inventory, const std::vector<ItemRequirement>& inputs) {
+    for (const auto& input : inputs) {
+        inventory.addItem(input.itemId(), input.quantity());
+    }
 }
 
 } // namespace
@@ -39,11 +55,54 @@ const std::string& ProductionLine::name() const {
     return name_;
 }
 
+const std::string& ProductionLine::definitionId() const noexcept {
+    return definitionId_;
+}
+
 const std::vector<std::unique_ptr<Machine>>& ProductionLine::machines() const {
     return machines_;
 }
 
-// 버스 연결을 라인 자신과 소속 기계 전부에 전파.
+ScenarioType ProductionLine::scenario() const {
+    return scenario_;
+}
+
+ScenarioType ProductionLine::getScenario() const {
+    return scenario();
+}
+
+void ProductionLine::setScenario(ScenarioType scenario) {
+    scenario_ = scenario;
+
+    for (auto& machine : machines_) {
+        machine->resetScenarioModifiers();
+    }
+    resetQueueCapacity();
+
+    const auto config = lineScenarioConfigFor(scenario_);
+    if (config.breakdownProbabilityOverride.has_value()) {
+        for (auto& machine : machines_) {
+            machine->setScenarioBreakdownProbabilityOverride(config.breakdownProbabilityOverride);
+        }
+    }
+
+    if (config.bottleneckRole.has_value()) {
+        for (auto& machine : machines_) {
+            if (machine->role() == *config.bottleneckRole) {
+                machine->setScenarioSpeedMultiplier(config.bottleneckSpeedMultiplier);
+            }
+        }
+    }
+
+    if (config.queueCapacity.has_value()) {
+        setQueueCapacity(*config.queueCapacity);
+    }
+}
+
+void ProductionLine::setDefinitionId(std::string definitionId) {
+    definitionId_ = std::move(definitionId);
+}
+
 void ProductionLine::setEventBus(EventBus* eventBus) {
     eventBus_ = eventBus;
     for (auto& machine : machines_) {
@@ -51,10 +110,23 @@ void ProductionLine::setEventBus(EventBus* eventBus) {
     }
 }
 
-// 제품을 작업(ProductionTask)으로 감싸 큐 뒤에 추가. TaskEnqueued 이벤트 발행.
-void ProductionLine::enqueueProduct(std::shared_ptr<Product> product) {
+EnqueueResult ProductionLine::enqueueProduct(std::shared_ptr<Product> product) {
     if (product == nullptr) {
-        return;
+        return EnqueueResult::RejectedFull;
+    }
+
+    if (queueCapacity_.has_value() && taskQueue_.size() >= *queueCapacity_) {
+        ++droppedTaskCount_;
+        if (eventBus_ != nullptr) {
+            eventBus_->publish(Event(
+                0.0,
+                EventType::Info,
+                id_,
+                "Line " + std::to_string(id_) + " overflow: product task dropped because queue capacity was exceeded"));
+        }
+        return scenario_ == ScenarioType::Overflow
+            ? EnqueueResult::LostOverflow
+            : EnqueueResult::RejectedFull;
     }
 
     auto task = std::make_shared<ProductionTask>(std::move(product));
@@ -62,35 +134,62 @@ void ProductionLine::enqueueProduct(std::shared_ptr<Product> product) {
         eventBus_->publish(Event(0.0, EventType::TaskEnqueued, 0, name_ + " enqueued " + task->getProductName()));
     }
     taskQueue_.push_back(std::move(task));
+    return EnqueueResult::Accepted;
 }
 
 std::size_t ProductionLine::queueLength() const {
     return taskQueue_.size();
 }
 
+std::optional<std::size_t> ProductionLine::queueCapacity() const {
+    return queueCapacity_;
+}
+
+std::size_t ProductionLine::queueCapacityValueOrZero() const {
+    return queueCapacity_.value_or(0);
+}
+
+void ProductionLine::setQueueCapacity(std::size_t capacity) {
+    queueCapacity_ = capacity;
+}
+
+void ProductionLine::resetQueueCapacity() {
+    queueCapacity_.reset();
+}
+
+std::size_t ProductionLine::droppedTaskCount() const {
+    return droppedTaskCount_;
+}
+
+void ProductionLine::setDroppedTaskCount(std::size_t count) {
+    droppedTaskCount_ = count;
+}
+
 std::shared_ptr<ProductionTask> ProductionLine::currentTask() const {
     if (taskQueue_.empty()) {
         return nullptr;
     }
-    return taskQueue_.front();   // 큐 맨 앞(가장 먼저 들어온 작업)
+    return taskQueue_.front();
 }
 
-// 기계 추가: 버스 연결 후 소유 이전.
 void ProductionLine::addMachine(std::unique_ptr<Machine> machine) {
     machine->setEventBus(eventBus_);
     machines_.push_back(std::move(machine));
+    setScenario(scenario_);
 }
 
-// 유휴 기계마다, 큐의 작업 중 "현재 단계 역할이 이 기계 역할과 맞고 아직 미배정"인
-// 첫 작업을 찾아 배정한다. 타입 분기 없이 역할(role)만으로 매칭(다형성).
 void ProductionLine::assignAvailableTask() {
+    assignAvailableTask(nullptr);
+}
+
+void ProductionLine::assignAvailableTask(Inventory* inventory) {
     if (taskQueue_.empty()) {
         return;
     }
 
     for (auto& machine : machines_) {
         if (!machine->canAcceptTask()) {
-            continue;   // 유휴+HP>0+작업없음 이 아니면 건너뜀
+            continue;
         }
 
         for (const auto& task : taskQueue_) {
@@ -98,23 +197,62 @@ void ProductionLine::assignAvailableTask() {
                 continue;
             }
             if (isAssignedToMachine(machines_, task.get())) {
-                continue;   // 이미 다른 기계가 처리 중
+                continue;
             }
 
-            const auto* step = task->currentStep();
-            if (step != nullptr && machine->canProcess(step->requiredRole())) {
-                machine->assignTask(task);   // 역할 일치 → 배정
-                break;                        // 이 기계는 한 작업만
+            const auto& stepKind = task->currentStepKind();
+            if (stepKind.empty() || !machine->acceptsStep(stepKind)) {
+                continue;
+            }
+
+            bool consumedInputs = false;
+            if (task->usesStepLevelIO() && !task->currentStepInputsConsumed()) {
+                const auto& inputs = task->currentStepInputs();
+                if (inventory == nullptr) {
+                    if (!inputs.empty()) {
+                        continue;
+                    }
+                } else if (!inventory->consume(inputs)) {
+                    continue;
+                }
+                consumedInputs = inventory != nullptr && !inputs.empty();
+            }
+
+            if (machine->assignTask(task)) {
+                if (task->usesStepLevelIO()) {
+                    task->markCurrentStepInputsConsumed();
+                }
+                break;
+            }
+
+            if (consumedInputs && inventory != nullptr) {
+                rollbackInputs(*inventory, task->currentStepInputs());
             }
         }
     }
 }
 
-// 완료된 작업들을 큐에서 빼서 그 제품 ID 목록을 반환(Factory 가 재고에 더함).
+std::vector<StepOutput> ProductionLine::collectPendingStepOutputs() {
+    std::vector<StepOutput> outputs;
+    for (const auto& task : taskQueue_) {
+        if (task == nullptr) {
+            continue;
+        }
+        auto taskOutputs = task->collectPendingStepOutputs();
+        outputs.insert(
+            outputs.end(),
+            std::make_move_iterator(taskOutputs.begin()),
+            std::make_move_iterator(taskOutputs.end()));
+    }
+    return outputs;
+}
+
 std::vector<ProductId> ProductionLine::collectCompletedProducts() {
     for (auto it = taskQueue_.begin(); it != taskQueue_.end();) {
         if (*it != nullptr && (*it)->isCompleted()) {
-            completedProducts_.push_back((*it)->getProductId());
+            if (!(*it)->usesStepLevelIO() || !(*it)->hasStepProductOutput()) {
+                completedProducts_.push_back((*it)->getProductId());
+            }
             it = taskQueue_.erase(it);
         } else {
             ++it;
@@ -144,7 +282,6 @@ const Machine* ProductionLine::findMachine(MachineId id) const {
     return nullptr;
 }
 
-// 라인 단독 갱신(테스트/단독 사용 경로). 실제 런타임은 Factory::update 가 단계를 조율한다.
 void ProductionLine::update(double deltaTime) {
     assignAvailableTask();
     for (auto& machine : machines_) {
@@ -154,8 +291,7 @@ void ProductionLine::update(double deltaTime) {
     assignAvailableTask();
 }
 
-// ---- Memento 지원 ----------------------------------------------------------
-// 큐에 남은 작업들의 제품 ID 목록(복원 시 다시 enqueue 하기 위함).
+// ---- Memento support --------------------------------------------------------
 std::vector<ProductId> ProductionLine::pendingProductIds() const {
     std::vector<ProductId> out;
     out.reserve(taskQueue_.size());
@@ -163,6 +299,39 @@ std::vector<ProductId> ProductionLine::pendingProductIds() const {
         if (task != nullptr) out.push_back(task->getProductId());
     }
     return out;
+}
+
+std::vector<ProductionTaskMemento> ProductionLine::pendingTaskMementos() const {
+    std::vector<ProductionTaskMemento> out;
+    out.reserve(taskQueue_.size());
+    for (const auto& task : taskQueue_) {
+        if (task != nullptr) {
+            out.push_back(task->createMemento());
+        }
+    }
+    return out;
+}
+
+std::optional<std::size_t> ProductionLine::taskIndexFor(const ProductionTask* task) const {
+    if (task == nullptr) {
+        return std::nullopt;
+    }
+
+    for (std::size_t i = 0; i < taskQueue_.size(); ++i) {
+        if (taskQueue_[i].get() == task) {
+            return i;
+        }
+    }
+    return std::nullopt;
+}
+
+EnqueueResult ProductionLine::enqueueTask(std::shared_ptr<ProductionTask> task) {
+    if (task == nullptr) {
+        return EnqueueResult::RejectedFull;
+    }
+
+    taskQueue_.push_back(std::move(task));
+    return EnqueueResult::Accepted;
 }
 
 void ProductionLine::clearQueue() {

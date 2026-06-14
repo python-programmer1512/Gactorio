@@ -1,25 +1,25 @@
 // =============================================================================
-// FactoryPanel — 생산라인을 "컨베이어 벨트 + 기계 카드" 형태로 그리는 패널 (중앙)
-// -----------------------------------------------------------------------------
-// 스냅샷의 모든 LineView 를 렌더한다. 카드/버튼은 매 렌더마다 새로 만들어지므로,
-// 개별 버튼에 리스너를 달지 않고 #factory-content 에 위임(delegation) 리스너 하나만 둔다.
+// FactoryPanel - production lines rendered as conveyor-belt shop-floor views.
 //
-// 상호작용 중(드래그/슬라이더/휠 스크롤) 에는 #isLineInteracting 플래그를 세워
-// innerHTML 재구성을 잠시 멈춘다 — 그래야 드래그 도중 DOM 이 갈아엎혀 끊기지 않는다.
-//
-// MVC: 버튼(라인추가/제거/수리) → Module.Controller 명령. 그리기 → snapshot 기반.
-// (드래그/스크롤 같은 순수 표시 상호작용은 컨트롤러를 부르지 않고 View 내부에서만 처리.)
+// Renders every LineView from the snapshot. Dynamic buttons are rebuilt with
+// each render, so actions use one delegated pointerdown listener scoped to
+// #factory-content.
 // =============================================================================
 
 import { UIComponent } from '../UIComponent.js';
 import { esc } from '../util.js';
 
+const SCENARIO_OPTIONS = [
+    { id: 'normal-flow', label: 'Normal Flow' },
+    { id: 'random-breakdowns', label: 'Random Breakdowns' },
+];
+
 export class FactoryPanel extends UIComponent {
-    #ctrl;                          // Module.Controller (명령 대상)
+    #ctrl;
     #selection;
-    #isLineInteracting = false;     // 사용자가 라인과 상호작용 중인가(렌더 일시중지 플래그)
-    #lineInteractionTimer = 0;      // 상호작용 종료를 늦추는 타이머 핸들
-    #scrollLeftByLine = new Map();  // 라인별 가로 스크롤 위치 기억(재렌더 후 복원용)
+    #isLineInteracting = false;
+    #lineInteractionTimer = 0;
+    #scrollLeftByLine = new Map();
 
     constructor(controller, selection = { machineId: null }) {
         super();
@@ -27,9 +27,7 @@ export class FactoryPanel extends UIComponent {
         this.#selection = selection;
     }
 
-    // bind(): 라인 추가 버튼 + 위임 리스너들(버튼 동작, 드래그/휠/슬라이더 스크롤) 연결.
     bind() {
-        // 마우스로 컨베이어 라인을 좌우 드래그 스크롤(구형 브라우저/마우스 경로).
         const beginMouseDrag = (scroller, startX) => {
             const startScrollLeft = scroller.scrollLeft;
             this.#holdLineInteraction();
@@ -51,7 +49,6 @@ export class FactoryPanel extends UIComponent {
             window.addEventListener('mouseup', onUp);
         };
 
-        // 포인터(마우스/터치/펜) 통합 드래그 스크롤. 가능하면 포인터 캡처로 부드럽게.
         const beginPointerDrag = (scroller, event) => {
             const startX = event.clientX;
             const startScrollLeft = scroller.scrollLeft;
@@ -88,15 +85,17 @@ export class FactoryPanel extends UIComponent {
             window.addEventListener('pointercancel', onUp);
         };
 
-        // 라인 추가 버튼 → 컨트롤러 addLine 명령(새 4스테이션 라인 생성).
         document.getElementById('btn-add-line').addEventListener('click', () => {
             const id = this.#ctrl.addLine();
             console.log('[gactorio] addLine -> id', id);
         });
 
-        // 위임 리스너: 카드/버튼이 매 렌더 새로 생기므로 부모에서 한 번만 처리.
-        // data-act 속성으로 어떤 명령인지 구분해 컨트롤러로 보낸다.
         document.getElementById('factory-content').addEventListener('pointerdown', e => {
+            if (e.target.closest('.scenario-select')) {
+                this.#holdLineInteraction();
+                return;
+            }
+
             const btn = e.target.closest('button[data-act]');
             if (btn && btn.disabled) return;
 
@@ -108,16 +107,6 @@ export class FactoryPanel extends UIComponent {
                         console.log('[gactorio] removeLine', id, '->', this.#ctrl.removeLine(id));
                         break;
                     }
-                    case 'repair': {
-                        const id = parseInt(btn.dataset.machine, 10);
-                        console.log('[gactorio] repair (+5 HP)', id, '->', this.#ctrl.repair(id));
-                        break;
-                    }
-                    case 'repairAll': {
-                        const id = parseInt(btn.dataset.machine, 10);
-                        console.log('[gactorio] repairAll', id, '->', this.#ctrl.repairAll(id));
-                        break;
-                    }
                     }
                 } catch (err) {
                     console.error('[gactorio] factory action threw:', err);
@@ -127,13 +116,33 @@ export class FactoryPanel extends UIComponent {
 
             const slider = e.target.closest('.conveyor-slider');
             if (slider) {
+                e.preventDefault();
                 this.#holdLineInteraction();
+                const updateSlider = event => {
+                    const line = slider.closest('.line');
+                    const scroller = line?.querySelector('.conveyor-line');
+                    if (!scroller) return;
+
+                    const rect = slider.getBoundingClientRect();
+                    const ratio = rect.width <= 0
+                        ? 0
+                        : Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+                    const max = Number(slider.max || 0);
+                    const nextValue = Math.round(ratio * max);
+                    slider.value = String(nextValue);
+                    scroller.scrollLeft = nextValue;
+                    this.#rememberScroll(scroller);
+                    this.#syncDragbar(scroller);
+                };
                 const onRelease = () => {
                     this.#releaseLineInteractionSoon();
+                    window.removeEventListener('pointermove', updateSlider);
                     window.removeEventListener('pointerup', onRelease);
                     window.removeEventListener('pointercancel', onRelease);
                     window.removeEventListener('mouseup', onRelease);
                 };
+                updateSlider(e);
+                window.addEventListener('pointermove', updateSlider);
                 window.addEventListener('pointerup', onRelease);
                 window.addEventListener('pointercancel', onRelease);
                 window.addEventListener('mouseup', onRelease);
@@ -178,12 +187,42 @@ export class FactoryPanel extends UIComponent {
         document.getElementById('factory-content').addEventListener('input', e => {
             const slider = e.target.closest('.conveyor-slider');
             if (!slider) return;
-            const scroller = slider.closest('.conveyor-line');
+            const line = slider.closest('.line');
+            const scroller = line?.querySelector('.conveyor-line');
             if (!scroller) return;
             scroller.scrollLeft = Number(slider.value);
             this.#rememberScroll(scroller);
             this.#syncDragbar(scroller);
             this.#holdLineInteraction(350);
+        });
+
+        document.getElementById('factory-content').addEventListener('change', e => {
+            const select = e.target.closest('.scenario-select');
+            if (!select) return;
+
+            const lineId = parseInt(select.dataset.line, 10);
+            const scenarioId = select.value;
+            try {
+                const ok = this.#ctrl.setLineScenario(lineId, scenarioId);
+                if (!ok) {
+                    console.warn('[gactorio] setLineScenario failed', lineId, scenarioId);
+                }
+            } catch (err) {
+                console.warn('[gactorio] setLineScenario threw:', err);
+            }
+            this.#releaseLineInteractionSoon();
+        });
+
+        document.getElementById('factory-content').addEventListener('focusin', e => {
+            if (e.target.closest('.scenario-select')) {
+                this.#holdLineInteraction();
+            }
+        });
+
+        document.getElementById('factory-content').addEventListener('focusout', e => {
+            if (e.target.closest('.scenario-select')) {
+                this.#releaseLineInteractionSoon();
+            }
         });
 
         document.getElementById('factory-content').addEventListener('scroll', e => {
@@ -195,8 +234,6 @@ export class FactoryPanel extends UIComponent {
         }, true);
     }
 
-    // render(): 상호작용 중이면 DOM 재구성을 건너뛰고(드래그 끊김 방지) 스크롤바만 동기화.
-    // 평상시엔 모든 라인 HTML 을 새로 만들어 채우고, 스크롤 위치를 복원한다.
     render(snap) {
         if (this.#isLineInteracting) {
             this.#syncDragbars();
@@ -213,10 +250,16 @@ export class FactoryPanel extends UIComponent {
         this.#syncDragbars();
     }
 
-    // 라인 1개의 HTML 생성: 헤더(이름/큐·가동수/Disappear 버튼) + 기계 카드들의 벨트.
-    // Disappear(라인 제거) 버튼은 라인이 비어 있고(isRemovable) 라인이 2개 이상일 때만 활성.
     #lineHtml(line, totalLines) {
         const activeStations = line.machines.filter(m => m.state === 'Working' || m.state === 'Maintenance').length;
+        const scenarioId = line.scenarioId || 'normal-flow';
+        const scenarioName = line.scenarioName || 'Normal Flow';
+        const queueCapacity = Number(line.queueCapacity || 0);
+        const droppedTaskCount = Number(line.droppedTaskCount || 0);
+        const capacityText = queueCapacity === 0 ? 'Unlimited' : String(queueCapacity);
+        const scenarioOptions = SCENARIO_OPTIONS.map(option => `
+            <option value="${esc(option.id)}" ${option.id === scenarioId ? 'selected' : ''}>${esc(option.label)}</option>
+        `).join('');
 
         const canDisappear = line.isRemovable && totalLines > 1;
         const disappearTitle = totalLines <= 1
@@ -240,20 +283,34 @@ export class FactoryPanel extends UIComponent {
                 <div class="line-header">
                     <div>
                         <h3>${esc(line.name)}</h3>
-                        <div class="meta">Queue/WIP: <b>${line.queueLength}</b> &middot; Active stations: <b>${activeStations}</b></div>
+                        <div class="scenario-control">
+                            <label>
+                                Scenario
+                                <select class="scenario-select" data-line="${line.id}" aria-label="${esc(line.name)} scenario">
+                                    ${scenarioOptions}
+                                </select>
+                            </label>
+                            <span>${esc(scenarioName)}</span>
+                        </div>
+                        <div class="meta">
+                            Queue/WIP: <b>${line.queueLength}</b> &middot;
+                            Active stations: <b>${activeStations}</b> &middot;
+                            Capacity: <b>${esc(capacityText)}</b> &middot;
+                            Dropped: <b>${droppedTaskCount}</b>
+                        </div>
                     </div>
                     ${disappearBtn}
                 </div>
-                <div class="conveyor-line" data-line-id="${line.id}" style="--belt-width:${beltWidth}px">
-                    <div class="conveyor-belt" aria-hidden="true"></div>
-                    <div class="machine-flow">${machineCards}</div>
-                    <input class="conveyor-slider" type="range" min="0" max="0" value="0" aria-label="Line scroll">
+                <div class="conveyor-shell">
+                    <div class="conveyor-line" data-line-id="${line.id}" style="--belt-width:${beltWidth}px">
+                        <div class="conveyor-belt" aria-hidden="true"></div>
+                        <div class="machine-flow">${machineCards}</div>
+                    </div>
+                    <input class="conveyor-slider" type="range" min="0" max="0" value="0" aria-label="${esc(line.name)} horizontal scroll">
                 </div>
             </div>`;
     }
 
-    // 기계 1대의 카드 HTML: 상태 배지(색은 CSS의 state-*/machine-* 클래스), 진행 막대,
-    // HP 막대, Repair(+5) 버튼, 그리고 고장(Broken)일 때만 Repair All 버튼.
     #machineCard(m, index) {
         const stateCls = `state-${m.state.toLowerCase()}`;
         const selectedCls = this.#selection.machineId === m.id ? ' selected' : '';
@@ -261,9 +318,6 @@ export class FactoryPanel extends UIComponent {
         const progress = Math.max(0, Math.min(1, m.progress));
         const progressPct = Math.round(progress * 100);
         const hpPct = Math.max(0, Math.min(100, m.health));
-        const repairAllBtn = m.state === 'Broken'
-            ? `<button class="small danger" data-act="repairAll" data-machine="${m.id}">Repair All</button>`
-            : '';
 
         return `
             <article class="${cardCls}" data-machine-id="${m.id}">
@@ -283,15 +337,9 @@ export class FactoryPanel extends UIComponent {
                     <span>${m.health.toFixed(0)}</span>
                 </div>
                 <div class="hp-meter"><span style="width:${hpPct.toFixed(0)}%"></span></div>
-                <div class="machine-actions">
-                    <button class="small" data-act="repair" data-machine="${m.id}">Repair</button>
-                    ${repairAllBtn}
-                </div>
             </article>`;
     }
 
-    // 아래는 모두 "컨베이어 가로 스크롤" 보조 기능(순수 View 동작, 컨트롤러와 무관).
-    // 모든 라인의 스크롤바(슬라이더)를 현재 스크롤 위치에 맞춰 갱신.
     #syncDragbars() {
         for (const scroller of document.querySelectorAll('.conveyor-line')) {
             this.#syncDragbar(scroller);
@@ -304,8 +352,6 @@ export class FactoryPanel extends UIComponent {
         this.#scrollLeftByLine.set(lineId, scroller.scrollLeft);
     }
 
-    // 상호작용 시작 표시. durationMs>0 이면 그 시간 뒤 자동 해제(휠/슬라이더용),
-    // 0 이면 명시적 해제(드래그 종료)까지 유지.
     #holdLineInteraction(durationMs = 0) {
         this.#isLineInteracting = true;
         if (this.#lineInteractionTimer !== 0) {
@@ -320,7 +366,6 @@ export class FactoryPanel extends UIComponent {
         }
     }
 
-    // 드래그가 끝나면 약간의 지연 후 상호작용 해제(렌더 재개). 짧은 여유로 깜빡임 방지.
     #releaseLineInteractionSoon() {
         if (this.#lineInteractionTimer !== 0) {
             clearTimeout(this.#lineInteractionTimer);
@@ -339,9 +384,8 @@ export class FactoryPanel extends UIComponent {
         }
     }
 
-    // 한 라인의 슬라이더 max/value 를 스크롤 가능 폭에 맞춰 동기화. 스크롤 여백이 없으면 숨김.
     #syncDragbar(scroller) {
-        const slider = scroller.querySelector('.conveyor-slider');
+        const slider = scroller.closest('.conveyor-shell')?.querySelector('.conveyor-slider');
         if (!slider) return;
 
         const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;

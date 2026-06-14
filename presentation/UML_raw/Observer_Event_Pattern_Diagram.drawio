@@ -49,7 +49,7 @@
         <mxCell id="EventType" parent="pkg-subscribers" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacing=8;" value="&lt;&lt;enum&gt;&gt;&lt;br&gt;&lt;b&gt;EventType&lt;/b&gt;&lt;hr&gt;Info&lt;br&gt;TaskEnqueued&lt;br&gt;TaskStarted&lt;br&gt;StepCompleted&lt;br&gt;ProductCompleted&lt;br&gt;MachineBroken&lt;br&gt;MachineRepaired&lt;br&gt;StateChanged&lt;br&gt;InputsConsumed&lt;br&gt;MachinePaused" vertex="1">
           <mxGeometry height="210" width="250" x="-80" y="57.5" as="geometry" />
         </mxCell>
-        <mxCell id="e-bus-observer" edge="1" parent="1" source="EventBus" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;" target="Observer" value="observers_ non-owning">
+        <mxCell id="e-bus-observer" edge="1" parent="pkg-subscribers" source="EventBus" style="endArrow=open;html=1;rounded=0;strokeColor=#000000;exitX=1.001;exitY=0.304;exitDx=0;exitDy=0;exitPerimeter=0;" target="Observer" value="observers_ non-owning">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e-stat-eventtype" edge="1" parent="pkg-subscribers" source="StatisticsObserver" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=0.995;entryY=0.93;entryDx=0;entryDy=0;entryPerimeter=0;" target="EventType" value="switch(event.type())">

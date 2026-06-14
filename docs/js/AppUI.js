@@ -1,19 +1,19 @@
 // =============================================================================
-// AppUI — 패널 합성기(compositor)
-// -----------------------------------------------------------------------------
-// ImGui 시절 src/views/AppUI.h 의 대응물: 패널 목록을 들고 있다가 render() 를 등록된
-// 모든 패널에 뿌린다. 새 패널을 추가해도 AppUI 코드는 고칠 필요가 없다(OCP) — 그냥
-// addPanel() 로 등록만 하면 된다.
+// AppUI — panel compositor.
 //
-// has-a: AppUI ◆ UIComponent[]  (패널들을 합성으로 소유)
+// Mirrors src/views/AppUI.h from the ImGui era: holds the panel list and
+// fans render() out to every registered panel. Adding a new panel never
+// requires modifying AppUI (Open-Closed Principle) — just addPanel().
+//
+// UML: FE_JS_View_Class_Diagram — AppUI ◆ owns a list of UIComponent and
+// drives them polymorphically through render(snapshot).
 // =============================================================================
 
 import { UIComponent } from './UIComponent.js';
 
 export class AppUI {
-    #panels = [];   // 등록된 패널 목록(private 필드)
+    #panels = [];
 
-    // 패널 등록. UIComponent 가 아니면 타입 오류. 등록 즉시 bind()로 이벤트 연결.
     addPanel(panel) {
         if (!(panel instanceof UIComponent)) {
             throw new TypeError('addPanel expects a UIComponent');
@@ -22,7 +22,6 @@ export class AppUI {
         panel.bind();
     }
 
-    // 한 프레임 렌더: 모든 패널에 같은 스냅샷을 넘겨 render() 호출(다형성).
     renderAll(snapshot) {
         for (const panel of this.#panels) panel.render(snapshot);
     }

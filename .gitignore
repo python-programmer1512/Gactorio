@@ -32,6 +32,10 @@ compile_commands.json
 *.swp
 *.user
 
+# draw.io auto-backups
+*.bkp
+.$*
+
 # Local helper scripts (not part of the project)
 extract_pdf.py
 fill_report.py

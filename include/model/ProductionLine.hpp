@@ -1,19 +1,16 @@
 #pragma once
 
 // =============================================================================
-// ProductionLine — 한 생산라인: 작업 큐 + 순서가 있는 기계 묶음
-// -----------------------------------------------------------------------------
-// 책임:
-//   * 기계들을 unique_ptr<Machine> 로 "소유"한다(composition). 다형 컨테이너라서
-//     라인은 어떤 구체 기계가 들어있는지 몰라도 된다.
-//   * 대기 작업 큐(taskQueue_)를 관리하고, 비어 있는 적합한 기계에 작업을 배정한다
-//     (assignAvailableTask). 배정은 역할(role) 일치로만 판단 → 타입 분기 없음.
-//   * 완료된 제품 ID를 모아(collectCompletedProducts) Factory 에 넘긴다.
+// ProductionLine — one conveyor of four stations plus its task queue.
 //
-// 복사 금지/이동 허용: 기계를 unique_ptr 로 소유하므로 복사는 막고(=delete),
-// vector<ProductionLine> 안에서 재배치될 수 있도록 이동은 허용한다.
+// UML references (BE_Overall_Class_Diagram, Core_Simulation_Class_Diagram):
+//   has-a : OWNS its Machines as vector<unique_ptr<Machine>> (composition ◆);
+//           holds a deque of ProductionTask (shared_ptr) as its work queue;
+//           references an EventBus (association →, non-owning).
+//   Move-only (copy deleted) because it uniquely owns its Machines.
 // =============================================================================
 
+#include "common/ScenarioType.hpp"
 #include "common/Types.hpp"
 #include "model/Machine.hpp"
 #include "model/Product.hpp"
@@ -22,46 +19,83 @@
 
 #include <deque>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace gactorio {
 
+class Inventory;
+
+struct LineScenarioConfig {
+    ScenarioType type;
+    std::optional<MachineRole> bottleneckRole;
+    double bottleneckSpeedMultiplier;
+    std::optional<double> breakdownProbabilityOverride;
+    std::optional<std::size_t> queueCapacity;
+};
+
+enum class EnqueueResult {
+    Accepted,
+    RejectedFull,
+    LostOverflow
+};
+
 class ProductionLine {
 public:
     ProductionLine(ProductionLineId id, std::string name);
-    ProductionLine(const ProductionLine&) = delete;             // 복사 금지(unique_ptr 소유)
+    ProductionLine(const ProductionLine&) = delete;
     ProductionLine& operator=(const ProductionLine&) = delete;
-    ProductionLine(ProductionLine&&) noexcept = default;        // 이동 허용
+    ProductionLine(ProductionLine&&) noexcept = default;
     ProductionLine& operator=(ProductionLine&&) noexcept = default;
 
     ProductionLineId id() const;
     const std::string& name() const;
-    const std::vector<std::unique_ptr<Machine>>& machines() const;  // 소유 기계 목록
+    const std::string& definitionId() const noexcept;
+    const std::vector<std::unique_ptr<Machine>>& machines() const;
+    ScenarioType scenario() const;
+    ScenarioType getScenario() const;
 
-    void setEventBus(EventBus* eventBus);                  // 버스 연결(기계들에도 전파)
-    void enqueueProduct(std::shared_ptr<Product> product); // 제품을 작업으로 큐에 추가
-    std::size_t queueLength() const;                       // 대기 작업 수
-    std::shared_ptr<ProductionTask> currentTask() const;   // 큐 맨 앞 작업
-    void assignAvailableTask();                            // 유휴 기계에 적합 작업 배정
-    std::vector<ProductId> collectCompletedProducts();     // 완료 제품 ID 수거
-    void addMachine(std::unique_ptr<Machine> machine);     // 기계 추가(소유 이전)
-    Machine* findMachine(MachineId id);                    // ID로 기계 찾기
+    void setScenario(ScenarioType scenario);
+    void setDefinitionId(std::string definitionId);
+    void setEventBus(EventBus* eventBus);
+    EnqueueResult enqueueProduct(std::shared_ptr<Product> product);
+    std::size_t queueLength() const;
+    std::optional<std::size_t> queueCapacity() const;
+    std::size_t queueCapacityValueOrZero() const;
+    void setQueueCapacity(std::size_t capacity);
+    void resetQueueCapacity();
+    std::size_t droppedTaskCount() const;
+    void setDroppedTaskCount(std::size_t count);
+    std::shared_ptr<ProductionTask> currentTask() const;
+    void assignAvailableTask();
+    void assignAvailableTask(Inventory* inventory);
+    std::vector<StepOutput> collectPendingStepOutputs();
+    std::vector<ProductId> collectCompletedProducts();
+    void addMachine(std::unique_ptr<Machine> machine);
+    Machine* findMachine(MachineId id);
     const Machine* findMachine(MachineId id) const;
-    void update(double deltaTime);                         // 라인 단독 갱신(테스트용 경로)
+    void update(double deltaTime);
 
-    // ---- Memento 지원 (Factory 의 생성/복원에서 사용) ----------------------
-    std::vector<ProductId> pendingProductIds() const;  // 큐에 남은 제품 ID 목록
-    void clearQueue();                                 // 큐 비우기
-    void clearCompleted();                             // 완료 목록 비우기
+    // ---- Memento support (used by Factory::create/restoreFromMemento) ----
+    std::vector<ProductId> pendingProductIds() const;
+    std::vector<ProductionTaskMemento> pendingTaskMementos() const;
+    std::optional<std::size_t> taskIndexFor(const ProductionTask* task) const;
+    EnqueueResult enqueueTask(std::shared_ptr<ProductionTask> task);
+    void clearQueue();
+    void clearCompleted();
 
 private:
-    ProductionLineId id_;                                       // 라인 ID
-    std::string name_;                                          // 라인 이름
-    std::deque<std::shared_ptr<ProductionTask>> taskQueue_;     // 대기 작업 큐(공유 소유)
-    std::vector<ProductId> completedProducts_;                  // 이번 틱 완료 제품 임시
-    std::vector<std::unique_ptr<Machine>> machines_;            // 소유 기계들(composition)
-    EventBus* eventBus_ = nullptr;                              // 이벤트 버스(비소유)
+    ProductionLineId id_;
+    std::string name_;
+    std::string definitionId_;
+    ScenarioType scenario_ = ScenarioType::NormalFlow;
+    std::deque<std::shared_ptr<ProductionTask>> taskQueue_;
+    std::vector<ProductId> completedProducts_;
+    std::vector<std::unique_ptr<Machine>> machines_;
+    std::optional<std::size_t> queueCapacity_;
+    std::size_t droppedTaskCount_ = 0;
+    EventBus* eventBus_ = nullptr;
 };
 
 } // namespace gactorio

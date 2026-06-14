@@ -1,21 +1,22 @@
 #pragma once
 
 // =============================================================================
-// Factory — 시뮬레이션 최상위 집합체(aggregate root) + Memento 의 Originator
-// -----------------------------------------------------------------------------
-// 소유(composition): 생산라인들, 전역 재고, 시뮬레이션 시계, 이벤트 버스, 그리고
-//   두 Observer(EventLog/Statistics). 생성자에서 두 Observer 를 버스에 구독시킨다.
+// Factory — the simulation aggregate root, and the Originator of the Memento
+// pattern.
 //
-// 핵심 동작 update():
-//   시계 갱신 → (선)작업배정 → machines_ 캐시를 돌며 Machine::update() 다형 호출 →
-//   완료 제품 수거해 재고 반영 → (후)작업배정. 이 루프 어디에도 구체 기계 타입 분기가
-//   없다(과제 요구). machines_ 는 라인들 안의 기계를 가리키는 비소유 raw 포인터 캐시다.
+// UML references:
+//   * BE_Overall_Class_Diagram  — Factory OWNS (composition ◆): Inventory,
+//     the ProductionLines (by-value vector), the EventBus, the two Observers
+//     (EventLogObserver, StatisticsObserver) and the SimClock. It also keeps a
+//     non-owning Machine* cache (aggregation ◇) flattened from the lines.
+//     CarbonationFactory generalizes Factory (▷).
+//   * Memento_Pattern_Diagram   — createMemento()/restoreFromMemento() make
+//     Factory the Originator; FactoryMemento is the Memento product.
 //
-// Memento(Originator): createMemento()로 현재 상태를 불투명 스냅샷으로 캡처하고,
-//   restoreFromMemento()로 복원한다. 제품/라인 재구성은 가상 훅으로 분리해 파생
-//   Factory(CarbonationFactory)가 구체 토폴로지를 채우게 한다(Template Method 성격).
-//
-// 추상화/DIP: Factory 는 Machine/Observer 같은 추상에 의존하고 구체 기계 타입은 모른다.
+// Relationships:
+//   has-a : Inventory, vector<ProductionLine>, EventBus, two Observers,
+//           SimClock (all owned); vector<Machine*> cache (non-owning)
+//   is-a  : CarbonationFactory is-a Factory
 // =============================================================================
 
 #include "common/SimClock.hpp"
@@ -36,66 +37,65 @@ namespace gactorio {
 class Factory {
 public:
     Factory();
-    virtual ~Factory() = default;   // CarbonationFactory 가 상속하므로 가상 소멸자
+    virtual ~Factory() = default;
 
-    // ---- 조회 접근자 -------------------------------------------------------
-    SimulationTime simulationTime() const;                       // 현재 시뮬레이션 시간
+    SimulationTime simulationTime() const;
     const Inventory& inventory() const;
-    Inventory& inventory();                                      // (파생/내부 설정용) 가변 재고
-    const std::vector<ProductionLine>& productionLines() const;  // 라인 목록
-    const std::vector<Machine*>& machines() const;               // 기계 포인터 캐시
-    const EventLog& eventLog() const;                            // 이벤트 로그 Observer
-    const Statistics& statistics() const;                        // 통계 Observer
+    Inventory& inventory();
+    const std::vector<ProductionLine>& productionLines() const;
+    const std::vector<Machine*>& machines() const;
+    const EventLog& eventLog() const;
+    const Statistics& statistics() const;
     EventBus& eventBus();
     const EventBus& eventBus() const;
     const SimClock& clock() const;
 
-    // ---- 명령 -------------------------------------------------------------
-    void addProductionLine(ProductionLine line);                 // 라인 추가(버스 연결 + 캐시 갱신)
-    bool removeProductionLine(LineId id);                        // 라인 제거(유휴일 때만, 최소 1개 유지)
-    bool enqueueProduct(LineId lineId, std::shared_ptr<Product> product); // 재료 소비 후 큐 등록
-    bool restockItem(ItemType itemType, int amount);            // 원자재 보충
-    void setRandomBreakdownsEnabled(bool enabled);
-    bool randomBreakdownsEnabled() const;
-    void clearEventLog();
+    void addProductionLine(ProductionLine line);
+    bool removeProductionLine(LineId id);
+    std::shared_ptr<Product> createProductForQueue(ProductId id) const;
+    EnqueueResult enqueueProduct(LineId lineId, std::shared_ptr<Product> product);
+    bool restockItem(ItemType itemType, int amount);
     ProductionLine* findProductionLine(LineId id);
     const ProductionLine* findProductionLine(LineId id) const;
     Machine* findMachine(MachineId id);
-    SimulationTime update(double realDeltaTime);                // ★ 매 틱 시뮬레이션 진행
+    bool setLineScenario(LineId lineId, ScenarioType scenario);
+    std::optional<ScenarioType> getLineScenario(LineId lineId) const;
+    void clearEventLog();
+    SimulationTime update(double realDeltaTime);
     void pauseClock();
     void resumeClock();
     void resetClock();
     void stopClock();
     void setClockSpeed(double speedMultiplier);
 
-    // ---- Memento (Originator 측) ------------------------------------------
-    // 현재 공장 상태를 불투명 스냅샷으로 캡처. virtual: 파생이 추가 상태(다음 ID 등)를 덧붙임.
+    // ---- Memento (Originator side) ---------------------------------------
+    // Capture the current factory state as an opaque snapshot.
     virtual FactoryMemento createMemento() const;
-    // 캡처된 스냅샷으로 복원. 진행 중 작업은 복원하지 않고(기계는 Idle+이전 HP로 리셋),
-    // 라인 큐는 스냅샷의 제품 ID로 다시 채워 작업이 자연스레 재개되게 한다.
+    // Apply a previously captured snapshot. In-flight tasks are not
+    // restored (machines reset to Idle with their old HP); the line
+    // queues are repopulated from the snapshot so work can resume.
     virtual void   restoreFromMemento(const FactoryMemento& memento);
 
 protected:
-    EventLog& mutableEventLog();        // 파생/내부에서 로그 가변 접근
-    Statistics& mutableStatistics();    // 파생/내부에서 통계 가변 접근
+    EventLog& mutableEventLog();
+    Statistics& mutableStatistics();
 
-    // 파생이 제공하는 "ID→Product 생성" 훅. base Factory 는 카탈로그를 모르므로 가상.
-    // CarbonationFactory 가 ProductCatalog 로 위임 구현한다.
+    // Subclass-supplied product builder. The default Factory cannot rebuild
+    // products from IDs alone, so this is virtual; CarbonationFactory delegates
+    // to the product catalog used by the controller and view.
     virtual std::shared_ptr<Product> createProductById(ProductId id) const;
-    // 파생이 제공하는 "LineMemento→ProductionLine 재구성" 훅(구체 스테이션 구성 담당).
     virtual std::optional<ProductionLine> createLineForMemento(const LineMemento& memento) const;
 
 private:
-    void rebuildMachineCache();   // 라인들로부터 machines_ 포인터 캐시 재구성
+    void rebuildMachineCache();
 
-    SimClock clock_;                          // 시뮬레이션 시계(composition)
-    Inventory inventory_;                     // 전역 재고(composition)
-    std::vector<ProductionLine> productionLines_;  // 라인들(composition)
-    std::vector<Machine*> machines_;          // 라인 내부 기계를 가리키는 비소유 캐시
-    EventBus eventBus_;                       // 이벤트 발행 버스(composition)
-    EventLogObserver eventLog_;               // 로그 Observer(composition)
-    StatisticsObserver statistics_;           // 통계 Observer(composition)
-    bool randomBreakdownsEnabled_ = true;
+    SimClock clock_;
+    Inventory inventory_;
+    std::vector<ProductionLine> productionLines_;
+    std::vector<Machine*> machines_;
+    EventBus eventBus_;
+    EventLogObserver eventLog_;
+    StatisticsObserver statistics_;
 };
 
 } // namespace gactorio

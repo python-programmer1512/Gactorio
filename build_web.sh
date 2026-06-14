@@ -9,15 +9,28 @@ set -e
 #    hyperparameter edits in the JSON propagate to the C++ build.
 python tools/gen_config.py
 
+mkdir -p docs/config
+cp data/factory_config.runtime.json docs/config/factory_config.runtime.json
+cp data/factory_config.custom_runtime.json docs/config/factory_config.custom_runtime.json
+
 SOURCES=(
     src/common/Types.cpp
     src/common/SimClock.cpp
+    src/common/ScenarioType.cpp
+    src/model/config/ConfigIdAdapters.cpp
     src/model/Item.cpp
     src/model/Product.cpp
     src/model/ProductCatalog.cpp
+    src/model/config/DefinitionRegistry.cpp
+    src/model/config/FactoryConfigLoader.cpp
+    src/model/config/FactoryRuntimeContext.cpp
     src/model/ProductionTask.cpp
     src/model/Recipe.cpp
     src/model/Inventory.cpp
+    src/model/ConfiguredStation.cpp
+    src/model/ConfigurableFactory.cpp
+    src/model/FactoryBuilder.cpp
+    src/model/StationFactory.cpp
     src/model/MachineState.cpp
     src/model/MachineStates.cpp
     src/model/Machine.cpp
@@ -34,6 +47,7 @@ SOURCES=(
     src/dto/StatisticsSnapshot.cpp
     src/dto/FactorySnapshot.cpp
     src/controller/SimulationHistory.cpp
+    src/controller/ControllerConfigIdAdapters.cpp
     src/controller/FactoryController.cpp
     src/controller/Controller.cpp
     src/web/bindings.cpp

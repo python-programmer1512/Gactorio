@@ -13,12 +13,20 @@ ProductionLineSnapshot::ProductionLineSnapshot(
     std::string name,
     std::size_t queueLength,
     std::string currentTaskName,
-    double currentTaskProgress)
+    double currentTaskProgress,
+    std::string scenarioId,
+    std::string scenarioName,
+    std::size_t queueCapacity,
+    std::size_t droppedTaskCount)
     : id_(id),
       name_(std::move(name)),
       queueLength_(queueLength),
       currentTaskName_(std::move(currentTaskName)),
-      currentTaskProgress_(currentTaskProgress) {}
+      currentTaskProgress_(currentTaskProgress),
+      scenarioId_(std::move(scenarioId)),
+      scenarioName_(std::move(scenarioName)),
+      queueCapacity_(queueCapacity),
+      droppedTaskCount_(droppedTaskCount) {}
 
 ProductionLineId ProductionLineSnapshot::id() const {
     return id_;
@@ -38,6 +46,22 @@ const std::string& ProductionLineSnapshot::currentTaskName() const {
 
 double ProductionLineSnapshot::currentTaskProgress() const {
     return currentTaskProgress_;
+}
+
+const std::string& ProductionLineSnapshot::scenarioId() const {
+    return scenarioId_;
+}
+
+const std::string& ProductionLineSnapshot::scenarioName() const {
+    return scenarioName_;
+}
+
+std::size_t ProductionLineSnapshot::queueCapacity() const {
+    return queueCapacity_;
+}
+
+std::size_t ProductionLineSnapshot::droppedTaskCount() const {
+    return droppedTaskCount_;
 }
 
 void ProductionLineSnapshot::setCurrentTaskProgress(double progress) {

@@ -1,12 +1,5 @@
 #pragma once
 
-// =============================================================================
-// ProductionLineSnapshot — 생산라인 한 개의 상태 DTO (기계 스냅샷들을 포함)
-// -----------------------------------------------------------------------------
-// 라인 ID/이름/대기 수/현재 작업명·진행률 + 소속 기계 스냅샷 목록을 담는다.
-// composition: ProductionLineSnapshot ◆ MachineSnapshot.
-// =============================================================================
-
 #include "common/Types.hpp"
 #include "dto/MachineSnapshot.hpp"
 
@@ -23,15 +16,23 @@ public:
         std::string name,
         std::size_t queueLength = 0,
         std::string currentTaskName = "",
-        double currentTaskProgress = 0.0);
+        double currentTaskProgress = 0.0,
+        std::string scenarioId = "normal-flow",
+        std::string scenarioName = "Normal Flow",
+        std::size_t queueCapacity = 0,
+        std::size_t droppedTaskCount = 0);
 
     ProductionLineId id() const;
     const std::string& name() const;
-    std::size_t queueLength() const;                  // 대기 작업 수
-    const std::string& currentTaskName() const;       // 현재 작업 제품명(없으면 빈 문자열)
-    double currentTaskProgress() const;               // 현재 작업 진행률
-    void setCurrentTaskProgress(double progress);     // 진행률 보정(컨트롤러가 설정)
-    void addMachine(MachineSnapshot machine);         // 기계 스냅샷 추가
+    std::size_t queueLength() const;
+    const std::string& currentTaskName() const;
+    double currentTaskProgress() const;
+    const std::string& scenarioId() const;
+    const std::string& scenarioName() const;
+    std::size_t queueCapacity() const;
+    std::size_t droppedTaskCount() const;
+    void setCurrentTaskProgress(double progress);
+    void addMachine(MachineSnapshot machine);
     const std::vector<MachineSnapshot>& machines() const;
 
 private:
@@ -40,9 +41,13 @@ private:
     std::size_t queueLength_;
     std::string currentTaskName_;
     double currentTaskProgress_;
-    std::vector<MachineSnapshot> machines_;   // 소속 기계 스냅샷들(composition)
+    std::string scenarioId_;
+    std::string scenarioName_;
+    std::size_t queueCapacity_;
+    std::size_t droppedTaskCount_;
+    std::vector<MachineSnapshot> machines_;
 };
 
-using LineSnapshot = ProductionLineSnapshot;   // 가독성용 별칭
+using LineSnapshot = ProductionLineSnapshot;
 
 } // namespace gactorio

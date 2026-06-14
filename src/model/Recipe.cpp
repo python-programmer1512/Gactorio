@@ -1,5 +1,7 @@
 #include "model/Recipe.hpp"
 
+#include "model/config/ConfigIdAdapters.hpp"
+
 #include <utility>
 
 // =============================================================================
@@ -23,15 +25,36 @@ double Recipe::durationSeconds() const {
     return durationSeconds_;
 }
 
+void Recipe::addInput(const std::string& itemId, int quantity) {
+    inputs_[itemId] += quantity;
+}
+
 void Recipe::addInput(ItemType itemType, int quantity) {
-    inputs_[itemType] += quantity;
+    addInput(config_model::toItemId(itemType), quantity);
 }
 
 void Recipe::addOutput(ProductId productId, int quantity) {
     outputs_[productId] += quantity;
 }
 
-const std::map<ItemType, int>& Recipe::inputs() const {
+bool Recipe::requiresItem(const std::string& itemId) const {
+    return inputs_.find(itemId) != inputs_.end();
+}
+
+bool Recipe::requiresItem(ItemType itemType) const {
+    return requiresItem(config_model::toItemId(itemType));
+}
+
+int Recipe::requiredQuantity(const std::string& itemId) const {
+    const auto found = inputs_.find(itemId);
+    return found == inputs_.end() ? 0 : found->second;
+}
+
+int Recipe::requiredQuantity(ItemType itemType) const {
+    return requiredQuantity(config_model::toItemId(itemType));
+}
+
+const std::map<std::string, int>& Recipe::inputs() const {
     return inputs_;
 }
 

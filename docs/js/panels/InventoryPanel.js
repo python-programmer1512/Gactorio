@@ -1,36 +1,46 @@
 // =============================================================================
-// InventoryPanel — 원자재와 완제품 재고 표시 + 원자재 보충(+5) (오른쪽 컬럼)
-// -----------------------------------------------------------------------------
-// 스냅샷의 inventory 배열을 isProduct 플래그로 갈라 "원자재" / "완제품" 두 표로 그린다.
-// 원자재 행의 +5 버튼은 컨트롤러 restockItem 을 호출한다(제품은 보충 버튼 없음).
+// InventoryPanel - raw items and finished products. (Right column.)
 // =============================================================================
 
 import { UIComponent } from '../UIComponent.js';
 import { esc } from '../util.js';
 
 export class InventoryPanel extends UIComponent {
-    #ctrl;   // Module.Controller (restockItem 명령)
+    #ctrl;
 
     constructor(controller) {
         super();
         this.#ctrl = controller;
     }
 
-    // bind(): 보충 버튼 클릭 위임. 매 렌더마다 표가 새로 그려지므로 위임 리스너를 쓴다.
     bind() {
+        const restock = (btn) => {
+            const itemId = btn.dataset.restockItem;
+            console.log('[gactorio] restockItemById', itemId, '->', this.#ctrl.restockItemById(itemId));
+        };
+
         document.getElementById('inventory-content').addEventListener('pointerdown', e => {
             const btn = e.target.closest('button[data-restock-item]');
             if (!btn || btn.disabled) return;
+            e.preventDefault();
+            btn.dataset.pointerHandled = '1';
+            restock(btn);
+        });
 
-            const itemId = parseInt(btn.dataset.restockItem, 10);
-            console.log('[gactorio] restockItem', itemId, '→', this.#ctrl.restockItem(itemId));
+        document.getElementById('inventory-content').addEventListener('click', e => {
+            const btn = e.target.closest('button[data-restock-item]');
+            if (!btn || btn.disabled) return;
+            if (btn.dataset.pointerHandled === '1') {
+                delete btn.dataset.pointerHandled;
+                return;
+            }
+            restock(btn);
         });
     }
 
-    // render(): 재고를 원자재/완제품으로 분리해 두 개의 표로 출력.
     render(snap) {
-        const rawItems = snap.inventory.filter(it => !it.isProduct);   // 원자재
-        const products = snap.inventory.filter(it => it.isProduct);    // 완제품
+        const rawItems = snap.inventory.filter(it => !it.isProduct);
+        const products = snap.inventory.filter(it => it.isProduct);
 
         document.getElementById('inventory-content').innerHTML = `
             <h3>Raw Items</h3>
@@ -45,7 +55,6 @@ export class InventoryPanel extends UIComponent {
             </table>`;
     }
 
-    // 원자재 행: 이름/수량 + 보충(+5) 버튼. 비어 있으면 안내 행.
     #rawRows(items) {
         if (items.length === 0) {
             return '<tr><td colspan="3" style="color:#666">(empty)</td></tr>';
@@ -53,13 +62,17 @@ export class InventoryPanel extends UIComponent {
 
         return items.map(it => `
             <tr>
-                <td>${esc(it.name)}</td>
+                <td>${esc(it.displayName || it.name || it.id)}</td>
                 <td>${it.quantity}</td>
-                <td><button class="small restock" data-restock-item="${it.id}">+5</button></td>
+                <td>${this.#restockButton(it)}</td>
             </tr>`).join('');
     }
 
-    // 완제품 행: 이름/수량(보충 버튼 없음). 아직 없으면 안내 행.
+    #restockButton(item) {
+        const amount = item.restockAmount || 5;
+        return `<button class="small restock" data-restock-item="${esc(item.id)}">+${amount}</button>`;
+    }
+
     #productRows(products) {
         if (products.length === 0) {
             return '<tr><td colspan="2" style="color:#666">(none yet)</td></tr>';
@@ -67,7 +80,7 @@ export class InventoryPanel extends UIComponent {
 
         return products.map(it => `
             <tr>
-                <td>${esc(it.name)}</td>
+                <td>${esc(it.displayName || it.name || it.id)}</td>
                 <td>${it.quantity}</td>
             </tr>`).join('');
     }

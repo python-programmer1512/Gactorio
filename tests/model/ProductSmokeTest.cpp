@@ -11,10 +11,13 @@ int main() {
     const auto& catalog = gactorio::productDefinitions();
     assert(catalog.size() == 3);
     assert(gactorio::createProduct(gactorio::ProductType::HyperBolt)->getName() == "Hyper Bolt");
+    assert(gactorio::createProduct("hyper_bolt")->getName() == "Hyper Bolt");
 
     // Every drink has a distinct product id.
     assert(voltz.getProductId() != hyper.getProductId());
     assert(hyper.getProductId() != aurora.getProductId());
+    assert(voltz.getProductId() == "voltz_classic");
+    assert(voltz.defaultRecipeId() == "voltz_classic_recipe");
 
     // All drinks share the same 5-item bill of materials shape.
     assert(voltz.getRequirements().size()  == 5);
@@ -26,6 +29,7 @@ int main() {
     assert(hyper.getRoute().size()  == 4);
     assert(aurora.getRoute().size() == 4);
 
+    assert(voltz.getRequirements().front().itemId()   == "ingredient");
     assert(voltz.getRequirements().front().itemType() == gactorio::ItemType::Ingredient);
     assert(voltz.getRoute().front().requiredRole()    == gactorio::MachineRole::Mixing);
     assert(voltz.getRoute().back().requiredRole()     == gactorio::MachineRole::Packaging);

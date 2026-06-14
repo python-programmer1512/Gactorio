@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Gactorio - Energy Drink Factory</title>
-    <link rel="stylesheet" href="style.css?v=20260614-checklist">
+    <link rel="stylesheet" href="style.css?v=20260614-hotfix-layout2">
 </head>
 <body>
     <header>
@@ -23,11 +23,6 @@
                 <span id="sim-time" class="big">0.00</span> s
             </div>
             <div class="row">
-                Tick:
-                <span id="tick-count" class="big small-big">0</span>
-            </div>
-
-            <div class="row">
                 <button id="btn-pause">Pause</button>
                 <button id="btn-reset">Reset</button>
                 <label class="speed">
@@ -39,12 +34,22 @@
             <div class="row">
                 <label class="scenario">
                     Scenario
-                    <select id="scenario">
+                    <select id="global-scenario">
+                        <option value="normal-flow">Normal Flow</option>
                         <option value="random-breakdowns">Random Breakdowns</option>
-                        <option value="normal">Normal Flow</option>
                     </select>
                 </label>
             </div>
+
+            <h3>Runtime Config</h3>
+            <div class="config-actions">
+                <button id="btn-load-runtime-config" class="small">Load Runtime Config</button>
+                <label class="file-load">
+                    <span>Load JSON</span>
+                    <input id="config-file-input" type="file" accept=".json,application/json">
+                </label>
+            </div>
+            <div id="config-status" class="config-status" role="status"></div>
 
             <h3>Memento (Undo / Redo)</h3>
             <div class="row">
@@ -76,28 +81,30 @@
             <div id="inspector-content">Select a machine.</div>
         </section>
 
-        <section id="products">
-            <h2>Products</h2>
-            <p class="hint">Click to enqueue on the shortest line.</p>
-            <div class="product-list"></div>
-        </section>
+        <div id="catalog-stack">
+            <section id="products">
+                <h2>Products</h2>
+                <p class="hint">Click to enqueue on the shortest line.</p>
+                <div class="product-list"></div>
+            </section>
 
-        <section id="inventory">
-            <h2>Inventory</h2>
-            <div id="inventory-content"></div>
-        </section>
+            <section id="inventory">
+                <h2>Inventory</h2>
+                <div id="inventory-content"></div>
+            </section>
+        </div>
     </main>
 
     <script>
         var Module = {
             locateFile(path) {
                 return path.endsWith('.wasm')
-                    ? `${path}?v=20260614-checklist`
+                    ? `${path}?v=20260614-hotfix-layout2`
                     : path;
             }
         };
     </script>
-    <script src="gactorio.js?v=20260614-checklist"></script>
-    <script type="module" src="js/main.js?v=20260614-checklist"></script>
+    <script src="gactorio.js?v=20260614-hotfix-layout2"></script>
+    <script type="module" src="js/main.js?v=20260614-hotfix-layout2"></script>
 </body>
 </html>

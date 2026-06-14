@@ -17,38 +17,52 @@ header {
 header h1 { margin: 0 0 4px; color: #f4c430; font-size: 22px; }
 header p  { margin: 0; color: #888; font-size: 13px; }
 
-/* Three-column layout: left = control + stats + event log,
-   middle = factory (gets the most space for the future CSS shop floor),
-   right = inventory. All three fill the viewport vertically.        */
+/* Four-zone layout: control, large factory floor, inspector, and a compact
+   catalog stack where Products and Inventory share one vertical column. */
 main {
     display: grid;
-    /* sim-control widened +10% (320→352), products is the new column,
-       factory still gets 1fr so it stays the biggest.                */
-    grid-template-columns: 300px minmax(0, 1fr) 250px 210px 230px;
-    gap: 14px;
-    padding: 14px;
+    grid-template-columns: 330px minmax(0, 1fr) 230px 220px;
+    grid-template-areas:
+        "simctl factory inspector catalog";
+    gap: 12px;
+    padding: 12px;
     /* viewport minus header (~75 px) minus our padding (28 px) */
-    height: calc(100vh - 103px);
+    height: calc(100vh - 90px);
 }
 section {
     background: #2a2a2e;
     border: 1px solid #3a3a3e;
     border-radius: 6px;
-    padding: 14px 16px;
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
     min-width: 0;
     min-height: 0;                /* allow children to actually scroll */
 }
-section h2 { margin: 0 0 12px; color: #f4c430; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-section h3 { margin: 16px 0 8px; color: #aaa; font-size: 13px; }
+
+/* Grid-area assignments */
+#sim-control { grid-area: simctl; }
+#factory     { grid-area: factory; }
+#inspector   { grid-area: inspector; }
+#catalog-stack {
+    grid-area: catalog;
+    display: grid;
+    grid-template-rows: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    gap: 12px;
+    min-width: 0;
+    min-height: 0;
+}
+#catalog-stack > section { min-height: 0; }
+
+section h2 { margin: 0 0 10px; color: #f4c430; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+section h3 { margin: 14px 0 7px; color: #aaa; font-size: 12px; }
 
 /* ---------- Sim Control (left column) ----------------------- */
 /* Event log lives at the bottom of this column and fills whatever
    vertical room is left after the headers/buttons/stats above it.   */
 #sim-control #event-log {
     flex: 1 1 auto;
-    min-height: 120px;
+    min-height: 150px;
     overflow-y: auto;
     background: #1f1f22;
     border: 1px solid #333;
@@ -86,9 +100,9 @@ section h3 { margin: 16px 0 8px; color: #aaa; font-size: 13px; }
 }
 .inspector-fields {
     display: grid;
-    grid-template-columns: 82px 1fr;
-    gap: 5px 8px;
-    margin: 0 0 12px;
+    grid-template-columns: 76px 1fr;
+    gap: 4px 8px;
+    margin: 0 0 10px;
     font-size: 12px;
 }
 .inspector-fields dt { color: #888; }
@@ -100,22 +114,32 @@ section h3 { margin: 16px 0 8px; color: #aaa; font-size: 13px; }
     margin-top: 10px;
 }
 
-/* ---------- Inventory (right column) ------------------------ */
+/* ---------- Inventory (catalog stack bottom) ---------------- */
 #inventory-content {
     flex: 1 1 auto;
     overflow-y: auto;
     min-height: 0;
 }
+#inventory table { font-size: 13px; }
+#inventory th,
+#inventory td { padding: 5px 8px; }
 
-/* ---------- Products (second-from-right column) -------------- */
-#products .hint { margin: 0 0 8px; color: #888; font-size: 11px; }
-.product-list   { display: flex; flex-direction: column; gap: 6px; }
+/* ---------- Products (catalog stack top) -------------------- */
+#products .hint { margin: 0 0 7px; color: #888; font-size: 11px; }
+.product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+}
 .product-btn {
     background: #1f1f22;
     border: 1px solid #3a86ff;
     color: #e8e8e8;
     border-radius: 4px;
-    padding: 8px 10px;
+    padding: 6px 8px;
     cursor: pointer;
     text-align: left;
     display: flex;
@@ -123,9 +147,9 @@ section h3 { margin: 16px 0 8px; color: #aaa; font-size: 13px; }
     gap: 2px;
 }
 .product-btn:hover  { background: #25304a; border-color: #6cb6ff; }
-.product-btn b      { color: #f4c430; font-size: 13px; }
-.product-btn span   { color: #888; font-size: 11px; }
-.product-btn .requirements { color: #c8c8c8; line-height: 1.3; }
+.product-btn b      { color: #f4c430; font-size: 12px; }
+.product-btn span   { color: #888; font-size: 10px; }
+.product-btn .requirements { color: #c8c8c8; line-height: 1.2; font-size: 10px; }
 
 /* ---------- Factory header (h2 + Add Line button) ------------ */
 .factory-header {
@@ -146,6 +170,34 @@ section h3 { margin: 16px 0 8px; color: #aaa; font-size: 13px; }
 }
 .line-header > div { flex: 1; min-width: 0; }
 .line-header h3 { margin: 0; flex: 1; }
+.scenario-control {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 5px 0 4px;
+    color: #aeb6c4;
+    font-size: 12px;
+}
+.scenario-control label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.scenario-control select {
+    max-width: 190px;
+    min-width: 150px;
+    height: 26px;
+    border: 1px solid #45515f;
+    border-radius: 4px;
+    background: #1f252d;
+    color: #e8e8e8;
+    font-size: 12px;
+}
+.scenario-control span {
+    color: #f4c430;
+    font-variant-numeric: tabular-nums;
+}
 
 /* ---------- Controls ---------- */
 .row { margin: 8px 0; }
@@ -171,6 +223,42 @@ button:disabled:hover         { background: #3a3a3e; color: #666; cursor: not-al
 
 .speed { margin-left: 4px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; flex-wrap: wrap; }
 .speed input[type=range] { width: 90px; }
+
+.config-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+.file-load {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #3a3a3e;
+    color: #e8e8e8;
+    cursor: pointer;
+    font-size: 12px;
+}
+.file-load:hover { background: #4a4a50; }
+.file-load input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.config-status {
+    min-height: 18px;
+    margin-top: 6px;
+    color: #888;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+.config-status[data-state="success"] { color: #25b39b; }
+.config-status[data-state="error"] { color: #ff6b6b; }
+.config-status[data-state="pending"] { color: #f4c430; }
 
 /* ---------- Stats grid ---------- */
 #stats-grid {
@@ -207,6 +295,10 @@ button:disabled:hover         { background: #3a3a3e; color: #666; cursor: not-al
     padding: 8px 4px 14px;
     cursor: grab;
     user-select: none;
+}
+.conveyor-shell {
+    position: relative;
+    min-width: 0;
 }
 .conveyor-line.dragging { cursor: grabbing; }
 .conveyor-line::-webkit-scrollbar { height: 0; }
@@ -346,12 +438,6 @@ button:disabled:hover         { background: #3a3a3e; color: #666; cursor: not-al
     border-radius: inherit;
     background: #3a86ff;
 }
-.machine-actions {
-    display: flex;
-    gap: 6px;
-    margin-top: 7px;
-}
-
 .belt-link {
     position: relative;
     flex: 0 0 24px;
@@ -380,27 +466,24 @@ button:disabled:hover         { background: #3a3a3e; color: #666; cursor: not-al
     border-left: 11px solid #7d8ba1;
 }
 
-.conveyor-line .conveyor-slider {
-    position: absolute;
-    left: 4px;
-    right: 4px;
-    bottom: 1px;
+.conveyor-shell .conveyor-slider {
+    display: block;
     width: calc(100% - 8px);
     height: 12px;
-    margin: 0;
+    margin: 4px 4px 0;
     accent-color: #7f8da3;
     cursor: pointer;
     appearance: none;
     background: transparent;
 }
-.conveyor-line .conveyor-slider.is-hidden { display: none; }
-.conveyor-line .conveyor-slider::-webkit-slider-runnable-track {
+.conveyor-shell .conveyor-slider.is-hidden { display: none; }
+.conveyor-shell .conveyor-slider::-webkit-slider-runnable-track {
     height: 12px;
     border-radius: 999px;
     background: #303946;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
 }
-.conveyor-line .conveyor-slider::-webkit-slider-thumb {
+.conveyor-shell .conveyor-slider::-webkit-slider-thumb {
     appearance: none;
     width: 72px;
     height: 12px;
@@ -411,12 +494,12 @@ button:disabled:hover         { background: #3a3a3e; color: #666; cursor: not-al
         inset 0 1px 0 rgba(255,255,255,0.18),
         0 1px 4px rgba(0,0,0,0.25);
 }
-.conveyor-line .conveyor-slider::-moz-range-track {
+.conveyor-shell .conveyor-slider::-moz-range-track {
     height: 12px;
     border-radius: 999px;
     background: #303946;
 }
-.conveyor-line .conveyor-slider::-moz-range-thumb {
+.conveyor-shell .conveyor-slider::-moz-range-thumb {
     width: 72px;
     height: 12px;
     border: 0;
@@ -468,12 +551,15 @@ progress { width: 100%; height: 10px; }
 #event-log::-webkit-scrollbar,
 #factory-content::-webkit-scrollbar,
 #inventory-content::-webkit-scrollbar,
-#inspector-content::-webkit-scrollbar { width: 8px; }
+#inspector-content::-webkit-scrollbar,
+.product-list::-webkit-scrollbar { width: 8px; }
 #event-log::-webkit-scrollbar-thumb,
 #factory-content::-webkit-scrollbar-thumb,
 #inventory-content::-webkit-scrollbar-thumb,
-#inspector-content::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+#inspector-content::-webkit-scrollbar-thumb,
+.product-list::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
 #event-log::-webkit-scrollbar-track,
 #factory-content::-webkit-scrollbar-track,
 #inventory-content::-webkit-scrollbar-track,
-#inspector-content::-webkit-scrollbar-track { background: transparent; }
+#inspector-content::-webkit-scrollbar-track,
+.product-list::-webkit-scrollbar-track { background: transparent; }

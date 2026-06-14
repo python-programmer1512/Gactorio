@@ -66,9 +66,9 @@ MachineId nextMachineIdAfter(const std::vector<Machine*>& machines) {
 CarbonationFactory::CarbonationFactory() {
     // ---- 레시피 (런타임 생산엔 미사용, 조회/표시용으로 보관) ----------------
     for (const auto& definition : productDefinitions()) {
-        Recipe recipe(definition.id, definition.name + " Brew", definition.totalDurationSeconds);
+        Recipe recipe(definition.defaultRecipeId, definition.name + " Brew", definition.totalDurationSeconds);
         for (const auto& requirement : definition.requirements) {
-            recipe.addInput(requirement.itemType(), requirement.quantity());
+            recipe.addInput(requirement.itemId(), requirement.quantity());
         }
         recipe.addOutput(definition.id, 1);
         recipes_.push_back(std::move(recipe));

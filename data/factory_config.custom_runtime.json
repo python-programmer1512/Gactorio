@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "1.0.0",
+  "settings": {
+    "initialHealth": 100.0,
+    "damageChancePerSecond": 0.5,
+    "damageMinHp": 5.0,
+    "damageMaxHp": 10.0,
+    "incrementalRepairHp": 5.0,
+    "repairAllDelaySeconds": 3.0,
+    "defaultLineScenarioId": "normal-flow",
+    "defaultSpeedMultiplier": 1.0
+  },
+  "items": [
+    { "id": "ingredient", "displayName": "Ingredient", "category": "raw", "restockable": true, "restockAmount": 5 },
+    { "id": "water", "displayName": "Water", "category": "raw", "restockable": true, "restockAmount": 5 },
+    { "id": "empty_bottle", "displayName": "Empty Bottle", "category": "raw", "restockable": true, "restockAmount": 5 },
+    { "id": "label", "displayName": "Label", "category": "raw", "restockable": true, "restockAmount": 5 },
+    { "id": "package", "displayName": "Package", "category": "raw", "restockable": true, "restockAmount": 5 },
+    { "id": "citrus_extract", "displayName": "Citrus Extract", "category": "flavor", "restockable": true, "restockAmount": 3 },
+    { "id": "sweetener", "displayName": "Sweetener", "category": "additive", "restockable": true, "restockAmount": 3 },
+    { "id": "mixed_citrus_base", "displayName": "Mixed Citrus Base", "category": "intermediate" },
+    { "id": "flavored_citrus_base", "displayName": "Flavored Citrus Base", "category": "intermediate" },
+    { "id": "chilled_citrus_base", "displayName": "Chilled Citrus Base", "category": "intermediate" },
+    { "id": "bottled_citrus", "displayName": "Bottled Citrus", "category": "intermediate" }
+  ],
+  "products": [
+    {
+      "id": "citrus_surge",
+      "displayName": "Citrus Surge",
+      "description": "Bright citrus energy drink from a JSON-only recipe",
+      "tier": "experimental",
+      "color": "#2FBF71",
+      "sortOrder": 100,
+      "defaultRecipeId": "citrus_surge_recipe"
+    }
+  ],
+  "stations": [
+    { "id": "citrus_mixer_station", "kind": "mixing", "displayName": "Citrus Mixer", "typeName": "Mixing Station", "acceptedStepKinds": ["mixing"], "processingSpeed": 1.0, "maxHealth": 100.0, "breakdownProbability": 0.0 },
+    { "id": "flavor_station", "kind": "flavoring", "displayName": "Flavor Infuser", "typeName": "Flavoring Station", "acceptedStepKinds": ["flavoring"], "processingSpeed": 1.0, "maxHealth": 100.0, "breakdownProbability": 0.0 },
+    { "id": "cooling_station", "kind": "cooling", "displayName": "Flash Cooler", "typeName": "Cooling Station", "acceptedStepKinds": ["cooling"], "processingSpeed": 1.0, "maxHealth": 100.0, "breakdownProbability": 0.0 },
+    { "id": "citrus_bottling_station", "kind": "bottling", "displayName": "Citrus Filler", "typeName": "Bottling Station", "acceptedStepKinds": ["bottling"], "processingSpeed": 1.0, "maxHealth": 100.0, "breakdownProbability": 0.0 },
+    { "id": "citrus_packaging_station", "kind": "packaging", "displayName": "Citrus Packager", "typeName": "Packaging Station", "acceptedStepKinds": ["packaging"], "processingSpeed": 1.0, "maxHealth": 100.0, "breakdownProbability": 0.0 }
+  ],
+  "recipes": [
+    {
+      "id": "citrus_surge_recipe",
+      "productId": "citrus_surge",
+      "displayName": "Citrus Surge Recipe",
+      "steps": [
+        {
+          "id": "mixing_step",
+          "stepKind": "mixing",
+          "duration": 1.0,
+          "inputs": [
+            { "itemId": "ingredient", "quantity": 1 },
+            { "itemId": "water", "quantity": 1 }
+          ],
+          "outputs": [
+            { "itemId": "mixed_citrus_base", "quantity": 1 }
+          ]
+        },
+        {
+          "id": "flavoring_step",
+          "stepKind": "flavoring",
+          "duration": 1.0,
+          "inputs": [
+            { "itemId": "mixed_citrus_base", "quantity": 1 },
+            { "itemId": "citrus_extract", "quantity": 1 },
+            { "itemId": "sweetener", "quantity": 1 }
+          ],
+          "outputs": [
+            { "itemId": "flavored_citrus_base", "quantity": 1 }
+          ]
+        },
+        {
+          "id": "cooling_step",
+          "stepKind": "cooling",
+          "duration": 1.0,
+          "inputs": [
+            { "itemId": "flavored_citrus_base", "quantity": 1 }
+          ],
+          "outputs": [
+            { "itemId": "chilled_citrus_base", "quantity": 1 }
+          ]
+        },
+        {
+          "id": "bottling_step",
+          "stepKind": "bottling",
+          "duration": 1.0,
+          "inputs": [
+            { "itemId": "chilled_citrus_base", "quantity": 1 },
+            { "itemId": "empty_bottle", "quantity": 1 }
+          ],
+          "outputs": [
+            { "itemId": "bottled_citrus", "quantity": 1 }
+          ]
+        },
+        {
+          "id": "packaging_step",
+          "stepKind": "packaging",
+          "duration": 1.0,
+          "inputs": [
+            { "itemId": "bottled_citrus", "quantity": 1 },
+            { "itemId": "label", "quantity": 1 },
+            { "itemId": "package", "quantity": 1 }
+          ],
+          "outputs": [
+            { "productId": "citrus_surge", "quantity": 1 }
+          ]
+        }
+      ]
+    }
+  ],
+  "lines": [
+    {
+      "id": "citrus_line",
+      "displayName": "Citrus Line",
+      "stationIds": [
+        "citrus_mixer_station",
+        "flavor_station",
+        "cooling_station",
+        "citrus_bottling_station",
+        "citrus_packaging_station"
+      ],
+      "recipeIds": ["citrus_surge_recipe"]
+    }
+  ],
+  "initialInventory": [
+    { "itemId": "ingredient", "quantity": 1 },
+    { "itemId": "water", "quantity": 1 },
+    { "itemId": "citrus_extract", "quantity": 1 },
+    { "itemId": "sweetener", "quantity": 1 },
+    { "itemId": "empty_bottle", "quantity": 1 },
+    { "itemId": "label", "quantity": 1 },
+    { "itemId": "package", "quantity": 1 }
+  ],
+  "startupTasks": [
+    { "lineId": "citrus_line", "recipeId": "citrus_surge_recipe", "quantity": 1 }
+  ],
+  "scenarios": [
+    { "id": "normal-flow", "displayName": "Normal Flow", "description": "Default line behavior" },
+    { "id": "random-breakdowns", "displayName": "Random Breakdowns", "description": "Raised machine breakdown probability", "breakdownProbabilityOverride": 0.06 }
+  ]
+}
