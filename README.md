@@ -149,3 +149,9 @@ UML diagrams (drawio + PNG) for every pattern live in `presentation/UML/` and
 |---------|-----------|----------------|
 | 고원규  | 20265010  | FE, BE, PM     |
 | 조용빈  | 20265260  | BE             |
+
+
+
+## GIF
+
+![Test Video](https://github.com/python-programmer1512/Gactorio/blob/main/2026-06-21%2014-22-07.gif)
