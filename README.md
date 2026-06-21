@@ -153,5 +153,9 @@ UML diagrams (drawio + PNG) for every pattern live in `presentation/UML/` and
 
 
 ## GIF
-
+### Normal Flow
 ![Test Video](https://github.com/python-programmer1512/Gactorio/blob/main/2026-06-21%2014-22-07.gif)
+
+### Random Breakdowns
+![Test Video](https://github.com/python-programmer1512/Gactorio/blob/main/2026-06-21%2014-22-07.gif)
+
